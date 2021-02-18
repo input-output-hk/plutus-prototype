@@ -1,22 +1,22 @@
 Slot 1: TxnValidate 4febabe136e65d5fb4683b378570e6f43f92056e489281ad2e6302a9fa127874
 Slot 1: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
           Contract instance started
+Slot 1: Notification: Sending notification schedule collection to 00000000-0000-4000-8000-000000000000
 Slot 1: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
           Receive endpoint call: Object (fromList [("tag",String "schedule collection"),("value",Object (fromList [("unEndpointValue",Array [])]))])
 Slot 1: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
           Contract log: String "Campaign started. Waiting for campaign deadline to collect funds."
+Slot 1: Notification: Notification schedule collection of 00000000-0000-4000-8000-000000000000 succeeded
 Slot 1: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 2}:
           Contract instance started
+Slot 1: Notification: Sending notification contribute to 00000000-0000-4000-8000-000000000001
 Slot 1: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 2}:
           Receive endpoint call: Object (fromList [("tag",String "contribute"),("value",Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 10.0]]]])]))]))]))])
 Slot 1: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 2}:
           Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}"
+Slot 1: Notification: Notification contribute of 00000000-0000-4000-8000-000000000001 succeeded
 Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
           Contract instance started
-Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
-          Receive endpoint call: Object (fromList [("tag",String "contribute"),("value",Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 10.0]]]])]))]))]))])
-Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
-          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}"
 Slot 1: W2: Balancing an unbalanced transaction:
               Tx:
                 Tx 361de37b7000d229c3b36e817c4617b8306f1e223d635bc5d33e7bec375092ca:
@@ -33,12 +33,14 @@ Slot 1: W2: Balancing an unbalanced transaction:
                     "\218\192s\224\DC2;\222\165\157\217\179\189\169\207`7\246:\202\130b}z\188\213\196\172)\221t\NUL>"}
               Requires signatures:
 Slot 1: W2: TxSubmit: efff1ee34a449ad4bd8215215bc53542491c8a6969d1f6017ef900ce07d0f042
+Slot 1: Notification: Sending notification contribute to 00000000-0000-4000-8000-000000000002
+Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
+          Receive endpoint call: Object (fromList [("tag",String "contribute"),("value",Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 10.0]]]])]))]))]))])
+Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
+          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}"
+Slot 1: Notification: Notification contribute of 00000000-0000-4000-8000-000000000002 succeeded
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Contract instance started
-Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
-          Receive endpoint call: Object (fromList [("tag",String "contribute"),("value",Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 1.0]]]])]))]))]))])
-Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
-          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}"
 Slot 1: W3: Balancing an unbalanced transaction:
               Tx:
                 Tx 86e2d6924f7b9acb54da84e0e6820844688219c1014e012cf9baa2d420b9cdb0:
@@ -55,6 +57,12 @@ Slot 1: W3: Balancing an unbalanced transaction:
                     "\237\209\195sr\247R\201z\236\b\130E/\172\172\ETB\164\253\175F\230\FS\ETX?J\246x\164\a\155\205"}
               Requires signatures:
 Slot 1: W3: TxSubmit: 1a1da202829ac425dd11219d9b13d2f8e8c0817d3b79d164c803ec194cd8eabc
+Slot 1: Notification: Sending notification contribute to 00000000-0000-4000-8000-000000000003
+Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
+          Receive endpoint call: Object (fromList [("tag",String "contribute"),("value",Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 1.0]]]])]))]))]))])
+Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
+          Contract log: String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}"
+Slot 1: Notification: Notification contribute of 00000000-0000-4000-8000-000000000003 succeeded
 Slot 1: W4: Balancing an unbalanced transaction:
               Tx:
                 Tx add6bd8461d1d814d7480581b983382184c7b63adaa6cbb74b77bfc4af514c18:

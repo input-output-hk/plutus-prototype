@@ -38,7 +38,7 @@ tests =
         (walletFundsChange w2 (Numeric.negate $ totalAmount vesting))
         $ do
             hdl <- Trace.activateContractWallet w2 con
-            Trace.callEndpoint @"vest funds" hdl ()
+            Trace.callEndpoint_ @"vest funds" hdl ()
             void $ Trace.waitNSlots 1
 
     , checkPredicate "retrieve some funds"
@@ -53,9 +53,9 @@ tests =
         $ do
             hdl1 <- Trace.activateContractWallet w1 con
             hdl2 <- Trace.activateContractWallet w2 con
-            Trace.callEndpoint @"vest funds" hdl2 ()
+            Trace.callEndpoint_ @"vest funds" hdl2 ()
             Trace.waitNSlots 10
-            Trace.callEndpoint @"retrieve funds" hdl1 (Ada.lovelaceValueOf 30)
+            Trace.callEndpoint_ @"retrieve funds" hdl1 (Ada.lovelaceValueOf 30)
             void $ Trace.waitNSlots 1
 
     , checkPredicate "can retrieve everything at the end"
@@ -65,9 +65,9 @@ tests =
         $ do
             hdl1 <- Trace.activateContractWallet w1 con
             hdl2 <- Trace.activateContractWallet w2 con
-            Trace.callEndpoint @"vest funds" hdl2 ()
+            Trace.callEndpoint_ @"vest funds" hdl2 ()
             Trace.waitNSlots 20
-            Trace.callEndpoint @"retrieve funds" hdl1 (totalAmount vesting)
+            Trace.callEndpoint_ @"retrieve funds" hdl1 (totalAmount vesting)
             void $ Trace.waitNSlots 2
 
     , Lib.goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| validate ||])
@@ -89,9 +89,9 @@ retrieveFundsTrace = do
     let con = vestingContract @VestingError vesting
     hdl1 <- Trace.activateContractWallet w1 con
     hdl2 <- Trace.activateContractWallet w2 con
-    Trace.callEndpoint @"vest funds" hdl2 ()
+    Trace.callEndpoint_ @"vest funds" hdl2 ()
     Trace.waitNSlots 10
-    Trace.callEndpoint @"retrieve funds" hdl1 (Ada.lovelaceValueOf 10)
+    Trace.callEndpoint_ @"retrieve funds" hdl1 (Ada.lovelaceValueOf 10)
     void $ Trace.waitNSlots 2
 
 expectedError :: VestingError

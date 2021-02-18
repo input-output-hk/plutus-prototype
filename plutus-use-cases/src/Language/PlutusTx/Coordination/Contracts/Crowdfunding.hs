@@ -257,14 +257,14 @@ scheduleCollection cmp = do
 startCampaign :: EmulatorTrace (ContractHandle CrowdfundingSchema ContractError)
 startCampaign = do
     hdl <- Trace.activateContractWallet (Wallet 1) (crowdfunding theCampaign)
-    Trace.callEndpoint @"schedule collection" hdl ()
+    Trace.callEndpoint_ @"schedule collection" hdl ()
     pure hdl
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution :: Wallet -> Value -> EmulatorTrace ()
 makeContribution w v = do
     hdl <- Trace.activateContractWallet w (crowdfunding theCampaign)
-    Trace.callEndpoint @"contribute" hdl Contribution{contribValue=v}
+    Trace.callEndpoint_ @"contribute" hdl Contribution{contribValue=v}
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign :: EmulatorTrace ()

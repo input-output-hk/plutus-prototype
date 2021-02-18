@@ -31,7 +31,7 @@ tests = testGroup "token account"
         .&&. walletFundsChange w1 theToken)
         $ do
             hdl <- Trace.activateContractWallet w1 contract
-            Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
+            Trace.callEndpoint_ @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
             void $ Trace.waitNSlots 2
 
     , checkPredicate "Pay into the account"
@@ -40,9 +40,9 @@ tests = testGroup "token account"
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10) <> theToken))
         $ do
             hdl <- Trace.activateContractWallet w1 contract
-            Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
+            Trace.callEndpoint_ @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
             _ <- Trace.waitNSlots 3
-            Trace.callEndpoint @"pay" hdl (account, Ada.lovelaceValueOf 10)
+            Trace.callEndpoint_ @"pay" hdl (account, Ada.lovelaceValueOf 10)
             void $ Trace.waitNSlots 1
 
     , checkPredicate "Transfer & redeem all funds"
@@ -94,11 +94,11 @@ tokenAccountTrace :: Trace.EmulatorTrace ()
 tokenAccountTrace = do
     hdl <- Trace.activateContractWallet w1 contract
     hdl2 <- Trace.activateContractWallet w2 contract
-    Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
+    Trace.callEndpoint_ @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
     _ <- Trace.waitNSlots 3
-    Trace.callEndpoint @"pay" hdl (account, Ada.lovelaceValueOf 10)
+    Trace.callEndpoint_ @"pay" hdl (account, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 2
     _ <- Trace.payToWallet w1 w2 theToken
     _ <- Trace.waitNSlots 1
-    Trace.callEndpoint @"redeem" hdl2 (account, Ledger.pubKeyHash $ walletPubKey w2)
+    Trace.callEndpoint_ @"redeem" hdl2 (account, Ledger.pubKeyHash $ walletPubKey w2)
     void $ Trace.waitNSlots 1

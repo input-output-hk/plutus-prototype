@@ -114,17 +114,17 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
     bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
 
-    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.callEndpoint_ @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" bobHdl (params)
+    Trace.callEndpoint_ @"wait" bobHdl (params)
 
-    Trace.callEndpoint @"apply-inputs" aliceHdl (params, [IDeposit alicePk alicePk ada 850])
+    Trace.callEndpoint_ @"apply-inputs" aliceHdl (params, [IDeposit alicePk alicePk ada 850])
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" aliceHdl (params)
+    Trace.callEndpoint_ @"wait" aliceHdl (params)
 
-    Trace.callEndpoint @"apply-inputs" bobHdl (params, [IDeposit alicePk bobPk ada 1000])
+    Trace.callEndpoint_ @"apply-inputs" bobHdl (params, [IDeposit alicePk bobPk ada 1000])
     void $ Trace.waitNSlots 2
 
 
@@ -144,25 +144,25 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
 
-    Trace.callEndpoint @"create" aliceHdl
+    Trace.callEndpoint_ @"create" aliceHdl
         (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
         contract)
     Trace.waitNSlots 5
 
-    Trace.callEndpoint @"wait" bobHdl (params)
+    Trace.callEndpoint_ @"wait" bobHdl (params)
 
-    Trace.callEndpoint @"apply-inputs" aliceHdl (params,
+    Trace.callEndpoint_ @"apply-inputs" aliceHdl (params,
         [ IChoice chId 256
         , IDeposit "alice" "alice" ada 256
         ])
     Trace.waitNSlots 17
 
-    Trace.callEndpoint @"wait" aliceHdl (params)
+    Trace.callEndpoint_ @"wait" aliceHdl (params)
 
-    Trace.callEndpoint @"apply-inputs" bobHdl (params, [INotify])
+    Trace.callEndpoint_ @"apply-inputs" bobHdl (params, [INotify])
 
     Trace.waitNSlots 2
-    Trace.callEndpoint @"redeem" bobHdl (params, "bob", bobPkh)
+    Trace.callEndpoint_ @"redeem" bobHdl (params, "bob", bobPkh)
     void $ Trace.waitNSlots 2
     where
         alicePk = PK $ pubKeyHash $ walletPubKey alice

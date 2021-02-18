@@ -83,17 +83,17 @@ autoexecZCBTest = checkPredicate "ZCB Auto Execute Contract"
     aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
 
     -- Bob will wait for the contract to appear on chain
-    Trace.callEndpoint @"auto" bobHdl (params, bobPk, contractLifespan)
+    Trace.callEndpoint_ @"auto" bobHdl (params, bobPk, contractLifespan)
 
     -- Init a contract
-    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.callEndpoint_ @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 1
 
     -- Move all Alice's money to Carol, so she can't make a payment
     Trace.payToWallet alice carol defaultLovelaceAmount
     Trace.waitNSlots 1
 
-    Trace.callEndpoint @"auto" aliceHdl (params, alicePk, contractLifespan)
+    Trace.callEndpoint_ @"auto" aliceHdl (params, alicePk, contractLifespan)
     Trace.waitNSlots 1
 
     -- Return money to Alice
@@ -118,17 +118,17 @@ autoexecZCBTestAliceWalksAway = checkPredicate
     aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
 
     -- Bob will wait for the contract to appear on chain
-    Trace.callEndpoint @"auto" bobHdl (params, bobPk, contractLifespan)
+    Trace.callEndpoint_ @"auto" bobHdl (params, bobPk, contractLifespan)
 
     -- Init a contract
-    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.callEndpoint_ @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 1
 
     -- Move all Alice's money to Carol, so she can't make a payment
     Trace.payToWallet alice carol defaultLovelaceAmount
     Trace.waitNSlots 1
 
-    Trace.callEndpoint @"auto" aliceHdl (params, alicePk, contractLifespan)
+    Trace.callEndpoint_ @"auto" aliceHdl (params, alicePk, contractLifespan)
     Trace.waitNSlots 1
     Trace.waitNSlots 20
     -- Here Alice deposit timeout happened, so Bob should Close the contract
@@ -149,16 +149,16 @@ autoexecZCBTestBobWalksAway = checkPredicate
     aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
 
     -- Bob will wait for the contract to appear on chain
-    Trace.callEndpoint @"auto" bobHdl (params, bobPk, contractLifespan)
+    Trace.callEndpoint_ @"auto" bobHdl (params, bobPk, contractLifespan)
 
     -- Init a contract
-    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.callEndpoint_ @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 1
 
     Trace.payToWallet bob carol defaultLovelaceAmount
     Trace.waitNSlots 1
 
-    Trace.callEndpoint @"auto" aliceHdl (params, alicePk, contractLifespan)
+    Trace.callEndpoint_ @"auto" aliceHdl (params, alicePk, contractLifespan)
     Trace.waitNSlots 1 -- Alice pays to Bob
     Trace.waitNSlots 15 -- Bob can't pay back
     Trace.waitNSlots 15 -- Bob can't pay back
@@ -176,7 +176,7 @@ awaitUntilTimeoutTest = checkPredicate "Party waits for contract to appear on ch
     aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
 
     -- Bob will wait for the contract to appear on chain
-    Trace.callEndpoint @"auto" bobHdl (params, bobPk, contractLifespan)
+    Trace.callEndpoint_ @"auto" bobHdl (params, bobPk, contractLifespan)
 
     Trace.waitNSlots 15
     Trace.waitNSlots 15

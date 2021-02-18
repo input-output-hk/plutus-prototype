@@ -17,14 +17,14 @@ tests = testGroup "error handling"
         (assertContractError contract (Trace.walletInstanceTag w1) (\case { Error1 _ -> True; _ -> False}) "should throw error")
         $ do
             hdl <- Trace.activateContractWallet @_ @MyError w1 contract
-            Trace.callEndpoint @"throwError" hdl ()
+            Trace.callEndpoint_ @"throwError" hdl ()
             void $ Trace.nextSlot
 
     , checkPredicate "catch an error"
         (assertDone @_ @MyError contract (Trace.walletInstanceTag w1) (const True) "should be done")
         $ do
             hdl <- Trace.activateContractWallet @_ @MyError w1 contract
-            Trace.callEndpoint @"catchError" hdl ()
+            Trace.callEndpoint_ @"catchError" hdl ()
             void $ Trace.nextSlot
 
     ]

@@ -89,16 +89,16 @@ lockProposeSignPay signatures rounds = do
     handle1 <- activate (EM.Wallet 1)
     handle2 <- activate (EM.Wallet 2)
     handles <- traverse activate (drop 2 wallets)
-    _ <- Trace.callEndpoint @"lock" handle1 (Ada.lovelaceValueOf 10)
+    _ <- Trace.callEndpoint_ @"lock" handle1 (Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
     let proposeSignPay = do
-            Trace.callEndpoint @"propose-payment" handle2 payment
+            Trace.callEndpoint_ @"propose-payment" handle2 payment
             _ <- Trace.waitNSlots 1
             -- Call @"add-signature"@ @signatures@ times
-            traverse_ (\hdl -> Trace.callEndpoint @"add-signature" hdl () >> Trace.waitNSlots 1) (handle1:handle2:handles)
+            traverse_ (\hdl -> Trace.callEndpoint_ @"add-signature" hdl () >> Trace.waitNSlots 1) (handle1:handle2:handles)
 
             -- Call @"pay"@ on wallet 1
-            Trace.callEndpoint @"pay" handle1 ()
+            Trace.callEndpoint_ @"pay" handle1 ()
             Trace.waitNSlots 1
 
     traverse_ (\_ -> proposeSignPay) [1..rounds]

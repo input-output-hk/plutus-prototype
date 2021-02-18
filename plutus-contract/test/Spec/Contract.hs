@@ -34,7 +34,7 @@ import qualified Ledger.Constraints                            as Constraints
 import qualified Ledger.Crypto                                 as Crypto
 import qualified Plutus.Trace                                  as Trace
 import           Plutus.Trace.Emulator                         (ContractInstanceTag, Emulator, EmulatorTrace,
-                                                                activateContract, callEndpoint)
+                                                                activateContract, callEndpoint, callEndpoint_)
 import           Plutus.Trace.Emulator.Types                   (ContractInstanceLog (..), ContractInstanceMsg (..),
                                                                 ContractInstanceState (..), UserThreadMsg (..))
 import           Prelude                                       hiding (not)
@@ -92,7 +92,7 @@ tests =
                     .&&. not (endpointAvailable @"2" con tag))
                 $ do
                     hdl <- activateContract w1 con tag
-                    callEndpoint @"1" hdl 1
+                    callEndpoint_ @"1" hdl 1
 
         , let theContract :: Contract Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
           in run 1 "call endpoint (1)"
@@ -103,13 +103,20 @@ tests =
           in run 1 "call endpoint (2)"
                 (endpointAvailable @"2" theContract tag
                     .&&. not (endpointAvailable @"1" theContract tag))
-                (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1)
+                (activateContract w1 theContract tag >>= \hdl -> callEndpoint_ @"1" hdl 1)
 
         , let theContract :: Contract Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
           in run 1 "call endpoint (3)"
                 (not (endpointAvailable @"2" theContract tag)
                     .&&. not (endpointAvailable @"1" theContract tag))
-                (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 2)
+                (activateContract w1 theContract tag >>= \hdl -> callEndpoint_ @"1" hdl 1 >> callEndpoint_ @"2" hdl 2)
+
+        , let theContract :: Contract Schema ContractError () = void $ endpoint @"1" @Int >> endpoint @"2" @Int
+          in run 1 "call endpoint (4)"
+                (endpointAvailable @"2" theContract tag
+                .&&. not (endpointAvailable @"1" theContract tag))
+                -- only call endpoint "1" if the previous call (to endpoint "2", which is not active) fails.
+                (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"2" hdl 1 >>= \case { Nothing -> pure (); Just _ -> callEndpoint_ @"1" hdl 1})
 
         , let theContract :: Contract Schema ContractError () = void $ submitTx mempty >> watchAddressUntil someAddress 20
           in run 1 "submit tx"
@@ -129,7 +136,7 @@ tests =
               theContract :: Contract Schema ContractError () = void $ selectEither l r
           in run 1 "select either"
                 (assertDone theContract tag (const True) "left branch should finish")
-                (activateContract w1 theContract tag >>= (\hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 2))
+                (activateContract w1 theContract tag >>= (\hdl -> callEndpoint_ @"1" hdl 1 >> callEndpoint_ @"2" hdl 2))
 
         , let theContract :: Contract Schema ContractError () = void $ loopM (\_ -> Left <$> endpoint @"1" @Int) 0
           in run 1 "loopM"
@@ -140,7 +147,7 @@ tests =
           in run 1 "collect until"
                 (endpointAvailable @"1" theContract tag
                     .&&. waitingForSlot theContract tag 10)
-                (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1)
+                (activateContract w1 theContract tag >>= \hdl -> callEndpoint_ @"1" hdl 1)
 
         , let theContract :: Contract Schema ContractError () = void $ throwing Con._ContractError $ OtherError "error"
           in run 1 "throw an error"

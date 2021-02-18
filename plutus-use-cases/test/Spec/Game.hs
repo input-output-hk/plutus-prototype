@@ -42,7 +42,7 @@ tests = testGroup "game"
         (anyTx theContract (Trace.walletInstanceTag w1))
         $ do
             hdl <- Trace.activateContractWallet w1 theContract
-            Trace.callEndpoint @"lock" hdl (LockParams "secret" (adaValueOf 10))
+            Trace.callEndpoint_ @"lock" hdl (LockParams "secret" (adaValueOf 10))
 
     , checkPredicate "'guess' endpoint is available after locking funds"
         (endpointAvailable @"guess" theContract (Trace.walletInstanceTag w2))

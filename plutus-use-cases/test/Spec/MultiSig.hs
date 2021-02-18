@@ -38,10 +38,10 @@ tests = testGroup "multisig"
 failingTrace :: EmulatorTrace ()
 failingTrace = do
     hdl <- Trace.activateContractWallet w1 theContract
-    Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
+    Trace.callEndpoint_ @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
     Trace.setSigningProcess w1 (signWallets [w1, w2])
-    Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2])
+    Trace.callEndpoint_ @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2])
     void $ Trace.waitNSlots 1
 
 -- | Lock some funds, then unlock them with a transaction that has the
@@ -49,10 +49,10 @@ failingTrace = do
 succeedingTrace :: EmulatorTrace ()
 succeedingTrace = do
     hdl <- Trace.activateContractWallet w1 theContract
-    Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
+    Trace.callEndpoint_ @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
     Trace.setSigningProcess w1 (signWallets [w1, w2, w3])
-    Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2, w3])
+    Trace.callEndpoint_ @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2, w3])
     void $ Trace.waitNSlots 1
 
 w1, w2, w3 :: Wallet

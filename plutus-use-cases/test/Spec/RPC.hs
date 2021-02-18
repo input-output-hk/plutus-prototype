@@ -28,8 +28,8 @@ tests = testGroup "RPC"
         $ do
             shdl <- Trace.activateContractWallet server (void respondAdder)
             chdl <- Trace.activateContractWallet client (void callAdder)
-            Trace.callEndpoint @"serve" shdl ()
-            Trace.callEndpoint @"target instance" chdl (Trace.chInstanceId shdl)
+            Trace.callEndpoint_ @"serve" shdl ()
+            Trace.callEndpoint_ @"target instance" chdl (Trace.chInstanceId shdl)
             void $ Trace.nextSlot
 
     , checkPredicate "call RPC with error"
@@ -39,7 +39,7 @@ tests = testGroup "RPC"
             (shdl, chdl) <-
                 (,) <$> Trace.activateContractWallet server (void cancelContract)
                     <*> Trace.activateContractWallet client (void cancelContract)
-            Trace.callEndpoint @"serve" shdl ()
-            Trace.callEndpoint @"target instance" chdl (Trace.chInstanceId shdl)
+            Trace.callEndpoint_ @"serve" shdl ()
+            Trace.callEndpoint_ @"target instance" chdl (Trace.chInstanceId shdl)
             void $ Trace.nextSlot
     ]

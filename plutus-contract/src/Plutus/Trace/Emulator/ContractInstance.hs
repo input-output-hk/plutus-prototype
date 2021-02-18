@@ -27,6 +27,7 @@ module Plutus.Trace.Emulator.ContractInstance(
     , ContractInstanceState(..)
     , emptyInstanceState
     , addEventInstanceState
+    , handleContractRuntime
     ) where
 
 import           Control.Lens
@@ -88,9 +89,9 @@ handleContractRuntime ::
     , Member (LogMsg ContractInstanceMsg) effs2
     , Member (Reader ThreadId) effs2
     )
-    => Eff (ContractRuntimeEffect ': effs2)
+    => ContractRuntimeEffect
     ~> Eff effs2
-handleContractRuntime = interpret $ \case
+handleContractRuntime = \case
     SendNotification n@Notification{notificationContractID} -> do
         logInfo $ SendingNotification n
         target <- gets (view $ instanceIdThreads . at notificationContractID)
@@ -104,9 +105,17 @@ handleContractRuntime = interpret $ \case
                 let Notification{notificationContractEndpoint=EndpointDescription ep, notificationContractArg} = n
                     vl = object ["tag" JSON..= ep, "value" JSON..= EndpointValue notificationContractArg]
                     e = Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
-                _ <- mkAgentSysCall @_ @EmulatorMessage Normal e
-                logInfo $ NotificationSuccess n
-                pure Nothing
+
+                    -- Wait for the 'EndpointCallResult' message to come in.
+                    go = \case
+                        Just (EndpointCallResult (Just err)) -> do
+                            logWarn $ NotificationFailure err
+                            pure $ Just err
+                        Just (EndpointCallResult Nothing) -> do
+                            logInfo $ NotificationSuccess n
+                            pure Nothing
+                        _ -> mkAgentSysCall @_ @EmulatorMessage Sleeping WaitForMessage >>= go
+                mkAgentSysCall @_ @EmulatorMessage Normal e >>= go
 
 -- | Start a new thread for a contract. Most of the work happens in
 --   'runInstance'.
@@ -123,7 +132,7 @@ contractThread :: forall s e effs.
 contractThread ContractHandle{chInstanceId, chContract, chInstanceTag} = do
     ask @ThreadId >>= registerInstance chInstanceId
     interpret (mapLog (\m -> ContractInstanceLog m chInstanceId chInstanceTag))
-        $ handleContractRuntime
+        $ interpret handleContractRuntime
         $ runReader chInstanceId
         $ evalState (emptyInstanceState chContract)
         $ do
@@ -182,11 +191,21 @@ runInstance contract event = do
                 logInfo Freezing
                 -- freeze ourselves, see note [Freeze and Thaw]
                 mkAgentSysCall Frozen WaitForMessage >>= runInstance contract
-            Just (EndpointCall _ _ vl) -> do
+            Just (EndpointCall sender description vl) -> do
                 logInfo $ ReceiveEndpointCall vl
                 e <- decodeEvent @s vl
-                _ <- respondToEvent @s @e e
-                mkAgentSysCall Normal WaitForMessage >>= runInstance contract
+                rsp <- respondToEvent @s @e e >>= \case
+                        Nothing -> do
+                            -- the endpoint is not available, send an error back to
+                            -- the caller
+                            ownId <- ask @ContractInstanceId
+                            let err = EndpointNotAvailable ownId description
+                            logWarn (ReceiveEndpointCallFailure err)
+                            mkAgentSysCall Normal (Message sender $ EndpointCallResult $ Just err)
+                        Just _ -> do
+                            -- all OK, send a success response back to the caller
+                            mkAgentSysCall Normal (Message sender $ EndpointCallResult Nothing)
+                runInstance contract rsp
             Just (ContractInstanceStateRequest sender) -> do
                 state <- get @(ContractInstanceStateInternal s e ())
 

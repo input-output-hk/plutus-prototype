@@ -143,7 +143,7 @@ lockTrace :: EmulatorTrace ()
 lockTrace = do
     let w1 = Wallet 1
     hdl <- Trace.activateContractWallet w1 (game @ContractError)
-    Trace.callEndpoint @"lock" hdl (LockParams "secret" (Ada.lovelaceValueOf 10))
+    Trace.callEndpoint_ @"lock" hdl (LockParams "secret" (Ada.lovelaceValueOf 10))
     void $ Trace.waitNSlots 1
 
 guessTrace :: EmulatorTrace ()
@@ -151,11 +151,11 @@ guessTrace = do
     lockTrace
     let w2 = Wallet 2
     hdl <- Trace.activateContractWallet w2 (game @ContractError)
-    Trace.callEndpoint @"guess" hdl (GuessParams "secret")
+    Trace.callEndpoint_ @"guess" hdl (GuessParams "secret")
 
 guessWrongTrace :: EmulatorTrace ()
 guessWrongTrace = do
     lockTrace
     let w2 = Wallet 2
     hdl <- Trace.activateContractWallet w2 (game @ContractError)
-    Trace.callEndpoint @"guess" hdl (GuessParams "SECRET")
+    Trace.callEndpoint_ @"guess" hdl (GuessParams "SECRET")

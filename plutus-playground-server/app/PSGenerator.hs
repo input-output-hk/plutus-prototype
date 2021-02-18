@@ -84,7 +84,6 @@ import           Wallet.Emulator.ChainIndex.Index           (ChainIndexItem)
 import qualified Wallet.Emulator.LogMessages                as EM
 import qualified Wallet.Emulator.MultiAgent                 as EM
 import qualified Wallet.Emulator.NodeClient                 as EM
-import           Wallet.Emulator.Notify                     (EmulatorNotifyLogMsg)
 import qualified Wallet.Emulator.Wallet                     as EM
 import           Wallet.Rollup.Types                        (AnnotatedTx, BeneficialOwner, DereferencedInput,
                                                              SequenceId, TxKey)
@@ -145,7 +144,6 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @EM.RequestHandlerLogMsg)
     , (genericShow <*> mkSumType) (Proxy @EM.TxBalanceMsg)
     , (genericShow <*> mkSumType) (Proxy @UnbalancedTx)
-    , (genericShow <*> mkSumType) (Proxy @EmulatorNotifyLogMsg)
     ]
 
 mySettings :: Settings

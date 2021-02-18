@@ -98,6 +98,7 @@ type ContractConstraints s =
 data EmulatorMessage =
     NewSlot [[Tx]] Slot -- ^ A new slot has begun and some blocks were added.
     | EndpointCall ThreadId EndpointDescription JSON.Value -- ^ Call to an endpoint
+    | EndpointCallResult (Maybe NotificationError) -- ^ Response to an endpoint call
     | Freeze -- ^ Tell the contract instance to freeze itself (see note [Freeze and Thaw])
     | ContractInstanceStateRequest ThreadId -- ^ Request for the current state of a contract instance
     | ContractInstanceStateResponse JSON.Value -- ^ Response to a contract instance state request
@@ -179,13 +180,15 @@ walletInstanceTag (Wallet i) = fromString $ "Contract instance for wallet " <> s
 data UserThreadMsg =
     UserThreadErr EmulatorRuntimeError
     | UserLog String
+    | NotificationMsg ContractInstanceMsg
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty UserThreadMsg where
     pretty = \case
-        UserLog str     -> pretty str
-        UserThreadErr e -> "Error:" <+> pretty e
+        UserLog str       -> pretty str
+        UserThreadErr e   -> "Error:" <+> pretty e
+        NotificationMsg m -> "Notification:" <+> pretty m
 
 -- | Log messages produced by contract instances
 data ContractInstanceMsg =

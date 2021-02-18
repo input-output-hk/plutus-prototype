@@ -52,11 +52,11 @@ tests = testGroup "pingpong"
 pingPongTrace :: Trace.EmulatorTrace ()
 pingPongTrace = do
     hdl <- Trace.activateContractWallet w1 theContract
-    Trace.callEndpoint @"initialise" hdl ()
+    Trace.callEndpoint_ @"initialise" hdl ()
     _ <- Trace.waitNSlots 2
-    Trace.callEndpoint @"pong" hdl ()
+    Trace.callEndpoint_ @"pong" hdl ()
     _ <- Trace.waitNSlots 2
-    Trace.callEndpoint @"ping" hdl ()
+    Trace.callEndpoint_ @"ping" hdl ()
     void $ Trace.waitNSlots 2
 
 -- | Call 'initialise' on wallet 1, then call 'stop' in wallet 2.
@@ -64,7 +64,7 @@ twoPartiesTrace :: Trace.EmulatorTrace ()
 twoPartiesTrace = do
     hdl1 <- Trace.activateContractWallet w1 (void twoParties)
     hdl2 <- Trace.activateContractWallet w2 (void twoParties)
-    Trace.callEndpoint @"initialise" hdl1 ()
+    Trace.callEndpoint_ @"initialise" hdl1 ()
     _ <- Trace.waitNSlots 2
-    Trace.callEndpoint @"stop" hdl2 ()
+    Trace.callEndpoint_ @"stop" hdl2 ()
     void $ Trace.waitNSlots 2

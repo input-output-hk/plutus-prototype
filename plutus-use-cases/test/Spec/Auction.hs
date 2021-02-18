@@ -81,7 +81,7 @@ auctionTrace1 = do
     _ <- Trace.waitNSlots 1
     hdl2 <- Trace.activateContractWallet w2 buyer
     _ <- Trace.waitNSlots 1
-    Trace.callEndpoint @"bid" hdl2 50
+    Trace.callEndpoint_ @"bid" hdl2 50
     void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
 
 trace2WinningBid :: Ada
@@ -94,9 +94,9 @@ auctionTrace2 = do
     hdl2 <- Trace.activateContractWallet w2 buyer
     hdl3 <- Trace.activateContractWallet w3 buyer
     _ <- Trace.waitNSlots 1
-    Trace.callEndpoint @"bid" hdl2 50
+    Trace.callEndpoint_ @"bid" hdl2 50
     _ <- Trace.waitNSlots 15
-    Trace.callEndpoint @"bid" hdl3 60
+    Trace.callEndpoint_ @"bid" hdl3 60
     _ <- Trace.waitNSlots 35
-    Trace.callEndpoint @"bid" hdl2 70
+    Trace.callEndpoint_ @"bid" hdl2 70
     void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)

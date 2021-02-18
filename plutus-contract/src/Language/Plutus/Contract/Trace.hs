@@ -41,15 +41,13 @@ module Language.Plutus.Contract.Trace
     , EM.walletPubKey
     , EM.walletPrivKey
     , allWallets
-    , makeTimed
     ) where
 
 import           Control.Arrow                                     ((>>>), (>>^))
-import           Control.Lens                                      (from, makeClassyPrisms, review, view)
+import           Control.Lens                                      (from, makeClassyPrisms, view)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Log                           (LogMessage, LogMsg, LogObserve)
 import           Control.Monad.Freer.Reader                        (Reader)
-import           Control.Monad.Freer.State                         (State, gets)
 import qualified Data.Aeson.Types                                  as JSON
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
@@ -83,11 +81,9 @@ import           Ledger.Value                                      (Value)
 import           Plutus.Trace.Emulator.Types                       (EmulatedWalletEffects)
 import           Wallet.API                                        (ChainIndexEffect, SigningProcessEffect)
 import           Wallet.Effects                                    (ContractRuntimeEffect, WalletEffect)
-import           Wallet.Emulator                                   (EmulatorState, Wallet)
+import           Wallet.Emulator                                   (Wallet)
 import qualified Wallet.Emulator                                   as EM
 import           Wallet.Emulator.LogMessages                       (TxBalanceMsg)
-import qualified Wallet.Emulator.MultiAgent                        as EM
-import           Wallet.Emulator.Notify                            (EmulatorNotifyLogMsg (..))
 import           Wallet.Types                                      (ContractInstanceId, EndpointDescription (..),
                                                                     NotificationError (..))
 
@@ -114,11 +110,6 @@ data TraceError e =
     deriving (Eq, Show)
 
 type InitialDistribution = Map Wallet Value
-
-makeTimed :: Member (State EmulatorState) effs => EmulatorNotifyLogMsg -> Eff effs EM.EmulatorEvent
-makeTimed e = do
-    emulatorTime <- gets (view (EM.chainState . EM.currentSlot))
-    pure $ review (EM.emulatorTimeEvent emulatorTime) (EM.NotificationEvent e)
 
 handleSlotNotifications ::
     ( HasAwaitSlot s

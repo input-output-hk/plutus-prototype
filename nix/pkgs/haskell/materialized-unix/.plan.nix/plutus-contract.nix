@@ -113,7 +113,6 @@
           "Wallet/Emulator/Folds"
           "Wallet/Emulator/LogMessages"
           "Wallet/Emulator/NodeClient"
-          "Wallet/Emulator/Notify"
           "Wallet/Emulator/MultiAgent"
           "Wallet/Emulator/Stream"
           "Wallet/Emulator/Wallet"

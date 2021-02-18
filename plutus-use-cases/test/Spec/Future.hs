@@ -121,7 +121,7 @@ payOutTrace = do
 initContract :: EmulatorTrace (ContractHandle FutureSchema FutureError)
 initContract = do
     hdl1 <- Trace.activateContractWallet w1 (F.futureContract theFuture)
-    Trace.callEndpoint @"initialise-future" hdl1 (setup, Short)
+    Trace.callEndpoint_ @"initialise-future" hdl1 (setup, Short)
     _ <- Trace.waitNSlots 3
     pure hdl1
 
@@ -130,7 +130,7 @@ initContract = do
 joinFuture :: EmulatorTrace (ContractHandle FutureSchema FutureError)
 joinFuture = do
     hdl2 <- Trace.activateContractWallet w2 (F.futureContract theFuture)
-    Trace.callEndpoint @"join-future" hdl2 (F.testAccounts, setup)
+    Trace.callEndpoint_ @"join-future" hdl2 (F.testAccounts, setup)
     _ <- Trace.waitNSlots 2
     pure hdl2
 
@@ -141,7 +141,7 @@ payOut hdl = do
     let
         spotPrice = Ada.lovelaceValueOf 1124
         ov = mkSignedMessage (ftDeliveryDate theFuture) spotPrice
-    Trace.callEndpoint @"settle-future" hdl ov
+    Trace.callEndpoint_ @"settle-future" hdl ov
     void $ Trace.waitNSlots 2
 
 -- | Margin penalty
@@ -164,7 +164,7 @@ oracleKeys =
 -- | Increase the margin of the 'Long' role by 100 lovelace
 increaseMargin :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
 increaseMargin hdl = do
-    Trace.callEndpoint @"increase-margin" hdl (Ada.lovelaceValueOf 100, Long)
+    Trace.callEndpoint_ @"increase-margin" hdl (Ada.lovelaceValueOf 100, Long)
     void $ Trace.waitNSlots 2
 
 -- | Call 'settleEarly' with a high spot price (11240 lovelace)
@@ -173,7 +173,7 @@ settleEarly hdl = do
     let
         spotPrice = Ada.lovelaceValueOf 11240
         ov = mkSignedMessage (Ledger.Slot 25) spotPrice
-    Trace.callEndpoint @"settle-early" hdl ov
+    Trace.callEndpoint_ @"settle-early" hdl ov
     void $ Trace.waitNSlots 1
 
 mkSignedMessage :: Slot -> Value -> SignedMessage (Observation Value)
