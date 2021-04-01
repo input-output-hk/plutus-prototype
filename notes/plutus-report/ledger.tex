@@ -39,7 +39,7 @@ Hence the \gls{off-chain} needs to be able to inspect the \gls{datum} and interp
 
 This is primarily important for \gls{off-chain}.
 For example, when implementing \glspl{app} which are state machines, we will use the \glspl{datum} of outputs to store the on-chain \emph{state} of the machine.
-If the \gls{off-chain} wants to submit at transaction to advance such a state machine, it may need to read the current state from the chain (after all, the last transition might not have been performed by this agent).
+If the \gls{off-chain} wants to submit a transaction to advance such a state machine, it may need to read the current state from the chain (after all, the last transition might not have been performed by this agent).
 \end{requirement}
 
 \begin{requirement}[UTXO size]
@@ -190,7 +190,7 @@ Hence one could use a currency to track items in a game: different kinds of item
 
 Operations on \gls{value} are defined as if it were a finitely-supported function.
 
-The ledger rules do not need to change much in order to support this generalized the \gls{value}: the only change is that we need to use the appropriate sum operation on \gls{value} in e.g. the balancing rules.
+The ledger rules do not need to change much in order to support this generalized \gls{value}: the only change is that we need to use the appropriate sum operation on \gls{value} in e.g. the balancing rules.
 
 \subsubsection{\Glsentrytext{forging}}
 \label{sec:forging}
