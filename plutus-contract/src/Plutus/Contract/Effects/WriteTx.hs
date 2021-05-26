@@ -14,24 +14,28 @@ module Plutus.Contract.Effects.WriteTx where
 
 import           Control.Lens
 import           Data.Aeson                               (FromJSON, ToJSON)
+import qualified Data.Map                                 as M
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
 import           Data.Void                                (Void)
 import           GHC.Generics                             (Generic)
 
 import           Plutus.Contract.Effects.AwaitTxConfirmed (HasTxConfirmation, awaitTxConfirmed)
+import           Plutus.Contract.Effects.UtxoAt           (HasUtxoAt, utxoAt)
 import           Plutus.Contract.Request                  as Req
 import           Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
+import           Plutus.Contract.Typed.Tx                 (collectFromScript)
 import           Plutus.Contract.Types                    (AsContractError, Contract, _ConstraintResolutionError,
                                                            _WalletError, throwError)
-import qualified PlutusTx                                 as PlutusTx
+import qualified PlutusTx
 
+import qualified Ledger
 import           Ledger.AddressMap                        (UtxoMap)
-import           Ledger.Constraints                       (TxConstraints)
+import           Ledger.Constraints                       (TxConstraints, mustPayToTheScript)
 import           Ledger.Constraints.OffChain              (ScriptLookups, UnbalancedTx)
 import qualified Ledger.Constraints.OffChain              as Constraints
 import           Ledger.Tx                                (Tx, txId)
-import           Ledger.Typed.Scripts                     (ScriptInstance, ScriptType (..))
+import           Ledger.Typed.Scripts                     (ScriptInstance, ScriptType (..), validatorScript)
 
 import           Wallet.API                               (WalletAPIError)
 
@@ -151,3 +155,82 @@ pendingTransaction
    => Handlers s
    -> Maybe UnbalancedTx
 pendingTransaction (Handlers r) = trial' r (Label @TxSymbol)
+
+-- Utility functions
+
+-- Create an on-chain script with a datum and some locked value
+createScript
+  :: ( HasWriteTx s
+     , PlutusTx.IsData (RedeemerType a)
+     , PlutusTx.IsData (DatumType a)
+     , AsContractError e
+     )
+  => ScriptInstance a
+  -> DatumType a
+  -> Ledger.Value
+  -> Contract w s e Tx
+createScript i d v =
+  submitTxConstraints i (mustPayToTheScript d v)
+
+-- Update an on-chain script
+-- TODO: Support Semigroup-style append update
+updateScript
+  :: ( HasWriteTx s
+     , HasUtxoAt s
+     , PlutusTx.IsData (RedeemerType a)
+     , PlutusTx.IsData (DatumType a)
+     , AsContractError e
+     )
+  => ScriptInstance a
+  -> DatumType a
+  -> RedeemerType a
+  -> Ledger.Value
+  -> Contract w s e Tx
+updateScript i d r v = do
+  unspentOuts <- utxoAt $ getAddressFromInstance i
+  submitTxConstraintsSpending i unspentOuts
+    $  collectFromScript unspentOuts r
+    <> mustPayToTheScript d v
+
+-- Check if an on-chain script exists,
+-- If it does, update it, if not then create it
+-- TODO: Add a parameter for a possible locked value?
+upsertScript
+  :: ( HasWriteTx s
+     , HasUtxoAt s
+     , PlutusTx.IsData (RedeemerType a)
+     , PlutusTx.IsData (DatumType a)
+     , Semigroup (DatumType a)
+     , AsContractError e
+     )
+  => ScriptInstance a
+  -> DatumType a
+  -> RedeemerType a
+  -> Contract w s e Tx
+upsertScript i d r = getDatumFromAddress (getAddressFromInstance i) >>= \case
+  Just prevDatum -> updateScript i (prevDatum <> d) r mempty
+  _              -> createScript i d mempty
+
+getAddressFromInstance :: ScriptInstance a -> Ledger.Address
+getAddressFromInstance = Ledger.scriptAddress . validatorScript
+
+-- Get the datum at an address
+-- TODO: Generalize this, remove unsafe code
+getDatumFromAddress
+  :: (HasUtxoAt s, PlutusTx.IsData a, AsContractError e)
+  => Ledger.Address
+  -> Contract w s e (Maybe a)
+getDatumFromAddress address =
+  utxoAt address
+    >>= (\case
+          [(_, tx)] ->
+            pure
+              $ PlutusTx.fromData
+              $ Ledger.getDatum
+              $ snd
+              $ head
+              $ M.toList
+              $ Ledger.txData (Ledger.txOutTxTx tx)
+          _ -> pure Nothing
+        )
+    .   M.toList
