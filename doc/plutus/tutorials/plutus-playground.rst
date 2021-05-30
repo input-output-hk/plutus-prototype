@@ -4,7 +4,7 @@
 Compiling and testing a Plutus app in the Plutus Playground
 ===========================================================
 
-The Plutus Playground consists of a code editor and a simulator.
+The `Plutus Playground <https://playground.plutus.iohkdev.io/>`_ consists of a code editor and a simulator.
 
 .. figure:: images/playground.png
 
