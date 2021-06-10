@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -11,6 +12,7 @@ module UntypedPlutusCore.Core.Type
     , TPLC.Version (..)
     , Term (..)
     , Program (..)
+    , GName (..)
     , toTerm
     , bindFunM
     , bindFun
@@ -21,14 +23,41 @@ module UntypedPlutusCore.Core.Type
     ) where
 
 import           Data.Functor.Identity
+import           Data.Text.Prettyprint.Doc
 import           PlutusPrelude
 
+import           Data.Word
 import qualified PlutusCore.Constant                    as TPLC
 import qualified PlutusCore.Core                        as TPLC
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.MkPlc
 import qualified PlutusCore.Name                        as TPLC
 import           Universe
+
+-- | A global name ('GName') or an underlying name.
+data GName name = GName {-# UNPACK #-} !Int | NName !name
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (NFData)
+
+instance Pretty name => Pretty (GName name) where
+    pretty (GName w) = "global" <+> pretty w
+    pretty (NName n) = pretty n
+
+instance PrettyBy config name => PrettyBy config (GName name) where
+    prettyBy _ (GName w)      = "global" <+> pretty w
+    prettyBy config (NName n) = prettyBy config n
+
+-- HACK: this instance should not exist, I just did it so 'termSubstFreeNames' would be happy,
+-- even though it only really needs a prism.
+instance TPLC.HasUnique name TPLC.TermUnique => TPLC.HasUnique (GName name) TPLC.TermUnique where
+     unique = lens g s
+         where
+             g :: GName name -> TPLC.TermUnique
+             g (NName n) = view TPLC.unique n
+             g (GName _) = coerce (TPLC.Unique 0)
+             s :: GName name -> TPLC.TermUnique -> GName name
+             s (NName n) u   = NName (set TPLC.unique u n)
+             s n@(GName{}) _ = n
 
 {-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
 

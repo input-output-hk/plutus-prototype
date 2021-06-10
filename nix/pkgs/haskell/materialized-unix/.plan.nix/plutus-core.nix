@@ -185,6 +185,7 @@
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
           "UntypedPlutusCore/Transform/Simplify"
+          "UntypedPlutusCore/Transform/Globalify"
           "Data/Aeson/Flatten"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"

@@ -84,11 +84,11 @@ runTPlc values = do
 runUPlc
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => [a]
-    -> ExceptT SomeException IO (UPLC.EvaluationResult (UPLC.Term TPLC.Name DefaultUni TPLC.DefaultFun ()))
+    -> ExceptT SomeException IO (UPLC.EvaluationResult (UPLC.Term (UPLC.GName TPLC.Name) DefaultUni TPLC.DefaultFun ()))
 runUPlc values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit TPLC.defaultCekParameters t
+    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit TPLC.defaultCekParameters (UPLC.globalifyTerm t)
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value

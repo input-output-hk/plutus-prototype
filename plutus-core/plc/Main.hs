@@ -750,7 +750,7 @@ timeEval n evaluate prog
 
 ---------------- Printing budgets and costs ----------------
 
-printBudgetStateBudget :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> ExBudget -> IO ()
+printBudgetStateBudget :: UPLC.Term name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> ExBudget -> IO ()
 printBudgetStateBudget _ model b =
     case model of
       Unit -> pure ()
@@ -761,7 +761,7 @@ printBudgetStateBudget _ model b =
               putStrLn $ "Memory budget: " ++ show mem
 
 printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun)
-       => UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
+       => UPLC.Term name PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
 printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn $ "Const      " ++ pbudget (Cek.BStep Cek.BConst)
   putStrLn $ "Var        " ++ pbudget (Cek.BStep Cek.BVar)
@@ -805,7 +805,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         totalTime = (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
 
 class PrintBudgetState cost where
-    printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
+    printBudgetState :: UPLC.Term name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
     -- TODO: Tidy this up.  We're passing in the term and the CEK cost model
     -- here, but we only need them in tallying mode (where we need the term so
     -- we can print out the AST size and we need the model type to decide how
@@ -853,7 +853,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
             CK  -> errorWithoutStackTrace "There is no CK machine for Untyped Plutus Core"
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
-                  let term = void . UPLC.toTerm $ prog
+                  let term = void . UPLC.globalifyTerm $ UPLC.toTerm $ prog
                       !_ = rnf term
                       cekparams = case cekModel of
                                 Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model

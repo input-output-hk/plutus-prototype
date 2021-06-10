@@ -29,7 +29,7 @@ import           Text.Printf                              (printf)
   source code, along with README files explaining which scripts were involved in
   each validation during the tests.  --}
 
-type Term a    = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun a
+type Term a    = UPLC.Term (UPLC.GName PLC.Name) PLC.DefaultUni PLC.DefaultFun a
 type Program a = UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun a
 type PlcParserError = PLC.Error PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn
 
@@ -70,7 +70,7 @@ getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumb
   redeemer  <- loadScript "Redeemer"  redeemerNumber
   context   <- loadScript "Context"   contextNumber
   let appliedValidator = validator `UPLC.applyProgram` datum `UPLC.applyProgram` redeemer `UPLC.applyProgram` context
-  pure $ void . UPLC.toTerm $ appliedValidator
+  pure $ void . UPLC.toTerm $ UPLC.globalifyProgram $ appliedValidator
 
 {- Create a benchmark with a name like "crowdfunding/5" by applying validator
    number v to datum number d, redeemer number r, and context number c in the

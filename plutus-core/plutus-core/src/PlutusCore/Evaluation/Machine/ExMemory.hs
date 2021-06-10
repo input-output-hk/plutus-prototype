@@ -25,7 +25,8 @@ import           Data.Aeson
 import qualified Data.ByteString            as BS
 import           Data.Proxy
 import           Data.SatInt
-import qualified Data.Text                  as T
+import qualified Data.Text                as T
+import           Data.Word
 import           GHC.Generics
 import           GHC.Integer
 import           GHC.Integer.Logarithms
@@ -187,6 +188,9 @@ instance ExMemoryUsage () where
 instance ExMemoryUsage Integer where
   memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0, but in practice returns -1
   memoryUsage i = ExMemory . fromIntegral $ (1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64)) -- Assume 64bit size.
+
+instance ExMemoryUsage Word64 where
+    memoryUsage _ = 1
 
 instance ExMemoryUsage BS.ByteString where
   memoryUsage bs = ExMemory . fromIntegral $ 1 + ((toInteger $ BS.length bs)-1) `quot` 8

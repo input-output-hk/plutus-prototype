@@ -4,28 +4,28 @@ module UntypedPlutusCore
     , parseScoped
     ) where
 
-import           UntypedPlutusCore.Check.Uniques      as Uniques
-import           UntypedPlutusCore.Parser             as Parser
-import           UntypedPlutusCore.Rename             as Rename
+import           UntypedPlutusCore.Check.Uniques       as Uniques
+import           UntypedPlutusCore.Parser              as Parser
+import           UntypedPlutusCore.Rename              as Rename
 
-import           PlutusCore.Name                      as Export
-import           UntypedPlutusCore.Core               as Export
-import           UntypedPlutusCore.Core.Instance.CBOR as Export
-import           UntypedPlutusCore.Core.Instance.Flat as Export
-import           UntypedPlutusCore.DeBruijn           as Export
-import           UntypedPlutusCore.Size               as Export
-import           UntypedPlutusCore.Subst              as Export
-import           UntypedPlutusCore.Transform.Simplify as Export
+import           PlutusCore.Name                       as Export
+import           UntypedPlutusCore.Core                as Export
+import           UntypedPlutusCore.Core.Instance.CBOR  as Export
+import           UntypedPlutusCore.Core.Instance.Flat  as Export
+import           UntypedPlutusCore.DeBruijn            as Export
+import           UntypedPlutusCore.Size                as Export
+import           UntypedPlutusCore.Subst               as Export
+import           UntypedPlutusCore.Transform.Globalify as Export
+import           UntypedPlutusCore.Transform.Simplify  as Export
 -- Also has some functions
 
 
-import qualified PlutusCore                           as PLC
-import qualified PlutusCore.Error                     as PLC
-import           PlutusPrelude                        (through)
+import qualified PlutusCore                            as PLC
+import qualified PlutusCore.Error                      as PLC
+import           PlutusPrelude                         (through)
 
 import           Control.Monad.Except                 (MonadError, (<=<))
 import qualified Data.ByteString.Lazy                 as BSL
-
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program name uni fun () -> Program name uni fun () -> Program name uni fun ()
