@@ -22,8 +22,9 @@ import           Data.Coerce                     (coerce)
 import           Plutus.PAB.Monitoring.Util      (runLogEffects)
 import qualified Wallet.Effects                  as WalletEffects
 
-import           Cardano.ChainIndex.ChainIndex   (confirmedBlocks, healthcheck, processIndexEffects, startWatching,
-                                                  syncState, watchedAddresses)
+import           Cardano.ChainIndex.ChainIndex   (confirmedBlocks, healthcheck, processIndexEffects,
+                                                  processIndexEffectsServant, startWatching, syncState,
+                                                  watchedAddresses)
 import           Cardano.Node.Types              (SlotConfig)
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Data.Function                   ((&))
@@ -47,7 +48,7 @@ app trace stateVar =
     serve (Proxy @API) $
     hoistServer
         (Proxy @API)
-        (liftIO . processIndexEffects trace stateVar)
+        (processIndexEffectsServant trace stateVar)
         (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.addressChanged)
 
 main :: ChainIndexTrace -> ChainIndexConfig -> FilePath -> SlotConfig -> Availability -> IO ()

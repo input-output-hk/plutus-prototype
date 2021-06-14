@@ -134,10 +134,11 @@ appEffectHandlers eventfulBackend config trace =
             . reinterpretN @'[_, _, _, _] (handleNodeClientClient @IO)
 
             -- handle 'ChainIndexEffect'
+            . flip handleError (throwError . ChainIndexClientError)
             . flip handleError (throwError . ChainIndexError)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
             . reinterpret (Core.handleMappedReader @AppEnv @ClientEnv chainIndexEnv)
-            . reinterpret2 (handleChainIndexClient @IO)
+            . reinterpretN @'[_, _, _] (handleChainIndexClient @IO)
 
             -- handle 'WalletEffect'
             . flip handleError (throwError . WalletClientError)

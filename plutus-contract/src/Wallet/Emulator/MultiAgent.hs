@@ -297,6 +297,7 @@ type MultiAgentEffs =
     '[ State EmulatorState
      , LogMsg EmulatorEvent'
      , Error WAPI.WalletAPIError
+     , Error WAPI.ChainIndexAPIError
      , Error AssertionError
      , Chain.ChainEffect
      , Chain.ChainControlEffect

@@ -17,11 +17,12 @@ module Wallet.Emulator.ChainIndex where
 
 import           Control.Lens
 import           Control.Monad.Freer
+import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH
 import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Foldable                    (traverse_)
+import           Data.Foldable                    (for_)
 import           Data.Map.Strict                  (Map)
 import qualified Data.Map.Strict                  as Map
 import           Data.Semigroup                   (Max (..))
@@ -31,6 +32,7 @@ import           GHC.Generics                     (Generic)
 import           Wallet.Effects                   (ChainIndexEffect (..))
 import           Wallet.Emulator.ChainIndex.Index (ChainIndex, ChainIndexItem (..))
 import qualified Wallet.Emulator.ChainIndex.Index as Index
+import           Wallet.Emulator.Error
 import           Wallet.Emulator.NodeClient       (ChainClientNotification (..))
 import           Wallet.Types                     (AddressChangeRequest (..), AddressChangeResponse (..), slotRange)
 
@@ -80,19 +82,19 @@ data ChainIndexState =
 
 makeLenses ''ChainIndexState
 
-type ChainIndexEffs = '[State ChainIndexState, LogMsg ChainIndexEvent]
+type ChainIndexEffs = '[State ChainIndexState, LogMsg ChainIndexEvent, Error ChainIndexAPIError]
 
 handleChainIndexControl
-    :: (Members ChainIndexEffs effs)
+    :: Members ChainIndexEffs effs
     => Eff (ChainIndexControlEffect ': effs) ~> Eff effs
 handleChainIndexControl = interpret $ \case
-    ChainIndexNotify (SlotChanged sl) -> modify (idxCurrentSlot .~ Just (Max sl))
+    ChainIndexNotify (SlotChanged sl) -> modify (idxCurrentSlot ?~ Max sl)
     ChainIndexNotify (BlockValidated txns) -> do
         logDebug $ ReceiveBlockNotification (length txns)
         modify (idxConfirmedBlocks <>~ pure txns)
         (cs, addressMap) <- (,) <$> gets _idxCurrentSlot <*> gets _idxWatchedAddresses
         let currentSlot = maybe 0 getMax cs
-        flip traverse_ txns $ \txn -> do
+        for_ txns $ \txn -> do
             let i = eitherTx txId txId txn
                 itm = ChainIndexItem{ciSlot=currentSlot, ciTx = txn, ciTxId = i}
             modify $ \s ->
@@ -101,7 +103,7 @@ handleChainIndexControl = interpret $ \case
                   & idxIdx %~ Index.insert addressMap itm
 
 handleChainIndex
-    :: (Members ChainIndexEffs effs)
+    :: Members ChainIndexEffs effs
     => Eff (ChainIndexEffect ': effs) ~> Eff effs
 handleChainIndex = interpret $ \case
     StartWatching addr -> logDebug (AddressStartWatching addr) >> (modify $ \s ->

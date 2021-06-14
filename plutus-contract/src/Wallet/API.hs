@@ -52,6 +52,7 @@ module Wallet.API(
     contains,
     -- * Error handling
     WalletAPIError(..),
+    ChainIndexAPIError(..),
     throwInsufficientFundsError,
     throwOtherError,
     ) where

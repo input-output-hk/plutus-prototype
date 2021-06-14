@@ -50,7 +50,7 @@ import           Streaming                              (Stream)
 import qualified Streaming                              as S
 import           Streaming.Prelude                      (Of)
 import qualified Streaming.Prelude                      as S
-import           Wallet.API                             (WalletAPIError)
+import           Wallet.API                             (ChainIndexAPIError, WalletAPIError)
 import           Wallet.Emulator                        (EmulatorEvent, EmulatorEvent')
 import qualified Wallet.Emulator                        as EM
 import           Wallet.Emulator.Chain                  (ChainControlEffect, ChainEffect, _SlotAdd)
@@ -93,7 +93,7 @@ foldStreamM :: forall m a b c.
     => L.FoldM m a b
     -> S.Stream (S.Of a) m c
     -> m (S.Of b c)
-foldStreamM theFold = L.impurely S.foldM theFold
+foldStreamM = L.impurely S.foldM
 
 -- | Consume an emulator event stream.
 foldEmulatorStreamM :: forall effs a b.
@@ -125,6 +125,7 @@ runTraceStream conf =
     . reinterpret @_ @(LogMsg EmulatorEvent) (mkTimedLogs @EmulatorEvent')
     . runError
     . wrapError WalletErr
+    . wrapError ChainIndexErr
     . wrapError AssertionErr
     . wrapError InstanceErr
     . EM.processEmulated
@@ -132,7 +133,7 @@ runTraceStream conf =
     . subsume @(State EmulatorState)
     . raiseEnd
 
-data EmulatorConfig =
+newtype EmulatorConfig =
     EmulatorConfig
         { _initialChainState      :: InitialChainState -- ^ State of the blockchain at the beginning of the simulation. Can be given as a map of funds to wallets, or as a block of transactions.
         } deriving (Eq, Show)
@@ -162,6 +163,7 @@ initialState EmulatorConfig{_initialChainState} =
 
 data EmulatorErr =
     WalletErr WalletAPIError
+    | ChainIndexErr ChainIndexAPIError
     | AssertionErr EM.AssertionError
     | InstanceErr EmulatorRuntimeError
     deriving (Show)

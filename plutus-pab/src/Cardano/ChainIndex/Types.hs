@@ -11,12 +11,14 @@
 module Cardano.ChainIndex.Types where
 
 import           Control.Lens                   (makeLenses)
+import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log (LogMessage)
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Sequence                  (Seq)
 import           Data.Text.Prettyprint.Doc      (Pretty (..), parens, (<+>))
 import           GHC.Generics                   (Generic)
+import           Servant                        (ServerError)
 import           Servant.Client                 (BaseUrl)
 
 import           Cardano.BM.Data.Trace          (Trace)
@@ -24,6 +26,7 @@ import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
 import           Control.Monad.Freer.Extras     (LogMsg)
 import           Ledger.Address                 (Address)
+import           Wallet.API                     (ChainIndexAPIError)
 import           Wallet.Effects                 (ChainIndexEffect)
 import           Wallet.Emulator.ChainIndex     (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
 
@@ -33,6 +36,8 @@ type ChainIndexEffects m
         , ChainIndexEffect
         , State ChainIndexState
         , LogMsg ChainIndexEvent
+        , Error ChainIndexAPIError
+        , Error ServerError
         , m
         ]
 

@@ -77,7 +77,7 @@ import           Control.Monad                                  (forM_, forever,
 import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
 import           Control.Monad.Freer.Delay                      (DelayEffect, delayThread, handleDelayEffect)
-import           Control.Monad.Freer.Error                      (Error, handleError, throwError)
+import           Control.Monad.Freer.Error                      (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extras.Log                 (LogLevel (Info), LogMessage, LogMsg (..),
                                                                  handleLogWriter, logInfo, logLevel, mapLog)
 import           Control.Monad.Freer.Reader                     (Reader, ask, asks)
@@ -482,16 +482,20 @@ runChainIndexEffects action = do
     SimulatorState{_chainIndex} <- ask @(SimulatorState t)
     (a, logs) <- liftIO $ STM.atomically $ do
                     oldState <- STM.readTVar _chainIndex
-                    let ((a, newState), logs) =
+                    let result =
                             run
+                            $ runError
                             $ runWriter @[LogMessage ChainIndex.ChainIndexEvent]
                             $ reinterpret @(LogMsg ChainIndex.ChainIndexEvent) @(Writer [LogMessage ChainIndex.ChainIndexEvent]) (handleLogWriter _singleton)
                             $ runState oldState
                             $ ChainIndex.handleChainIndexControl
                             $ ChainIndex.handleChainIndex
                             $ action
-                    STM.writeTVar _chainIndex newState
-                    pure (a, logs)
+                    case result of
+                        Left _ -> undefined -- FIXME: Handle error!
+                        Right ((a, newState), logs) -> do
+                            STM.writeTVar _chainIndex newState
+                            pure (a, logs)
     traverse_ (send . LMessage) logs
     pure a
 

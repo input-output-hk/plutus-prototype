@@ -47,3 +47,15 @@ throwInsufficientFundsError = throwError . InsufficientFunds
 
 throwOtherError :: Member (Error WalletAPIError) effs => Text -> Eff effs a
 throwOtherError = throwError . OtherError
+
+-- | An error thrown by chain index APIs
+newtype ChainIndexAPIError =
+    OtherChainIndexError Text
+    -- ^ Some other error occurred.
+    deriving stock (Show, Eq, Ord, Generic)
+
+instance Pretty ChainIndexAPIError where
+    pretty (OtherChainIndexError e) = "Other error:" <+> pretty e
+
+instance FromJSON ChainIndexAPIError
+instance ToJSON ChainIndexAPIError

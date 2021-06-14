@@ -65,7 +65,7 @@ import           Control.Monad.Freer.Extras.Log (LogMsg, mapLog)
 import           Control.Monad.Freer.State      (State)
 
 import           Ledger
-import           Wallet.API                     (WalletAPIError (..))
+import           Wallet.API                     (ChainIndexAPIError, WalletAPIError (..))
 
 import           Wallet.Emulator.Chain          as Chain
 import           Wallet.Emulator.MultiAgent
@@ -77,6 +77,7 @@ type EmulatorEffs = '[MultiAgentEffect, ChainEffect, ChainControlEffect]
 
 processEmulated :: forall effs.
     ( Member (Error WalletAPIError) effs
+    , Member (Error ChainIndexAPIError) effs
     , Member (Error AssertionError) effs
     , Member (State EmulatorState) effs
     , Member (LogMsg EmulatorEvent') effs

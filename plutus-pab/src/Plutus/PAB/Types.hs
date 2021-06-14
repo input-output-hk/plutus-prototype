@@ -30,7 +30,7 @@ import           Ledger.Index              as UtxoIndex
 import           Plutus.Contract.Types     (ContractError)
 import           Plutus.PAB.Instances      ()
 import           Servant.Client            (BaseUrl, ClientError)
-import           Wallet.API                (WalletAPIError)
+import           Wallet.API                (ChainIndexAPIError, WalletAPIError)
 import           Wallet.Emulator.Wallet    (Wallet)
 import           Wallet.Types              (ContractInstanceId (..), NotificationError)
 
@@ -39,11 +39,12 @@ data PABError
     | ContractNotFound FilePath
     | ContractInstanceNotFound ContractInstanceId
     | PABContractError ContractError
+    | ChainIndexClientError ClientError
     | WalletClientError ClientError
     | NodeClientError ClientError
     | RandomTxClientError ClientError
     | MetadataError Metadata.MetadataError
-    | ChainIndexError ClientError
+    | ChainIndexError ChainIndexAPIError
     | WalletError WalletAPIError
     | ContractCommandError Int Text -- ?
     | InvalidUUIDError  Text
@@ -62,6 +63,7 @@ instance Pretty PABError where
         ContractInstanceNotFound i -> "Contract instance not found:" <+> pretty i
         PABContractError e         -> "Contract error:" <+> pretty e
         WalletClientError e        -> "Wallet client error:" <+> viaShow e
+        ChainIndexClientError e    -> "Chain index client error:" <+> viaShow e
         NodeClientError e          -> "Node client error:" <+> viaShow e
         RandomTxClientError e      -> "Random tx client error:" <+> viaShow e
         MetadataError e            -> "Metadata error:" <+> viaShow e
