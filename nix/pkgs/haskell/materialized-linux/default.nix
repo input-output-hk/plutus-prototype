@@ -808,6 +808,7 @@
         plutus-ledger-api = ./.plan.nix/plutus-ledger-api.nix;
         marlowe-dashboard-server = ./.plan.nix/marlowe-dashboard-server.nix;
         ouroboros-consensus = ./.plan.nix/ouroboros-consensus.nix;
+        unordered-intmap = ./.plan.nix/unordered-intmap.nix;
         playground-common = ./.plan.nix/playground-common.nix;
         io-sim-classes = ./.plan.nix/io-sim-classes.nix;
         shelley-spec-ledger-test = ./.plan.nix/shelley-spec-ledger-test.nix;
@@ -991,6 +992,7 @@
           "ouroboros-consensus" = {
             flags = { "asserts" = lib.mkOverride 900 false; };
             };
+          "unordered-intmap" = { flags = {}; };
           "playground-common" = { flags = {}; };
           "io-sim-classes" = {
             flags = {

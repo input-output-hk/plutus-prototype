@@ -91,7 +91,7 @@ runKnights :: Integer -> Integer -> [Solution]
 runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
 
 {-# INLINABLE mkKnightsTerm #-}
-mkKnightsTerm :: Integer -> Integer -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkKnightsTerm :: Integer -> Integer -> Term DeBruijn DefaultUni DefaultFun ()
 mkKnightsTerm depth boardSize =
   let (Program _ _ code) = Tx.getPlc $
                              $$(Tx.compile [|| runKnights ||])

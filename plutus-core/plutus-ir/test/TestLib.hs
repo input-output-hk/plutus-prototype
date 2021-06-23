@@ -47,7 +47,7 @@ instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
          ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
     toUPlc t = do
         p' <- toTPlc t
-        pure $ UPLC.eraseProgram p'
+        asIfThrown @UPLC.FreeVariableError . UPLC.deBruijnProgram $ UPLC.eraseProgram p'
 
 -- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if it caught them in 'IO'.
 asIfThrown

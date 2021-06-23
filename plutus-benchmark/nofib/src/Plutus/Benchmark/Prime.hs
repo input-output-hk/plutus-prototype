@@ -290,7 +290,7 @@ runPrimalityTest :: Integer -> Result
 runPrimalityTest n = testInteger n initState
 
 -- % Run the program on an arbitrary integer, for testing
-mkPrimalityTestTerm :: Integer -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkPrimalityTestTerm :: Integer -> Term DeBruijn DefaultUni DefaultFun ()
 mkPrimalityTestTerm n =
   let (Program _ _ code) = Tx.getPlc $
                            $$(Tx.compile [|| runPrimalityTest ||])
@@ -304,7 +304,7 @@ runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
 
 -- % Run the program on a number known to be prime, for benchmarking
 -- (primes take a long time, composite numbers generally don't).
-mkPrimalityBenchTerm :: PrimeID -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkPrimalityBenchTerm :: PrimeID -> Term DeBruijn DefaultUni DefaultFun ()
 mkPrimalityBenchTerm pid =
   let (Program _ _ code) = Tx.getPlc $
         $$(Tx.compile [|| runFixedPrimalityTest ||])

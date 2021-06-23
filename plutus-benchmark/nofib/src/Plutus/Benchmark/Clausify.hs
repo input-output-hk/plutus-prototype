@@ -182,7 +182,7 @@ runClausify :: StaticFormula -> [LRVars]
 runClausify = clauses . getFormula
 
 {-# INLINABLE mkClausifyTerm #-}
-mkClausifyTerm :: StaticFormula -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkClausifyTerm :: StaticFormula -> Term DeBruijn DefaultUni DefaultFun ()
 mkClausifyTerm formula =
  let (Program _ _ code) = Tx.getPlc $
                              $$(Tx.compile [|| runClausify ||])

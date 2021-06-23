@@ -145,6 +145,8 @@ extra-deps:
   commit: 94153b676617f8f33abe8d8182c37377d2784bd1
 - git: https://github.com/input-output-hk/hedgehog-extras
   commit: 8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187
+- git: https://github.com/bezirg/unordered-intmap
+  commit: 2fafacf8e7e35e0d810570a581381a51706bfef1
 
 allow-newer: true
 

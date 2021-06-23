@@ -44,13 +44,13 @@ import           Control.Monad.Except
 import           Data.Text.Prettyprint.Doc
 import           Test.Tasty
 
-runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO (Term DeBruijn PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
      ps <- Haskell.traverse toUPlc values
      let p = Haskell.foldl1 UPLC.applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
-runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO ([Haskell.String], CekExTally PLC.DefaultFun, (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()))
+runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO ([Haskell.String], CekExTally PLC.DefaultFun, (Term DeBruijn PLC.DefaultUni PLC.DefaultFun ()))
 runPlcCekTrace values = do
      ps <- Haskell.traverse toUPlc values
      let p = Haskell.foldl1 UPLC.applyProgram ps

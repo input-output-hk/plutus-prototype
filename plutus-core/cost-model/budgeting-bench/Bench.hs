@@ -22,7 +22,7 @@ import           System.Directory
 import           System.FilePath
 import           System.Random                            (StdGen, getStdGen, randomR)
 
-type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
+type PlainTerm = UPLC.Term DeBruijn DefaultUni DefaultFun ()
 
 -- TODO.  I'm not totally sure what's going on here.  `env` is supposed to
 -- produce data that will be supplied to the things being benchmarked.  Here

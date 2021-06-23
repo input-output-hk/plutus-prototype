@@ -1,4 +1,4 @@
-( (Right (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> z)))))))))))))))))))))))
+( (Right (delay (\i0 -> \i0 -> i1 i3)))
 , ({ tally: ({ BStep BConst causes ({ cpu: 156000
 | mem: 40
 })

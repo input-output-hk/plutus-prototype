@@ -16,7 +16,6 @@ import           Criterion.Types                          (Config (..))
 import           Options.Applicative
 
 import           Control.DeepSeq                          (force)
-import           Control.Monad.Trans.Except               (runExceptT)
 import qualified Data.ByteString                          as BS
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.List                                (sort)
@@ -78,16 +77,9 @@ contractDirs2 =
     ]
 
 
-type Term          = UPLC.Term    PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
-type Program       = UPLC.Program PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
+type Term          = UPLC.Term    UPLC.DeBruijn      PLC.DefaultUni PLC.DefaultFun ()
+type Program       = UPLC.Program UPLC.DeBruijn      PLC.DefaultUni PLC.DefaultFun ()
 type DbProgram     = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
-
-fromDeBruijn :: DbProgram -> IO Program
-fromDeBruijn prog = do
-    let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
-      Left e  -> errorWithoutStackTrace $ show e
-      Right p -> return p
 
 loadFlat :: FilePath -> IO Term
 loadFlat file = do
@@ -95,8 +87,7 @@ loadFlat file = do
   case unflat contents of
     Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
     Right r -> do
-        p <- fromDeBruijn r
-        return $! force $ UPLC.toTerm p
+        return $! force $ UPLC.toTerm r
         -- `force` to try to ensure that deserialiation is not included in benchmarking time.
 
 mkCekBM :: Term -> Benchmarkable

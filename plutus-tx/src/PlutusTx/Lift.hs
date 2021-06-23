@@ -58,7 +58,7 @@ safeLift
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
        )
-    => a -> m (UPLC.Term UPLC.NamedDeBruijn uni fun ())
+    => a -> m (UPLC.Term UPLC.DeBruijn uni fun ())
 safeLift x = do
     lifted <- liftQuote $ runDefT () $ Lift.lift x
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
@@ -76,7 +76,7 @@ safeLiftProgram
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
        )
-    => a -> m (UPLC.Program UPLC.NamedDeBruijn uni fun ())
+    => a -> m (UPLC.Program UPLC.DeBruijn uni fun ())
 safeLiftProgram x = UPLC.Program () (PLC.defaultVersion ()) <$> safeLift x
 
 safeLiftCode
@@ -102,19 +102,19 @@ unsafely ma = runQuote $ do
 -- | Get a Plutus Core term corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 lift
     :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun)
-    => a -> UPLC.Term UPLC.NamedDeBruijn uni fun ()
+    => a -> UPLC.Term UPLC.DeBruijn uni fun ()
 lift a = unsafely $ safeLift a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram
     :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun)
-    => a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
+    => a -> UPLC.Program UPLC.DeBruijn uni fun ()
 liftProgram x = UPLC.Program () (PLC.defaultVersion ()) $ lift x
 
 -- | Get a Plutus Core program in the default universe corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgramDef
     :: Lift.Lift PLC.DefaultUni a
-    => a -> UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    => a -> UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
 liftProgramDef = liftProgram
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.

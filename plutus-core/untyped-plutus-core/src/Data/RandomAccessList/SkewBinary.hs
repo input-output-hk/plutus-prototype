@@ -16,7 +16,15 @@ import qualified Data.List  as List (unfoldr)
 import           Data.Maybe
 import           GHC.Exts
 
--- | βA complete binary tree.
+{- Note [Optimizing RAList for performance]
+After benchmarking using plutus-core:env-bench and plutus-benchmark:nofib,
+it seems that the best options are:
+
+- no sub-tree size caching
+- strict on the spines
+-}
+
+-- | A complete binary tree.
 -- Note: the size of the tree is not stored/cached,
 -- unless it appears as a root tree in 'RAList', which the size is stored inside the Cons.
 data Tree a = Leaf a
@@ -47,13 +55,15 @@ null :: RAList a -> Bool
 null Nil = True
 null _   = False
 
-{-# complete Cons, Nil #-}
-{-# complete BHead, Nil #-}
-
 -- /O(1)/
+-- destructor
 pattern Cons :: a -> RAList a -> RAList a
 pattern Cons x xs <- (uncons -> Just (x, xs)) where
+  -- constructor
   Cons x xs = cons x xs
+
+{-# complete Cons, Nil #-}
+{-# complete BHead, Nil #-}
 
 -- O(1) worst-case
 cons :: a -> RAList a -> RAList a
@@ -61,16 +71,15 @@ cons x = \case
     (BHead w1 t1 (BHead w2 t2 ts')) | w1 == w2 -> BHead (2*w1+1) (Node x t1 t2) ts'
     ts                                         -> BHead 1 (Leaf x) ts
 
-
 -- /O(1)/
 uncons :: RAList a -> Maybe (a, RAList a)
 uncons = \case
     BHead _ (Leaf x) ts -> Just (x, ts)
     BHead treeSize (Node x t1 t2) ts ->
-        -- probably faster than `div w 2`
+        -- unsafeShiftR 1 is faster than `div w 2`
         let halfSize = unsafeShiftR treeSize 1
             -- split the node in two)
-        in Just ( x, BHead halfSize t1 $ BHead halfSize t2 ts)
+        in Just (x, BHead halfSize t1 $ BHead halfSize t2 ts)
     Nil -> Nothing
 
 {-# INLINABLE head #-}
@@ -81,24 +90,22 @@ head = fst . fromMaybe (error "empty RAList") . uncons
 {-# INLINABLE tail #-}
 -- O(1) worst-case
 tail :: RAList a -> RAList a
-tail = snd. fromMaybe (error "empty RAList") . uncons
+tail = snd . fromMaybe (error "empty RAList") . uncons
 
 -- 0-based
+-- O(log n)
 index :: RAList a -> Word -> a
-index Nil _  = error "out of bounds"
-index (BHead w t ts) !i  =
-    if i < w
-    then indexTree w i t
-    else index ts (i-w)
+index (BHead w0 t ts) !i0
+  | i0 >= w0 = index ts (i0 - w0)
+  | otherwise = go w0 i0 t
   where
-    indexTree :: Word -> Word -> Tree a -> a
-    indexTree 1 0 (Leaf x) = x
-    indexTree _ _ (Leaf _) = error "out of bounds"
-    indexTree _ 0 (Node x _ _) = x
-    indexTree treeSize offset (Node _ t1 t2 ) =
-        let halfSize = unsafeShiftR treeSize 1 -- probably faster than `div w 2`
-        in if offset <= halfSize
-           then indexTree halfSize (offset - 1) t1
-           else indexTree halfSize (offset - 1 - halfSize) t2
+    go _ _ (Leaf x) = x
+    go _ 0 (Node x _ _) = x
+    go w i (Node _ l r) =
+      let halfSize = unsafeShiftR w 1
+      in if i <= halfSize
+         then go halfSize (i-1) l
+         else go halfSize (i-1-halfSize) r
+index Nil _ = error "skew list out of bounds"
 
 -- TODO: safeIndex

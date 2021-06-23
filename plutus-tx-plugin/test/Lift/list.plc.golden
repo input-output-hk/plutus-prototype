@@ -2,46 +2,11 @@
   [
     [
       [
-        (lam
-          GHC_Types_Nil_i0
-          (lam
-            GHC_Types_Cons_i0
-            (lam
-              match_GHC_Types_Nil_i0
-              [
-                [ (force GHC_Types_Cons_i2) (con integer 1) ]
-                (force GHC_Types_Nil_i3)
-              ]
-            )
-          )
-        )
-        (delay
-          (delay
-            (lam
-              case_GHC_Types_Nil_i0
-              (lam case_GHC_Types_Cons_i0 case_GHC_Types_Nil_i2)
-            )
-          )
-        )
+        (lam i0 (lam i0 (lam i0 [ [ (force i2) (con integer 1) ] (force i3) ])))
+        (delay (delay (lam i0 (lam i0 i2))))
       ]
-      (delay
-        (lam
-          arg_0_i0
-          (lam
-            arg_1_i0
-            (delay
-              (lam
-                case_GHC_Types_Nil_i0
-                (lam
-                  case_GHC_Types_Cons_i0
-                  [ [ case_GHC_Types_Cons_i1 arg_0_i4 ] arg_1_i3 ]
-                )
-              )
-            )
-          )
-        )
-      )
+      (delay (lam i0 (lam i0 (delay (lam i0 (lam i0 [ [ i1 i4 ] i3 ]))))))
     ]
-    (delay (lam x_i0 x_i1))
+    (delay (lam i0 i1))
   ]
 )

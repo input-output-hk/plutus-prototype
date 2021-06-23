@@ -3,55 +3,18 @@
     [
       [
         (lam
-          Plugin_Data_Spec_Poly1_i0
+          i0
           (lam
-            Plugin_Data_Spec_Poly2_i0
-            (lam
-              match_Plugin_Data_Spec_MyPolyData_i0
-              [
-                [ (force (force Plugin_Data_Spec_Poly1_i3)) (con integer 1) ]
-                (con integer 2)
-              ]
-            )
+            i0
+            (lam i0 [ [ (force (force i3)) (con integer 1) ] (con integer 2) ])
           )
         )
         (delay
-          (delay
-            (lam
-              arg_0_i0
-              (lam
-                arg_1_i0
-                (delay
-                  (lam
-                    case_Plugin_Data_Spec_Poly1_i0
-                    (lam
-                      case_Plugin_Data_Spec_Poly2_i0
-                      [ [ case_Plugin_Data_Spec_Poly1_i2 arg_0_i4 ] arg_1_i3 ]
-                    )
-                  )
-                )
-              )
-            )
-          )
+          (delay (lam i0 (lam i0 (delay (lam i0 (lam i0 [ [ i2 i4 ] i3 ]))))))
         )
       ]
-      (delay
-        (delay
-          (lam
-            arg_0_i0
-            (delay
-              (lam
-                case_Plugin_Data_Spec_Poly1_i0
-                (lam
-                  case_Plugin_Data_Spec_Poly2_i0
-                  [ case_Plugin_Data_Spec_Poly2_i1 arg_0_i3 ]
-                )
-              )
-            )
-          )
-        )
-      )
+      (delay (delay (lam i0 (delay (lam i0 (lam i0 [ i1 i3 ]))))))
     ]
-    (delay (delay (lam x_i0 x_i1)))
+    (delay (delay (lam i0 i1)))
   ]
 )

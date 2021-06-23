@@ -90,7 +90,7 @@ runQueens :: Integer -> Algorithm -> [State]
 runQueens n alg = nqueens n (lookupAlgorithm alg)
 
 -- % Compile a Plutus Core term which runs nqueens on given arguments
-mkQueensTerm :: Integer -> Algorithm -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkQueensTerm :: Integer -> Algorithm -> Term DeBruijn DefaultUni DefaultFun ()
 mkQueensTerm sz alg =
   let (Program _ _ code) =
         Tx.getPlc $

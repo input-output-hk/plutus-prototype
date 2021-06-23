@@ -6,8 +6,6 @@ module Main where
 
 import           Common
 
-import           Control.Exception
-import           Control.Monad.Except
 import           Criterion.Main
 
 import qualified Plutus.Benchmark.Clausify                as Clausify
@@ -22,10 +20,8 @@ import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 
-benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
-benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
-    Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCek PLC.defaultCekParameters) t'
+benchCek :: Term DeBruijn DefaultUni DefaultFun () -> Benchmarkable
+benchCek = nf (unsafeEvaluateCek PLC.defaultCekParameters)
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchCek $ Clausify.mkClausifyTerm f

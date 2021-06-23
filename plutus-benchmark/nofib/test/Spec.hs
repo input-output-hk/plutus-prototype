@@ -9,8 +9,6 @@ run to completion. -}
 
 module Main where
 
-import           Control.Exception
-import           Control.Monad.Except
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
@@ -29,13 +27,11 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationRes
 
 ---------------- Evaluation ----------------
 
-type Term = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-type Term' = UPLC.Term PLC.Name DefaultUni DefaultFun ()
+type Term = UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
+type Term' = UPLC.Term PLC.DeBruijn DefaultUni DefaultFun ()
 
 runCek :: Term -> EvaluationResult Term'
-runCek t = case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm t of
-    Left e   -> throw e
-    Right t' -> UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters t'
+runCek = UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters
 
 termOfHaskellValue :: Tx.Lift DefaultUni a => a -> Term
 termOfHaskellValue v =
@@ -44,9 +40,7 @@ termOfHaskellValue v =
 
 runCekWithErrMsg :: Term -> String -> IO Term'
 runCekWithErrMsg term errMsg =
-    case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm term of
-        Left e -> assertFailure (show e)
-        Right t -> case UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters t of
+    case UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters term of
           EvaluationFailure        -> assertFailure errMsg
           EvaluationSuccess result -> pure result
 

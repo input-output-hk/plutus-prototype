@@ -1,1 +1,1 @@
-(Right (lam j_1 (con integer 1)))
+(Right (lam i0 (con integer 1)))

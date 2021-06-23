@@ -2,32 +2,10 @@
   [
     [
       (lam
-        GHC_Tuple_Tuple2_i0
-        (lam
-          match_GHC_Tuple_Tuple2_i0
-          [
-            [ (force (force GHC_Tuple_Tuple2_i2)) (con integer 1) ]
-            (con integer 2)
-          ]
-        )
+        i0 (lam i0 [ [ (force (force i2)) (con integer 1) ] (con integer 2) ])
       )
-      (delay
-        (delay
-          (lam
-            arg_0_i0
-            (lam
-              arg_1_i0
-              (delay
-                (lam
-                  case_GHC_Tuple_Tuple2_i0
-                  [ [ case_GHC_Tuple_Tuple2_i1 arg_0_i3 ] arg_1_i2 ]
-                )
-              )
-            )
-          )
-        )
-      )
+      (delay (delay (lam i0 (lam i0 (delay (lam i0 [ [ i1 i3 ] i2 ]))))))
     ]
-    (delay (delay (lam x_i0 x_i1)))
+    (delay (delay (lam i0 i1)))
   ]
 )

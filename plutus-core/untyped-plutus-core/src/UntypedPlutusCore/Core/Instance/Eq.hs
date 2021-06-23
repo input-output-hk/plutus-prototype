@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -7,17 +7,22 @@ module UntypedPlutusCore.Core.Instance.Eq where
 
 import           PlutusPrelude
 
-import           UntypedPlutusCore.Core.Type
-
 import           PlutusCore.Eq
 import           PlutusCore.Name
 import           PlutusCore.Rename.Monad
+import           UntypedPlutusCore.Core.Type
+import           UntypedPlutusCore.DeBruijn
+
 
 import           Universe
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique) =>
             Eq (Term name uni fun ann) where
     term1 == term2 = runEqRename $ eqTermM term1 term2
+
+-- for NEAT/Spec.hs
+deriving instance {-# OVERLAPPING #-} (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun) =>
+                  Eq (Term DeBruijn uni fun ())
 
 -- | Check equality of two 'Term's.
 eqTermM

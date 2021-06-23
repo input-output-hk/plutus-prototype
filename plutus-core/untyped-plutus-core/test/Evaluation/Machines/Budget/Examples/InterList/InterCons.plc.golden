@@ -1,4 +1,4 @@
-( (Right (delay (delay (\x -> \y -> \xs -> delay (\z -> \f -> f x y xs)))))
+( (Right (delay (delay (\i0 -> \i0 -> \i0 -> delay (\i0 -> \i0 -> i1 i5 i4 i3)))))
 , ({ tally: ({ BStep BConst causes ({ cpu: 0
 | mem: 0
 })

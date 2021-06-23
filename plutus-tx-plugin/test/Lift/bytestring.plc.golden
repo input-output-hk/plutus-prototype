@@ -1,22 +1,9 @@
 (program 1.0.0
   [
     [
-      (lam
-        Lift_Spec_WrappedBS_i0
-        (lam
-          match_Lift_Spec_WrappedBS_i0
-          [ Lift_Spec_WrappedBS_i2 (con bytestring #68656c6c6f) ]
-        )
-      )
-      (lam
-        arg_0_i0
-        (delay
-          (lam
-            case_Lift_Spec_WrappedBS_i0 [ case_Lift_Spec_WrappedBS_i1 arg_0_i2 ]
-          )
-        )
-      )
+      (lam i0 (lam i0 [ i2 (con bytestring #68656c6c6f) ]))
+      (lam i0 (delay (lam i0 [ i1 i2 ])))
     ]
-    (lam x_i0 x_i1)
+    (lam i0 i1)
   ]
 )

@@ -6,9 +6,7 @@ module Main where
 import           Prelude                                  ((<>))
 import qualified Prelude                                  as Haskell
 
-import           Control.Exception
 import           Control.Monad                            ()
-import           Control.Monad.Trans.Except
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Char                                (isSpace)
 import           Options.Applicative                      as Opt hiding (action)
@@ -49,7 +47,6 @@ data Options
     = RunPLC           ProgAndArgs
     | RunHaskell       ProgAndArgs
     | DumpPLC          ProgAndArgs
-    | DumpCBORnamed    ProgAndArgs
     | DumpCBORdeBruijn ProgAndArgs
 
 
@@ -172,9 +169,6 @@ options = hsubparser
   <> command "dumpPLC"
      (info (DumpPLC <$> progAndArgs)
       (progDesc "print the program (applied to arguments) as Plutus Core source on standard output"))
-  <> command "dumpCBORnamed"
-     (info (DumpCBORnamed <$> progAndArgs)
-      (progDesc "dump the AST as CBOR, preserving names"))
   <> command "dumpCBOR"
      (info (DumpCBORdeBruijn <$> progAndArgs)
       (progDesc "same as dumpCBORdeBruijn, but easier to type"))
@@ -186,22 +180,14 @@ options = hsubparser
 
 ---------------- Evaluation ----------------
 
-evaluateWithCek :: UPLC.Term Name DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
+evaluateWithCek :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ())
 evaluateWithCek = unsafeEvaluateCekNoEmit PLC.defaultCekParameters
-
-toDeBruijn :: UPLC.Program Name DefaultUni DefaultFun a -> IO (UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun a)
-toDeBruijn prog = do
-  let r = runExcept @UPLC.FreeVariableError $ PLC.runQuoteT (UPLC.deBruijnProgram prog)
-  case r of
-    Left e  -> throw e
-    Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
 writeCBORnamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
 writeCBORnamed prog = BSL.putStr $ UPLC.serialiseOmittingUnits prog
 
-writeCBORdeBruijn ::UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
-writeCBORdeBruijn  prog = BSL.putStr . UPLC.serialiseOmittingUnits $
-                      UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) $ prog
+writeCBORdeBruijn :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> IO ()
+writeCBORdeBruijn = BSL.putStr . UPLC.serialiseOmittingUnits
 
 description :: Haskell.String
 description = "This program provides operations on a number of Plutus programs "
@@ -234,7 +220,7 @@ footerInfo = text "Every command takes the name of a program and a (possbily emp
 main :: IO ()
 main = do
   execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
-    RunPLC pa ->  print . PLC.prettyPlcClassicDebug <$> evaluateWithCek . getUnDBrTerm $ pa
+    RunPLC pa ->  print . PLC.prettyPlcClassicDebug <$> evaluateWithCek . getDBrTerm $ pa
     RunHaskell pa ->
         case pa of
           Clausify formula        -> print $ Clausify.runClausify formula
@@ -244,12 +230,11 @@ main = do
           Prime input             -> print $ Prime.runFixedPrimalityTest input
           Primetest n             -> if n<0 then Haskell.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
-    DumpPLC pa -> Haskell.mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getUnDBrTerm $ pa
+    DumpPLC pa -> Haskell.mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getDBrTerm $ pa
         where unindent d = map (dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
-    DumpCBORnamed pa   -> writeCBORnamed . mkProg . getUnDBrTerm $ pa
     DumpCBORdeBruijn pa-> writeCBORdeBruijn . mkProg . getDBrTerm $ pa
     -- Write the output to stdout and let the user deal with redirecting it.
-    where getDBrTerm :: ProgAndArgs -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    where getDBrTerm :: ProgAndArgs -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
           getDBrTerm =
               \case
                Clausify formula        -> Clausify.mkClausifyTerm formula
@@ -259,12 +244,6 @@ main = do
                Prime input             -> Prime.mkPrimalityBenchTerm input
                Primetest n             -> if n<0 then Haskell.error "Positive number expected"
                                           else Prime.mkPrimalityTestTerm n
-
-          getUnDBrTerm :: ProgAndArgs -> UPLC.Term Name DefaultUni DefaultFun ()
-          getUnDBrTerm pa =
-              case runExcept @UPLC.FreeVariableError . PLC.runQuoteT . UPLC.unDeBruijnTerm . getDBrTerm $ pa of
-                Left e  -> throw e
-                Right t -> t
 
           mkProg :: UPLC.Term name uni fun () -> UPLC.Program name uni fun ()
           mkProg = UPLC.Program () (UPLC.Version () 1 0 0)

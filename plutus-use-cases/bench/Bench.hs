@@ -13,7 +13,6 @@ module Main (main) where
 import           Prelude                       hiding (tail)
 
 import           Control.Lens.Indexed
-import           Control.Monad.Except
 import           Criterion.Main
 import           Crypto.Hash                   hiding (Context)
 import qualified Data.ByteArray                as BA
@@ -47,10 +46,8 @@ import qualified Scott
 main :: IO ()
 main = defaultMain [ functions, validators, scriptHashes ]
 
-runCek :: UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> Bool
-runCek p = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnProgram p of
-    Left _   -> False
-    Right p' -> PLC.isEvaluationSuccess $ unsafeEvaluateCek p'
+runCek :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () -> Bool
+runCek = PLC.isEvaluationSuccess . unsafeEvaluateCek
 
 -- | Execution of some interesting functions.
 functions :: Benchmark

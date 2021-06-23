@@ -52,16 +52,20 @@ instance ToTPlc (TPLC.Program TPLC.TyName TPLC.Name uni fun ()) uni fun where
     toTPlc = pure
 
 class ToUPlc a uni fun | a -> uni fun where
-    toUPlc :: a -> ExceptT SomeException IO (UPLC.Program TPLC.Name uni fun ())
+    toUPlc :: a -> ExceptT SomeException IO (UPLC.Program UPLC.DeBruijn uni fun ())
 
 instance ToUPlc a uni fun => ToUPlc (ExceptT SomeException IO a) uni fun where
     toUPlc a = a >>= toUPlc
 
-instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
+-- instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
+--     toUPlc = pure
+
+-- instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
+--     toUPlc p = withExceptT @_ @FreeVariableError toException $ TPLC.runQuoteT $ UPLC.unDeBruijnProgram p
+
+instance ToUPlc (UPLC.Program UPLC.DeBruijn uni fun ()) uni fun where
     toUPlc = pure
 
-instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
-    toUPlc p = withExceptT @_ @FreeVariableError toException $ TPLC.runQuoteT $ UPLC.unDeBruijnProgram p
 
 pureTry :: Exception e => a -> Either e a
 pureTry = unsafePerformIO . try . evaluate
@@ -84,7 +88,7 @@ runTPlc values = do
 runUPlc
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => [a]
-    -> ExceptT SomeException IO (UPLC.EvaluationResult (UPLC.Term TPLC.Name DefaultUni TPLC.DefaultFun ()))
+    -> ExceptT SomeException IO (UPLC.EvaluationResult (UPLC.Term UPLC.DeBruijn DefaultUni TPLC.DefaultFun ()))
 runUPlc values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
@@ -114,15 +118,13 @@ goldenUPlc
     :: ToUPlc a DefaultUni TPLC.DefaultFun
      => String -> a -> TestNested
 goldenUPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
-    p <- toUPlc value
-    withExceptT @_ @FreeVariableError toException $ UPLC.deBruijnProgram p
+    toUPlc value
 
 goldenUPlcCatch
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
 goldenUPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
-    p <- toUPlc value
-    withExceptT @_ @FreeVariableError toException $ UPLC.deBruijnProgram p
+    toUPlc value
 
 goldenTEval
     :: ToTPlc a DefaultUni TPLC.DefaultFun

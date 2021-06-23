@@ -21,7 +21,7 @@ import           PlutusCore.DeBruijn.Internal
 
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           UntypedPlutusCore.Core
+import           UntypedPlutusCore.Core.Type
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
@@ -32,28 +32,32 @@ import qualified Data.Bimap                   as BM
 This module is just a boring port of the typed version.
 -}
 
+-- FIXME: a better API than this wrapper
+noNameDeBruijn :: NamedDeBruijn -> DeBruijn
+noNameDeBruijn (NamedDeBruijn _ ix) = DeBruijn ix
+
 -- | Convert a 'Term' with 'TyName's and 'Name's into a 'Term' with 'TyDeBruijn's and 'DeBruijn's.
 deBruijnTerm
     :: (AsFreeVariableError e, MonadError e m)
-    => Term Name uni fun ann -> m (Term NamedDeBruijn uni fun ann)
+    => Term Name uni fun ann -> m (Term DeBruijn uni fun ann)
 deBruijnTerm = flip runReaderT (Levels 0 BM.empty) . deBruijnTermM
 
 -- | Convert a 'Program' with 'TyName's and 'Name's into a 'Program' with 'TyDeBruijn's and 'DeBruijn's.
 deBruijnProgram
     :: (AsFreeVariableError e, MonadError e m)
-    => Program Name uni fun ann -> m (Program NamedDeBruijn uni fun ann)
+    => Program Name uni fun ann -> m (Program DeBruijn uni fun ann)
 deBruijnProgram (Program ann ver term) = Program ann ver <$> deBruijnTerm term
 
 deBruijnTermM
     :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)
     => Term Name uni fun ann
-    -> m (Term NamedDeBruijn uni fun ann)
+    -> m (Term DeBruijn uni fun ann)
 deBruijnTermM = \case
     -- variable case
-    Var ann n -> Var ann <$> nameToDeBruijn n
+    Var ann n -> Var ann . noNameDeBruijn <$> nameToDeBruijn n
     -- binder cases
     LamAbs ann n t -> declareUnique n $ do
-        n' <- nameToDeBruijn n
+        n' <- noNameDeBruijn <$> nameToDeBruijn n
         withScope $ LamAbs ann n' <$> deBruijnTermM t
     -- boring recursive cases
     Apply ann t1 t2 -> Apply ann <$> deBruijnTermM t1 <*> deBruijnTermM t2

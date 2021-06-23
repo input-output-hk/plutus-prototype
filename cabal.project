@@ -187,11 +187,15 @@ source-repository-package
   location: https://github.com/input-output-hk/hedgehog-extras
   tag: 8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187
 
+source-repository-package
+  type: git
+  location: https://github.com/bezirg/unordered-intmap
+  tag: 2fafacf8e7e35e0d810570a581381a51706bfef1
+
 -- The following dependencies are not mirrored in the
 -- stack.yaml file, but they are needed regardless by cabal.
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/goblins
   tag: cde90a2b27f79187ca8310b6549331e59595e7ba
-
 

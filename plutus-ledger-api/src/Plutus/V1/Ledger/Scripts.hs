@@ -57,7 +57,7 @@ import qualified Prelude                          as Haskell
 import           Codec.CBOR.Decoding              (decodeBytes)
 import           Codec.Serialise                  (Serialise, decode, encode, serialise)
 import           Control.DeepSeq                  (NFData)
-import           Control.Monad.Except             (MonadError, runExceptT, throwError)
+import           Control.Monad.Except             (MonadError, throwError)
 import           Crypto.Hash                      (Digest, SHA256, hash)
 import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson                       as JSON
@@ -154,10 +154,8 @@ scriptSize (Script s) = UPLC.programSize s
 fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = fromPlc . getPlc
 
-fromPlc :: UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> Script
-fromPlc (UPLC.Program a v t) =
-    let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t
-    in Script $ UPLC.Program a v nameless
+fromPlc :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () -> Script
+fromPlc = Script
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
@@ -173,15 +171,7 @@ data ScriptError =
 -- | Evaluate a script, returning the trace log.
 evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m [Haskell.String]
 evaluateScript s = do
-    -- TODO: evaluate the nameless debruijn program directly
-    let namedProgram =
-            let (UPLC.Program a v t) = unScript s
-                named = UPLC.termMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "" ix) t
-            in UPLC.Program a v named
-    p <- case PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
-        Right p -> return p
-        Left e  -> throwError $ MalformedScript $ Haskell.show e
-    let (logOut, _tally, result) = evaluateCekTrace p
+    let (logOut, _tally, result) = evaluateCekTrace $ unScript s
     case result of
         Right _ -> Haskell.pure ()
         Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of

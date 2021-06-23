@@ -69,7 +69,7 @@ type UntypedProgram a = UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun a
 
 data Program a =
       TypedProgram (TypedProgram a)
-    | UntypedProgram (UntypedProgram a)
+    | UntypedProgram (UntypedProgramDeBruijn a)
     deriving (Functor)
 
 instance (PP.PrettyBy PP.PrettyConfigPlc (Program a)) where
@@ -403,18 +403,7 @@ toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
 toDeBruijn prog =
   case runExcept @UPLC.FreeVariableError (UPLC.deBruijnProgram prog) of
     Left e  -> errorWithoutStackTrace $ show e
-    Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
-
-
--- | Convert an untyped de-Bruijn-indexed program to one with standard names.
--- We have nothing to base the names on, so every variable is named "v" (but
--- with a Unique for disambiguation).  Again, we don't support typed programs.
-fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UntypedProgram a)
-fromDeBruijn prog = do
-    let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
-      Left e  -> errorWithoutStackTrace $ show e
-      Right p -> return p
+    Right p -> pure p
 
 
 ---------------- Reading programs from files ----------------
@@ -449,10 +438,10 @@ loadASTfromCBOR :: Language -> AstNameType -> Input -> IO (Program ())
 loadASTfromCBOR language cborMode inp =
     case (language, cborMode) of
          (TypedPLC,   Named)    -> getBinaryInput inp <&> PLC.deserialiseRestoringUnitsOrFail >>= handleResult TypedProgram
-         (UntypedPLC, Named)    -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>= handleResult UntypedProgram
+         (UntypedPLC, Named)    -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>= mapM toDeBruijn >>= handleResult UntypedProgram
          (TypedPLC,   DeBruijn) -> typedDeBruijnNotSupportedError
          (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>=
-                                   mapM fromDeBruijn >>= handleResult UntypedProgram
+                                   handleResult UntypedProgram
     where handleResult wrapper =
               \case
                Left (DeserialiseFailure offset msg) ->
@@ -466,7 +455,7 @@ loadASTfromFlat language flatMode inp =
          (TypedPLC,   Named)    -> getBinaryInput inp <&> unflat >>= handleResult TypedProgram
          (UntypedPLC, Named)    -> getBinaryInput inp <&> unflat >>= handleResult UntypedProgram
          (TypedPLC,   DeBruijn) -> typedDeBruijnNotSupportedError
-         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> unflat >>= mapM fromDeBruijn >>= handleResult UntypedProgram
+         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> unflat >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
                Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure: " ++ show e
@@ -495,7 +484,7 @@ serialiseProgramCBOR (UntypedProgram p) = UPLC.serialiseOmittingUnits p
 -- | Convert names to de Bruijn indices and then serialise
 serialiseDbProgramCBOR :: Program () -> IO (BSL.ByteString)
 serialiseDbProgramCBOR (TypedProgram _)   = typedDeBruijnNotSupportedError
-serialiseDbProgramCBOR (UntypedProgram p) = UPLC.serialiseOmittingUnits <$> toDeBruijn p
+serialiseDbProgramCBOR (UntypedProgram p) = pure $ UPLC.serialiseOmittingUnits p
 
 writeCBOR :: Output -> AstNameType -> Program a -> IO ()
 writeCBOR outp cborMode prog = do
@@ -515,7 +504,7 @@ serialiseProgramFlat (UntypedProgram p) = BSL.fromStrict $ flat p
 -- | Convert names to de Bruijn indices and then serialise
 serialiseDbProgramFlat :: Flat a => Program a -> IO (BSL.ByteString)
 serialiseDbProgramFlat (TypedProgram _)   = typedDeBruijnNotSupportedError
-serialiseDbProgramFlat (UntypedProgram p) = BSL.fromStrict . flat <$> toDeBruijn p
+serialiseDbProgramFlat (UntypedProgram p) = pure . BSL.fromStrict . flat $ p
 
 writeFlat :: Output -> AstNameType -> Program a -> IO ()
 writeFlat outp flatMode prog = do
@@ -570,14 +559,12 @@ runPrint (PrintOptions language inp mode) =
 
 ---------------- Erasure ----------------
 
-eraseProgram :: TypedProgram a -> Program a
-eraseProgram = UntypedProgram . UPLC.eraseProgram
-
 -- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
   TypedProgram typedProg <- getProgram TypedPLC ifmt inp
-  let untypedProg = () <$ eraseProgram typedProg
+  let untypedNameProg = () <$ UPLC.eraseProgram typedProg
+  untypedProg <- UntypedProgram <$> toDeBruijn untypedNameProg
   case ofmt of
     Plc           -> writePlc outp mode untypedProg
     Cbor cborMode -> writeCBOR outp cborMode untypedProg
@@ -750,7 +737,7 @@ timeEval n evaluate prog
 
 ---------------- Printing budgets and costs ----------------
 
-printBudgetStateBudget :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> ExBudget -> IO ()
+printBudgetStateBudget :: UPLC.Term UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () -> CekModel -> ExBudget -> IO ()
 printBudgetStateBudget _ model b =
     case model of
       Unit -> pure ()
@@ -761,7 +748,7 @@ printBudgetStateBudget _ model b =
               putStrLn $ "Memory budget: " ++ show mem
 
 printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun)
-       => UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
+       => UPLC.Term UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
 printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn $ "Const      " ++ pbudget (Cek.BStep Cek.BConst)
   putStrLn $ "Var        " ++ pbudget (Cek.BStep Cek.BVar)
@@ -805,7 +792,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         totalTime = (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
 
 class PrintBudgetState cost where
-    printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
+    printBudgetState :: UPLC.Term PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
     -- TODO: Tidy this up.  We're passing in the term and the CEK cost model
     -- here, but we only need them in tallying mode (where we need the term so
     -- we can print out the AST size and we need the model type to decide how

@@ -375,7 +375,7 @@ class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
 
-instance AsConstant (Term TyName Name uni fun ann) where
+instance AsConstant (Term tyname name uni fun ann) where
     asConstant (Constant _ val) = pure val
     asConstant term             = throwNotAConstant term
 

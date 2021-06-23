@@ -24,12 +24,13 @@ import           Control.Monad.Except
 -- | Type check and evaluate a term.
 typecheckAnd
     :: (MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni)
-    => (params -> UPLC.Term Name uni fun () -> a)
+    => (params -> UPLC.Term UPLC.DeBruijn uni fun () -> a)
     -> params -> TPLC.Term TyName Name uni fun () -> m a
 typecheckAnd action runtime term = TPLC.runQuoteT $ do
     tcConfig <- TPLC.getDefTypeCheckConfig ()
     _ <- TPLC.inferType tcConfig term
-    return . action runtime $ UPLC.erase term
+    dterm <- UPLC.deBruijnTerm $ UPLC.erase term
+    pure $ action runtime dterm
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
@@ -38,7 +39,7 @@ typecheckEvaluateCek
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
-    -> m (EvaluationResult (UPLC.Term Name uni fun ()), [String])
+    -> m (EvaluationResult (UPLC.Term UPLC.DeBruijn uni fun ()), [String])
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
 
 -- | Type check and evaluate a term, logging disabled.
@@ -48,14 +49,14 @@ typecheckEvaluateCekNoEmit
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
-    -> m (EvaluationResult (UPLC.Term Name uni fun ()))
+    -> m (EvaluationResult (UPLC.Term UPLC.DeBruijn uni fun ()))
 typecheckEvaluateCekNoEmit = typecheckAnd unsafeEvaluateCekNoEmit
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
-       , KnownType (UPLC.Term Name uni fun ()) a
+       , KnownType (UPLC.Term UPLC.DeBruijn uni fun ()) a
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()

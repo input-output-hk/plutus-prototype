@@ -14,7 +14,7 @@ import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Pretty
 import           PlutusCore.StdLib.Data.Unit
 
-import           UntypedPlutusCore                       as UPLC (Name, Term, TyName)
+import           UntypedPlutusCore                       as UPLC (DeBruijn, Name, Term, TyName)
 
 import           Evaluation.Builtins.Common
 
@@ -29,7 +29,7 @@ import           Test.Tasty.Hedgehog
 -- of a different type.
 readMakeHetero
     :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) b
+       , KnownType (UPLC.Term DeBruijn DefaultUni DefaultFun ()) b
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
@@ -43,14 +43,14 @@ readMakeHetero x = do
 -- of the same type.
 readMake
     :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+       , KnownType (UPLC.Term DeBruijn DefaultUni DefaultFun ()) a
        )
     => a -> EvaluationResult a
 readMake = readMakeHetero
 
 builtinRoundtrip
     :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+       , KnownType (UPLC.Term DeBruijn DefaultUni DefaultFun ()) a
        , Show a, Eq a
        )
     => Gen a -> Property

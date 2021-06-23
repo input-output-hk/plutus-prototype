@@ -274,7 +274,6 @@ library
         megaparsec -any,
         memory -any,
         mmorph -any,
-        mono-traversable -any,
         monoidal-containers,
         mtl -any,
         nonempty-containers -any,
@@ -517,7 +516,7 @@ benchmark cost-model-test
     other-modules:
         CostModelCreation
 
-benchmark bral-bench
+benchmark env-bench
     type: exitcode-stdio-1.0
     hs-source-dirs:      untyped-plutus-core/bench
     main-is: Main.hs
@@ -528,9 +527,10 @@ benchmark bral-bench
         random >= 1.2.0,
         containers -any,
         -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
-        ral == 0.1
+        ral == 0.1,
+        unordered-intmap >= 0.1.2
 
-test-suite bral-test
+test-suite skew-binary-test
     type: exitcode-stdio-1.0
     hs-source-dirs:      untyped-plutus-core/test
     main-is: TestRAList.hs

@@ -35,10 +35,10 @@ applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (PLC.defaultVersion 
 -- their scope.
 parseScoped
     :: (PLC.AsParseError e PLC.AlexPosn,
-        PLC.AsUniqueError e PLC.AlexPosn,
+        PLC.AsUniqueError e PLC.AlexPosn, PLC.AsFreeVariableError e,
         MonadError e m,
         PLC.MonadQuote m)
     => BSL.ByteString
-    -> m (Program PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn)
+    -> m (Program DeBruijn PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = through (Uniques.checkProgram (const True)) <=< Rename.rename <=< Parser.parseProgram
+parseScoped = deBruijnProgram <=< through (Uniques.checkProgram (const True)) <=< Rename.rename <=< Parser.parseProgram

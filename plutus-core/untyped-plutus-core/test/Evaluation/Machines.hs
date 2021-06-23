@@ -31,6 +31,8 @@ import           PlutusCore.StdLib.Meta
 import           PlutusCore.StdLib.Meta.Data.Function            (etaExpand)
 
 import           Common
+import           Control.Monad.Except
+import           Data.Either
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
@@ -39,26 +41,45 @@ import           Hedgehog                                        hiding (Size, V
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
-testMachine
+testMachineCEK
     :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)
     => String
-    -> (Term Name uni fun () ->
-           Either (EvaluationException user internal (Term Name uni fun ())) (Term Name uni fun ()))
+    -> (Term DeBruijn uni fun () ->
+           Either (EvaluationException user internal (Term DeBruijn uni fun ())) (Term DeBruijn uni fun ()))
     -> TestTree
-testMachine machine eval =
+testMachineCEK machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testProperty name . withTests 200 . property $ do
+            TermOf term val <- forAllWith mempty genTermOfTbv
+            let resExp = erase <$> makeKnownNoEmit @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
+                dterm = fromRight (Prelude.error "free var") . runExcept @FreeVariableError . deBruijnTerm $ erase term
+                dresExp = fromRight (Prelude.error "free var") . runExcept @FreeVariableError . deBruijnTerm <$> resExp
+            case extractEvaluationResult $ eval dterm of
+                Left err     -> fail $ show err
+                Right resAct -> resAct === dresExp
+
+testMachineHOAS
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)
+     => String
+    -> (Term Name uni fun () ->
+           Either (EvaluationException user internal (Term Name uni fun ())) (Term Name uni fun ()))
+     -> TestTree
+testMachineHOAS machine eval =
+     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
+         testProperty name . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
             let resExp = erase <$> makeKnownNoEmit @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ erase term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
 
+
+
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
-        , testMachine "HOAS" $ evaluateHoas Plc.defaultBuiltinsRuntime
+        [ testMachineCEK "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
+        , testMachineHOAS "HOAS" $ evaluateHoas Plc.defaultBuiltinsRuntime
         ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
@@ -81,8 +102,9 @@ testBudget
 testBudget runtime name term =
                        nestedGoldenVsText
     name
+    -- FIXME: better error handling
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying (fromRight (Prelude.error "free variable error") . runExcept @FreeVariableError $ deBruijnTerm term))
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -145,8 +167,9 @@ testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testTallying name term =
                        nestedGoldenVsText
     name
+    -- FIXME: better error handling
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying (fromRight (Prelude.error "free variable error") . runExcept @FreeVariableError $ deBruijnTerm term))
 
 test_tallying :: TestTree
 test_tallying =

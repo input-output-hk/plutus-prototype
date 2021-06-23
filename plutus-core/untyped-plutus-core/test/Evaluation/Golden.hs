@@ -24,9 +24,11 @@ import           PlutusCore.Pretty
 import qualified UntypedPlutusCore                        as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
+import           Control.Monad.Except
 import           Data.Bifunctor
 import qualified Data.ByteString                          as BS
 import qualified Data.ByteString.Lazy                     as BSL
+import           Data.Either
 import           Data.Text.Encoding                       (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -316,13 +318,20 @@ goldenVsPretty extn name value =
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCK name
     = goldenVsPretty ".plc.golden" name
-    . bimap (fmap UPLC.erase) UPLC.erase
+    . bimap (fmap eraseAndDeBruijn) eraseAndDeBruijn
     . evaluateCkNoEmit defaultBuiltinsRuntime
+   where
+     eraseAndDeBruijn =
+           -- FIXME: better error reporting
+           (fromRight (Prelude.error "free variable error") . runExcept @FreeVariableError . UPLC.deBruijnTerm)
+           . UPLC.erase
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
     = goldenVsPretty ".plc.golden" name
     . evaluateCekNoEmit defaultCekParameters
+    -- FIXME: better error reporting
+    . (fromRight (Prelude.error "free variable error") . runExcept @FreeVariableError . UPLC.deBruijnTerm)
     . UPLC.erase
 
 runTypecheck
