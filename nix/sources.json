@@ -18,10 +18,10 @@
         "homepage": "",
         "owner": "justinwoo",
         "repo": "easy-purescript-nix",
-        "rev": "c2e49b4a94ee55df294212c561f2ac7225a8ebbf",
-        "sha256": "0jxg2bmniqpr94l51azbd887m5kv95g5n87ybwkip76468dxcqiq",
+        "rev": "47bdc016c7d56e987ca1aca690b1d6c9816a8584",
+        "sha256": "051fzxd03y0c63sll2bhn0h66dywy9lw6ylyh5vq8fymvix20q94",
         "type": "tarball",
-        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/c2e49b4a94ee55df294212c561f2ac7225a8ebbf.tar.gz",
+        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/47bdc016c7d56e987ca1aca690b1d6c9816a8584.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "gitignore.nix": {
