@@ -38,6 +38,7 @@ let
     materialized =
       if stdenv.hostPlatform.isLinux then ./materialized-linux
       else if stdenv.hostPlatform.isDarwin then ./materialized-darwin
+      else if stdenv.hostPlatform.isWindows then ./materialized-windows
       else builtins.error "Don't have materialized files for this platform";
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
@@ -47,18 +48,72 @@ let
       "https://github.com/shmish111/servant-purescript.git"."a76104490499aa72d40c2790d10e9383e0dbde63" = "11nxxmi5bw66va7psvrgrw7b7n85fvqgfp58yva99w3v9q3a50v9";
       "https://github.com/input-output-hk/cardano-base"."a715c7f420770b70bbe95ca51d3dec83866cb1bd" = "06l06mmb8cd4q37bnvfpgx1c5zgsl4xaf106dqva98738i8asj7j";
       "https://github.com/input-output-hk/cardano-crypto.git"."ce8f1934e4b6252084710975bd9bbc0a4648ece4" = "1v2laq04piyj511b2m77hxjh9l1yd6k9kc7g6bjala4w3zdwa4ni";
-      "https://github.com/input-output-hk/cardano-ledger-specs"."a3ef848542961079b7cd53d599e5385198a3035c" = "02iwn2lcfcfvrnvcqnx586ncdnma23vdqvicxgr4f39vcacalzpd";
+      "https://github.com/input-output-hk/cardano-ledger-specs"."60a47ae42b7d465160a310d5d7f125f73d19c705" = "1gvl7a5h8rrspnwa1vk42fy1ns94y8llfsxahxz0ykdap7w6kwmm";
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
       "https://github.com/input-output-hk/goblins"."cde90a2b27f79187ca8310b6549331e59595e7ba" = "17c88rbva3iw82yg9srlxjv2ia5wjb9cyqw44hik565f5v9svnyg";
       "https://github.com/input-output-hk/iohk-monitoring-framework"."34abfb7f4f5610cabb45396e0496472446a0b2ca" = "1fdc0a02ipa385dnwa6r6jyc8jlg537i12hflfglkhjs2b7i92gs";
-      "https://github.com/input-output-hk/ouroboros-network"."e50613562d6d4a0f933741fcf590b0f69a1eda67" = "0i192ksa69lpzjhzmhd2h1mramkvvikw04pqws18h5dly55f4z3k";
-      "https://github.com/input-output-hk/cardano-node.git"."b3cabae6b3bf30a0b1b4e78bc4b67282dabad0a6" = "1csmji1bgi45wgrw7kqy19s4bbbpa78kjg3bz7mbiwb8vjgg9kvq";
+      "https://github.com/input-output-hk/ouroboros-network"."8a0ff387541a612b787a6e6b6f02baa9ac8d4c71" = "1k1cc5sqq9h6jrr5psi4vzs1ay3wafj42gpfv8b67cpnxfivj4m6";
+      "https://github.com/input-output-hk/cardano-node.git"."3dedb28201ab15595cc9dcb2782e1a0f3125c656" = "057bhrxnrhq7g9yicjb1h9iikh8qq336f09zv5h9k90b1slsiwh6";
       "https://github.com/input-output-hk/Win32-network"."94153b676617f8f33abe8d8182c37377d2784bd1" = "0pb7bg0936fldaa5r08nqbxvi2g8pcy4w3c7kdcg7pdgmimr30ss";
       "https://github.com/input-output-hk/hedgehog-extras"."8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187" = "12viwpahjdfvlqpnzdgjp40nw31rvyznnab1hml9afpaxd6ixh70";
     };
+    cabalProjectLocal = lib.optionalString stdenv.hostPlatform.isWindows ''
+      -- The following is needed because Nix is doing something crazy.
+      package byron-spec-ledger
+        tests: False
+
+      package marlowe
+        tests: False
+
+      package plutus-doc
+        tests: False
+
+      package plutus-metatheory
+        tests: False
+
+      package prettyprinter-configurable
+        tests: False
+
+      package small-steps
+        tests: False
+
+      package small-steps-test
+        tests: False
+
+      package byron-spec-chain
+        tests: False
+
+      package cardano-node
+        flags: -systemd
+
+      package cardano-config
+        flags: -systemd
+    '';
     modules = [
-      {
-        reinstallableLibGhc = false;
+      # Allow reinstallation of Win32
+      ({pkgs, ...}: lib.mkIf pkgs.stdenv.hostPlatform.isWindows {
+        nonReinstallablePkgs =
+        [ "rts" "ghc-heap" "ghc-prim" "integer-gmp" "integer-simple" "base"
+          "deepseq" "array" "ghc-boot-th" "pretty" "template-haskell"
+          # ghcjs custom packages
+          "ghcjs-prim" "ghcjs-th"
+          "ghc" "array" "binary" "bytestring" "containers"
+          "filepath" "ghc-compact" "ghc-prim"
+          # "ghci" "haskeline"
+          "hpc"
+          "mtl" "parsec" "text" "transformers"
+          "xhtml"
+          # "stm" "terminfo"
+        ];
+        packages.Win32.components.library.build-tools = lib.mkForce [];
+      })
+      ({ pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform) {
+        # Remove hsc2hs build-tool dependencies (suitable version will be available as part of the ghc derivation)
+        packages.terminal-size.components.library.build-tools = lib.mkForce [];
+        packages.network.components.library.build-tools = lib.mkForce [];
+        packages.process.components.library.libs = lib.mkForce [];
+      })
+      ({pkgs, config, ...}: {
         packages = {
           # See https://github.com/input-output-hk/plutus/issues/1213 and
           # https://github.com/input-output-hk/plutus/pull/2865.
@@ -93,8 +148,6 @@ let
           # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
           plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test1.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test2.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
 
           # Relies on cabal-doctest, just turn it off in the Nix build
@@ -138,7 +191,7 @@ let
           plutus-playground-server.ghcOptions = [ "-Werror" ];
           plutus-pab.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
-          plutus-tx-plugin.ghcOptions = [ "-Werror" ];
+          plutus-tx-plugin.ghcOptions = lib.optional (!pkgs.stdenv.hostPlatform.isWindows) "-Werror";
           plutus-doc.ghcOptions = [ "-Werror" ];
           plutus-use-cases.ghcOptions = [ "-Werror" ];
 
@@ -154,8 +207,21 @@ let
           # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
           # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
           ieee.components.library.libs = lib.mkForce [ ];
+
+          # By default haskell.nix chooses the `buildPackages` versions of these `build-tool-depeends`, but
+          # when cross compiling we want the cross compiled version.
+          plutus-pab.components.library.build-tools = lib.mkForce [
+            config.hsPkgs.cardano-node.components.exes.cardano-node
+            config.hsPkgs.cardano-cli.components.exes.cardano-cli
+          ];
+          plutus-metatheory.components.tests.test1.build-tools = lib.mkForce [
+            config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
+          ];
+          plutus-metatheory.components.tests.test2.build-tools = lib.mkForce [
+            config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
+          ];
         };
-      }
+      })
     ] ++ lib.optional enableHaskellProfiling {
       enableLibraryProfiling = true;
       enableExecutableProfiling = true;

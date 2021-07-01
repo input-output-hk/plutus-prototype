@@ -8,7 +8,7 @@ import           Language.Haskell.TH
 import           PlutusTx.Builtins
 import           PlutusTx.Prelude
 
-{-# ANN module "HLint: ignore" #-}
+{- HLINT ignore -}
 
 power :: Integer -> Q (TExp (Integer -> Integer))
 power n =

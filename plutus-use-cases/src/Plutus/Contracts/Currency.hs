@@ -58,7 +58,7 @@ import           Prelude                 (Semigroup (..))
 import qualified Prelude                 as Haskell
 import           Schema                  (ToSchema)
 
-{-# ANN module ("HLint: ignore Use uncurry" :: Haskell.String) #-}
+{-HLINT ignore "Use uncurry"-}
 
 -- | A currency that can be created exactly once
 data OneShotCurrency = OneShotCurrency

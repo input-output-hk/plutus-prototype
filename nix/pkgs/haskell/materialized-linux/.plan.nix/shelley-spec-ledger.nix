@@ -37,7 +37,6 @@
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."bech32" or (errorHandler.buildDepError "bech32"))
-          (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
@@ -138,4 +137,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/42; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/45; }

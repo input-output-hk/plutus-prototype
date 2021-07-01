@@ -4,7 +4,7 @@ module PlutusTx.Maybe (Maybe(..), isJust, isNothing, maybe, fromMaybe, mapMaybe)
 import           PlutusTx.List (foldr)
 import           Prelude       hiding (foldr, maybe)
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 {-# INLINABLE isJust #-}
 -- | Check if a 'Maybe' @a@ is @Just a@

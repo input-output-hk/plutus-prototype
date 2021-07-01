@@ -24,7 +24,7 @@ import           PlutusTx.Eq       (Eq, (==))
 import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
                                     reverse, tail, take, zip, (!!), (&&), (++), (||))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 {-# INLINABLE map #-}
 -- | Plutus Tx version of 'Data.List.map'.

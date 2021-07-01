@@ -5,7 +5,7 @@ import           Control.Applicative   (Const (..))
 import           Data.Functor.Identity (Identity (..))
 import           Prelude               hiding (Functor (..), const, id, (<$), (<$>))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 -- | Plutus Tx version of 'Data.Functor.Functor'.
 class Functor f where

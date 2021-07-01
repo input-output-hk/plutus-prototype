@@ -62,8 +62,8 @@ import           Test.Tasty.QuickCheck
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.Stream                (foldEmulatorStreamM, takeUntilSlot)
 
-{-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
-{-# ANN module ("HLint: ignore Redundant if" :: String) #-}
+{-HLINT ignore "Reduce duplication"-}
+{-HLINT ignore "Redundant if"-}
 
 tests :: TestTree
 tests = testGroup "Marlowe"
@@ -417,4 +417,3 @@ jsonLoops cont = decode (encode cont) === Just cont
 
 prop_jsonLoops :: Property
 prop_jsonLoops = withMaxSuccess 1000 $ forAllShrink contractGen shrinkContract jsonLoops
-

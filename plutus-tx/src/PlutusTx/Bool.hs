@@ -3,7 +3,7 @@ module PlutusTx.Bool (Bool(..), (&&), (||), not) where
 
 import           Prelude hiding (not, (&&), (||))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 {-# INLINABLE (&&) #-}
 -- | Logical AND

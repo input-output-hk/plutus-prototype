@@ -6,7 +6,7 @@ import           Prelude hiding (replicate, tail)
 
 import           IFix
 
-{-# ANN module "HLint: ignore" #-}
+{- HLINT ignore -}
 
 newtype ScottListF f a = ScottListF (forall r . r -> (a -> f a -> r) -> r)
 type ScottList a = IFix ScottListF a

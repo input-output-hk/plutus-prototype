@@ -10,7 +10,7 @@
   {
     flags = {};
     package = {
-      specVersion = "2.4";
+      specVersion = "3.0";
       identifier = { name = "cardano-api"; version = "1.27.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -113,6 +113,7 @@
           "Cardano/Api/SerialiseJSON"
           "Cardano/Api/SerialiseRaw"
           "Cardano/Api/SerialiseTextEnvelope"
+          "Cardano/Api/SerialiseUsing"
           "Cardano/Api/Shelley/Genesis"
           "Cardano/Api/SpecialByron"
           "Cardano/Api/StakePoolMetadata"
@@ -138,8 +139,8 @@
           ];
         hsSourceDirs = [ "src" ];
         };
-      tests = {
-        "cardano-api-test" = {
+      sublibs = {
+        "gen" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
@@ -147,12 +148,45 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
             (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
+            (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
+            (hsPkgs."cardano-crypto-test" or (errorHandler.buildDepError "cardano-crypto-test"))
+            (hsPkgs."cardano-ledger-alonzo" or (errorHandler.buildDepError "cardano-ledger-alonzo"))
+            (hsPkgs."cardano-ledger-byron-test" or (errorHandler.buildDepError "cardano-ledger-byron-test"))
+            (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
+            (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            ];
+          buildable = true;
+          modules = [
+            "Gen/Cardano/Api"
+            "Gen/Cardano/Api/Metadata"
+            "Gen/Cardano/Api/Typed"
+            "Gen/Cardano/Crypto/Seed"
+            "Gen/Hedgehog/Roundtrip/Bech32"
+            "Gen/Hedgehog/Roundtrip/CBOR"
+            "Gen/Tasty/Hedgehog/Group"
+            ];
+          hsSourceDirs = [ "gen" ];
+          };
+        };
+      tests = {
+        "cardano-api-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
+            (hsPkgs."cardano-api".components.sublibs.gen or (errorHandler.buildDepError "cardano-api:gen"))
+            (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
             (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
             (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
             (hsPkgs."cardano-crypto-test" or (errorHandler.buildDepError "cardano-crypto-test"))
             (hsPkgs."cardano-crypto-tests" or (errorHandler.buildDepError "cardano-crypto-tests"))
-            (hsPkgs."cardano-ledger-alonzo" or (errorHandler.buildDepError "cardano-ledger-alonzo"))
-            (hsPkgs."cardano-ledger-byron-test" or (errorHandler.buildDepError "cardano-ledger-byron-test"))
             (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
             (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
@@ -165,34 +199,30 @@
             (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
             (hsPkgs."shelley-spec-ledger-test" or (errorHandler.buildDepError "shelley-spec-ledger-test"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."time" or (errorHandler.buildDepError "time"))
             ];
           buildable = true;
           modules = [
             "Test/Cardano/Api/Crypto"
-            "Test/Cardano/Api/Gen"
             "Test/Cardano/Api/Genesis"
             "Test/Cardano/Api/Json"
+            "Test/Cardano/Api/KeysByron"
             "Test/Cardano/Api/Ledger"
             "Test/Cardano/Api/Metadata"
             "Test/Cardano/Api/Typed/Bech32"
             "Test/Cardano/Api/Typed/CBOR"
             "Test/Cardano/Api/Typed/Envelope"
-            "Test/Cardano/Api/Typed/Gen"
             "Test/Cardano/Api/Typed/JSON"
             "Test/Cardano/Api/Typed/Ord"
             "Test/Cardano/Api/Typed/Orphans"
             "Test/Cardano/Api/Typed/RawBytes"
             "Test/Cardano/Api/Typed/Script"
             "Test/Cardano/Api/Typed/Value"
-            "Test/Tasty/Hedgehog/Group"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "cardano-api-test.hs" ];
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/48; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/49; }

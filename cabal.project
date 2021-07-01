@@ -27,6 +27,7 @@ packages: doc
           quickcheck-dynamic
           web-ghc
           word-array
+          stubs/plutus-ghc-stub
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
@@ -53,6 +54,14 @@ allow-newer:
            , beam-sqlite:aeson
            , beam-sqlite:dlist
            , beam-migrate:aeson
+
+           , stm:base
+
+           -- ghc-boot 8.10.4 is not in hackage, so haskell.nix needs consider 8.8.3
+           -- when cross compiling for windows or it will fail to find a solution including
+           -- a new Win32 version (ghc-boot depends on Win32 via directory)
+           , ghc-boot:base
+           , ghc-boot:ghc-boot-th
 
 constraints:
   -- big breaking change here, inline-r doens't have an upper bound
@@ -114,20 +123,21 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/ouroboros-network
-  tag: e50613562d6d4a0f933741fcf590b0f69a1eda67
+  tag: 8a0ff387541a612b787a6e6b6f02baa9ac8d4c71
   subdir:
-    typed-protocols
-    typed-protocols-examples
-    ouroboros-network
-    ouroboros-network-testing
-    ouroboros-network-framework
+    io-sim
+    io-sim-classes
+    monoidal-synchronisation
+    network-mux
     ouroboros-consensus
     ouroboros-consensus-byron
     ouroboros-consensus-cardano
     ouroboros-consensus-shelley
-    io-sim
-    io-sim-classes
-    network-mux
+    ouroboros-network
+    ouroboros-network-framework
+    ouroboros-network-testing
+    typed-protocols
+    typed-protocols-examples
 
 source-repository-package
   type: git
@@ -146,22 +156,25 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: a3ef848542961079b7cd53d599e5385198a3035c
+  tag: 60a47ae42b7d465160a310d5d7f125f73d19c705
   subdir:
+    alonzo/impl
     byron/chain/executable-spec
     byron/crypto
     byron/crypto/test
     byron/ledger/executable-spec
     byron/ledger/impl
     byron/ledger/impl/test
+    cardano-ledger-core
     semantics/executable-spec
     semantics/small-steps-test
     shelley/chain-and-ledger/dependencies/non-integer
     shelley/chain-and-ledger/executable-spec
     shelley/chain-and-ledger/shelley-spec-ledger-test
     shelley-ma/impl
-    cardano-ledger-core
-    alonzo/impl
+    shelley-ma/shelley-ma-test
+--TODO: disabled until it drops its dep on plutus-tx-plugin
+--  alonzo/test
 
 -- A lot of plutus dependencies have to be synchronized with the dependencies of
 -- cardano-node. If you update cardano-node, please make sure that all dependencies
@@ -169,9 +182,8 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-node.git
-  tag: b3cabae6b3bf30a0b1b4e78bc4b67282dabad0a6
+  tag: 3dedb28201ab15595cc9dcb2782e1a0f3125c656
   subdir:
-    cardano-api/test
     cardano-api
     cardano-node
     cardano-cli
@@ -193,5 +205,4 @@ source-repository-package
   type: git
   location: https://github.com/input-output-hk/goblins
   tag: cde90a2b27f79187ca8310b6549331e59595e7ba
-
 

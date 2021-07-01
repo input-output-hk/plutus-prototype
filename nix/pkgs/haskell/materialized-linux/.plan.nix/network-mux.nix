@@ -36,6 +36,7 @@
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
           (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
+          (hsPkgs."monoidal-synchronisation" or (errorHandler.buildDepError "monoidal-synchronisation"))
           (hsPkgs."array" or (errorHandler.buildDepError "array"))
           (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -151,4 +152,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/24; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/16; }

@@ -8,7 +8,7 @@ import           PlutusTx.Functor
 import           PlutusTx.Monoid       (Monoid (..), mappend)
 import           Prelude               (Bool, Either (..), Maybe (..))
 
-{-# ANN module "HLint: ignore" #-}
+{- HLINT ignore -}
 
 infixl 4 <*>, <*, *>
 

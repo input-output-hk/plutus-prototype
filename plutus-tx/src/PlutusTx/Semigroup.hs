@@ -7,7 +7,7 @@ import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.List
 import           Prelude           hiding (Functor (..), Semigroup (..), (++))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 infixr 6 <>
 

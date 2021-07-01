@@ -10,7 +10,7 @@
   {
     flags = { systemd = true; };
     package = {
-      specVersion = "2.4";
+      specVersion = "3.0";
       identifier = { name = "cardano-config"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -45,4 +45,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/51; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/52; }

@@ -105,7 +105,7 @@ import           Prelude              as Prelude hiding (Applicative (..), Eq (.
 import           Prelude              as Prelude (maximum, minimum)
 
 -- this module does lots of weird stuff deliberately
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 -- $prelude
 -- The PlutusTx Prelude is a replacement for the Haskell Prelude that works

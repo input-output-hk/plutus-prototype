@@ -7,7 +7,7 @@ import           PlutusTx.Data
 
 import           Prelude           hiding (Eq (..), not, (&&))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 infix 4 ==, /=
 

@@ -22,8 +22,7 @@ import           Data.Void
 
 import           GHC.TypeLits         (ErrorMessage (..), TypeError)
 
-
-{-# ANN module "HLint: ignore" #-}
+{- HLINT ignore -}
 
 -- | A typeclass for types that can be converted to and from 'Data'.
 class IsData (a :: Type) where

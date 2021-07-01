@@ -35,7 +35,7 @@ import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Interval
 
-{-# ANN module ("HLint: ignore Redundant if" :: Haskell.String) #-}
+{-HLINT ignore "Redundant if"-}
 
 -- | The slot number. This is a good proxy for time, since on the Cardano blockchain
 -- slots pass at a constant rate.

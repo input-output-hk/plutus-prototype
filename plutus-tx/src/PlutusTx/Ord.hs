@@ -8,7 +8,7 @@ import           PlutusTx.Semigroup
 
 import           Prelude            hiding (Eq (..), Ord (..), Semigroup (..))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 infix 4 <, <=, >, >=
 

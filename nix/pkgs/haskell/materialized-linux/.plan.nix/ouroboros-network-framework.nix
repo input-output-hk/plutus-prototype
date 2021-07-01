@@ -53,6 +53,7 @@
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
           (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+          (hsPkgs."monoidal-synchronisation" or (errorHandler.buildDepError "monoidal-synchronisation"))
           (hsPkgs."network" or (errorHandler.buildDepError "network"))
           (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
@@ -173,4 +174,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/17; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/22; }

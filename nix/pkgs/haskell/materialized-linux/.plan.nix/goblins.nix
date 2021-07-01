@@ -80,4 +80,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/54; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/55; }

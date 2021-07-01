@@ -10,7 +10,7 @@ import           Prelude          hiding (tail)
 
 import qualified PlutusTx.Prelude as P
 
-{-# ANN module "HLint: ignore" #-}
+{- HLINT ignore -}
 
 fibOpt :: Integer -> Integer
 fibOpt n =

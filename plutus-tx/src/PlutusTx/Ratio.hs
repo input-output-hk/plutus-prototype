@@ -62,7 +62,7 @@ instance  Show a => Show (Ratio a) where
        where ratioPrec = 7  -- This refers to the operator precedence level of %
              ratioPrec1 = ratioPrec Haskell.+ 1
 
-{-# ANN module "HLint: ignore" #-}
+{- HLINT ignore -}
 
 {- Note [Ratio]
 

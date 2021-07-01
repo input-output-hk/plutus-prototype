@@ -67,7 +67,7 @@ import           Prelude                  (mapM, (<$>))
 import qualified Prelude                  as Haskell
 import           Text.PrettyPrint.Leijen  (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
-{-# ANN module ("HLint: ignore Avoid restricted function" :: Haskell.String) #-}
+{-HLINT ignore "Avoid restricted function"-}
 
 {- Functions that used in Plutus Core must be inlineable,
    so their code is available for PlutusTx compiler -}

@@ -167,6 +167,7 @@
           "Ouroboros/Consensus/Ledger/Extended"
           "Ouroboros/Consensus/Ledger/Inspect"
           "Ouroboros/Consensus/Ledger/Query"
+          "Ouroboros/Consensus/Ledger/Query/Version"
           "Ouroboros/Consensus/Ledger/SupportsMempool"
           "Ouroboros/Consensus/Ledger/SupportsPeerSelection"
           "Ouroboros/Consensus/Ledger/SupportsProtocol"
@@ -291,4 +292,4 @@
           else [ "src-unix" ]);
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/18; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/17; }

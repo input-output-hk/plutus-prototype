@@ -35,11 +35,14 @@
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
           (hsPkgs."cardano-crypto-praos" or (errorHandler.buildDepError "cardano-crypto-praos"))
+          (hsPkgs."cardano-crypto-wrapper" or (errorHandler.buildDepError "cardano-crypto-wrapper"))
+          (hsPkgs."cardano-ledger-byron" or (errorHandler.buildDepError "cardano-ledger-byron"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -61,11 +64,13 @@
           ];
         buildable = true;
         modules = [
+          "Cardano/Ledger/Address"
           "Cardano/Ledger/AuxiliaryData"
           "Cardano/Ledger/BaseTypes"
           "Cardano/Ledger/Coin"
           "Cardano/Ledger/Compactible"
           "Cardano/Ledger/Core"
+          "Cardano/Ledger/Credential"
           "Cardano/Ledger/Crypto"
           "Cardano/Ledger/Era"
           "Cardano/Ledger/Keys"
@@ -73,10 +78,11 @@
           "Cardano/Ledger/Rules/ValidationMode"
           "Cardano/Ledger/SafeHash"
           "Cardano/Ledger/Serialization"
+          "Cardano/Ledger/Slot"
           "Cardano/Ledger/Tx"
           "Cardano/Ledger/Val"
           ];
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/45; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/41; }

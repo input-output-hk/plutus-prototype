@@ -61,7 +61,9 @@
           (hsPkgs."iproute" or (errorHandler.buildDepError "iproute"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."process-extras" or (errorHandler.buildDepError "process-extras"))
+          (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+          (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
           (hsPkgs."small-steps-test" or (errorHandler.buildDepError "small-steps-test"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
@@ -243,4 +245,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/43; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/46; }

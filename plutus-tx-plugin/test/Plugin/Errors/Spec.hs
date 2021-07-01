@@ -27,7 +27,7 @@ import           Data.String
 import           GHC.Integer.GMP.Internals
 
 -- this module does lots of weird stuff deliberately
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 errors :: TestNested
 errors = testNested "Errors" [

@@ -10,7 +10,7 @@
   {
     flags = { unexpected_thunks = false; systemd = true; };
     package = {
-      specVersion = "2.4";
+      specVersion = "3.0";
       identifier = { name = "cardano-node"; version = "1.27.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -176,4 +176,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/49; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/50; }
