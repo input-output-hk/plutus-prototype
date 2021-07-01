@@ -57,15 +57,7 @@ module PlutusTx.Prelude (
     dropWhile,
     zipWith,
     -- * ByteStrings
-    ByteString,
-    takeByteString,
-    dropByteString,
-    concatenate,
-    emptyByteString,
-    -- * Hashes and Signatures
-    sha2_256,
-    sha3_256,
-    verifySignature,
+    module ByteString,
     -- * Rational numbers
     Rational,
     (%),
@@ -78,10 +70,8 @@ module PlutusTx.Prelude (
 import           Data.String          (IsString (..))
 import           PlutusTx.Applicative as Applicative
 import           PlutusTx.Bool        as Bool
-import           PlutusTx.Builtins    (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
-                                       greaterThanByteString, lessThanByteString, sha2_256, sha3_256, takeByteString,
-                                       verifySignature)
 import qualified PlutusTx.Builtins    as Builtins
+import           PlutusTx.ByteString  as ByteString
 import           PlutusTx.Either      as Either
 import           PlutusTx.Eq          as Eq
 import           PlutusTx.Foldable    as Foldable
@@ -102,10 +92,10 @@ import           Prelude              as Prelude hiding (Applicative (..), Eq (.
                                                   either, elem, error, filter, fst, head, id, length, map, mapM_, max,
                                                   maybe, min, not, notElem, null, or, quotRem, reverse, round, sequence,
                                                   snd, take, zip, (!!), ($), (&&), (++), (<$>), (||))
-import           Prelude              as Prelude (maximum, minimum)
+import qualified Prelude              as Haskell
 
 -- this module does lots of weird stuff deliberately
-{-# ANN module ("HLint: ignore"::String) #-}
+{-# ANN module ("HLint: ignore"::Haskell.String) #-}
 
 -- $prelude
 -- The PlutusTx Prelude is a replacement for the Haskell Prelude that works

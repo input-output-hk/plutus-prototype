@@ -6,19 +6,10 @@
 {-# OPTIONS_GHC -O0 #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
-                                -- * Bytestring builtins
-                                ByteString
-                                , concatenate
-                                , takeByteString
-                                , dropByteString
-                                , emptyByteString
-                                , equalsByteString
-                                , lessThanByteString
-                                , greaterThanByteString
-                                , sha2_256
-                                , sha3_256
-                                , verifySignature
-                                , decodeUtf8
+                                -- * Bytestrings
+                                  module PlutusTx.ByteString
+                                -- * Strings
+                                , module PlutusTx.String
                                 -- * Integer builtins
                                 , addInteger
                                 , subtractInteger
@@ -36,89 +27,16 @@ module PlutusTx.Builtins (
                                 , error
                                 -- * Data
                                 , Data (..)
-                                -- * Strings
-                                , String
-                                , appendString
-                                , emptyString
-                                , charToString
-                                , equalsString
-                                , encodeUtf8
                                 -- * Tracing
                                 , trace
                                 ) where
 
-import qualified Crypto
-import           Data.ByteString      as BS
-import qualified Data.ByteString.Hash as Hash
-import           Data.Maybe           (fromMaybe)
-import           Prelude              hiding (String, error)
+import           Prelude             hiding (String, error)
 
+import           PlutusTx.ByteString
 import           PlutusTx.Data
-import           PlutusTx.Utils       (mustBeReplaced)
-
-{- Note [Builtin name definitions]
-The builtins here have definitions so they can be used in off-chain code too.
-
-However they *must* be replaced by the compiler when used in Plutus Tx code, so
-in particular they must *not* be inlined, otherwise we can't spot them to replace
-them.
--}
-
-{-# NOINLINE concatenate #-}
--- | Concatenates two 'ByteString's.
-concatenate :: ByteString -> ByteString -> ByteString
-concatenate = BS.append
-
-{-# NOINLINE takeByteString #-}
--- | Returns the n length prefix of a 'ByteString'.
-takeByteString :: Integer -> ByteString -> ByteString
-takeByteString n = BS.take (fromIntegral n)
-
-{-# NOINLINE dropByteString #-}
--- | Returns the suffix of a 'ByteString' after n elements.
-dropByteString :: Integer -> ByteString -> ByteString
-dropByteString n = BS.drop (fromIntegral n)
-
-{-# NOINLINE emptyByteString #-}
--- | An empty 'ByteString'.
-emptyByteString :: ByteString
-emptyByteString = BS.empty
-
-{-# NOINLINE sha2_256 #-}
--- | The SHA2-256 hash of a 'ByteString'
-sha2_256 :: ByteString -> ByteString
-sha2_256 = Hash.sha2
-
-{-# NOINLINE sha3_256 #-}
--- | The SHA3-256 hash of a 'ByteString'
-sha3_256 :: ByteString -> ByteString
-sha3_256 = Hash.sha3
-
-{-# NOINLINE verifySignature #-}
--- | Verify that the signature is a signature of the message by the public key.
-verifySignature :: ByteString -> ByteString -> ByteString -> Bool
-verifySignature pubKey message signature =
-  fromMaybe False (Crypto.verifySignature pubKey message signature)
-
-{-# NOINLINE equalsByteString #-}
--- | Check if two 'ByteString's are equal.
-equalsByteString :: ByteString -> ByteString -> Bool
-equalsByteString = (==)
-
-{-# NOINLINE lessThanByteString #-}
--- | Check if one 'ByteString' is less than another.
-lessThanByteString :: ByteString -> ByteString -> Bool
-lessThanByteString = (<)
-
-{-# NOINLINE greaterThanByteString #-}
--- | Check if one 'ByteString' is greater than another.
-greaterThanByteString :: ByteString -> ByteString -> Bool
-greaterThanByteString = (>)
-
-{-# NOINLINE decodeUtf8 #-}
--- | Converts a ByteString to a String.
-decodeUtf8 :: ByteString -> String
-decodeUtf8 = mustBeReplaced "decodeUtf8"
+import           PlutusTx.String
+import           PlutusTx.Utils      (mustBeReplaced)
 
 {-# NOINLINE addInteger #-}
 -- | Add two 'Integer's.
@@ -204,36 +122,7 @@ it is a problem. So we just expose the delayed version as the builtin.
 error :: () -> a
 error = mustBeReplaced "error"
 
--- Note: IsString instance is in 'Prelude.hs'
--- | An opaque type representing Plutus Core strings.
-data String
-
-{-# NOINLINE appendString #-}
--- | Append two 'String's.
-appendString :: String -> String -> String
-appendString = mustBeReplaced "appendString"
-
-{-# NOINLINE emptyString #-}
--- | An empty 'String'.
-emptyString :: String
-emptyString = mustBeReplaced "emptyString"
-
-{-# NOINLINE charToString #-}
--- | Turn a 'Char' into a 'String'.
-charToString :: Char -> String
-charToString = mustBeReplaced "charToString"
-
-{-# NOINLINE equalsString #-}
--- | Check if two strings are equal
-equalsString :: String -> String -> Bool
-equalsString = mustBeReplaced "equalsString"
-
 {-# NOINLINE trace #-}
 -- | Logs the given 'String' to the evaluation log.
 trace :: String -> ()
 trace _ = () --mustBeReplaced "trace"
-
-{-# NOINLINE encodeUtf8 #-}
--- | Convert a String into a ByteString.
-encodeUtf8 :: String -> ByteString
-encodeUtf8 = mustBeReplaced "encodeUtf8"

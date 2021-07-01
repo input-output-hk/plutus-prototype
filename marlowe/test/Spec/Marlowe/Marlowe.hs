@@ -166,7 +166,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
 
             Trace.callEndpoint @"apply-inputs" aliceHdl (pms, Nothing,
                 [ IChoice chId 256
-                , IDeposit "alice" "alice" ada 256
+                , IDeposit (Role "alice") (Role "alice") ada 256
                 ])
             Trace.waitNSlots 17
 
@@ -187,9 +187,9 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
         contract = When [
             Case (Choice chId [Bound 10 1500])
                 (When [Case
-                    (Deposit "alice" "alice" ada (ChoiceValue chId))
+                    (Deposit (Role "alice") (Role "alice") ada (ChoiceValue chId))
                         (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 15))
-                            (Pay "alice" (Party "bob") ada
+                            (Pay (Role "alice") (Party $ Role "bob") ada
                                 (ChoiceValue chId) Close)]
                         (Slot 40) Close)
                     ] (Slot 30) Close)
@@ -322,7 +322,7 @@ valueSerialization = property $
 
 mulAnalysisTest :: IO ()
 mulAnalysisTest = do
-    let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
+    let muliply = foldl (\a _ -> MulValue (UseValue "a") a) (Constant 1) [1..100]
         alicePk = PK $ pubKeyHash $ walletPubKey alice
         contract = If (muliply `ValueGE` Constant 10000) Close (Pay alicePk (Party alicePk) ada (Constant (-100)) Close)
     result <- warningsTrace contract

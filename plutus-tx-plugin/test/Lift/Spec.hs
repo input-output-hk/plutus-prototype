@@ -57,7 +57,7 @@ tests = testNested "Lift" [
     , goldenUPlc "list" (Lift.liftProgramDef ([1]::[Integer]))
     , goldenUEval "listInterop" [ getPlc listMatch, Lift.liftProgramDef ([1]::[Integer]) ]
     , goldenUPlc "nested" (Lift.liftProgramDef (NestedRecord (Just (1, 2))))
-    , goldenUPlc "bytestring" (Lift.liftProgramDef (WrappedBS "hello"))
+    , goldenUPlc "bytestring" (Lift.liftProgramDef (WrappedBS (Builtins.fromHaskellByteString "hello")))
     , goldenUPlc "newtypeInt" (Lift.liftProgramDef (NewtypeInt 1))
     , goldenUPlc "newtypeInt2" (Lift.liftProgramDef (Newtype2 $ NewtypeInt 1))
     , goldenUPlc "newtypeInt3" (Lift.liftProgramDef (Newtype3 $ Newtype2 $ NewtypeInt 1))

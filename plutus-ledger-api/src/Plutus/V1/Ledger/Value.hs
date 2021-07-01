@@ -58,6 +58,7 @@ import           Control.Monad                    (guard)
 import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
+import qualified Data.ByteString                  as BS
 import           Data.Hashable                    (Hashable)
 import qualified Data.List                        (sortBy)
 import           Data.String                      (IsString (fromString))
@@ -73,13 +74,12 @@ import           Plutus.V1.Ledger.Orphans         ()
 import           Plutus.V1.Ledger.Scripts
 import qualified PlutusTx                         as PlutusTx
 import qualified PlutusTx.AssocMap                as Map
-import qualified PlutusTx.Builtins                as Builtins
 import           PlutusTx.Lift                    (makeLift)
 import qualified PlutusTx.Ord                     as Ord
-import           PlutusTx.Prelude
+import           PlutusTx.Prelude                 as PlutusTx
 import           PlutusTx.These
 
-newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
+newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.ByteString }
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
@@ -91,6 +91,7 @@ instance ToJSON CurrencySymbol where
       [ ( "unCurrencySymbol"
         , JSON.String .
           JSON.encodeByteString .
+          PlutusTx.toHaskellByteString .
           unCurrencySymbol $
           currencySymbol)
       ]
@@ -100,7 +101,7 @@ instance FromJSON CurrencySymbol where
     JSON.withObject "CurrencySymbol" $ \object -> do
       raw <- object .: "unCurrencySymbol"
       bytes <- JSON.decodeByteString raw
-      Haskell.pure $ CurrencySymbol bytes
+      Haskell.pure $ CurrencySymbol $ PlutusTx.fromHaskellByteString bytes
 
 makeLift ''CurrencySymbol
 
@@ -115,11 +116,12 @@ currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
 currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 
 {-# INLINABLE currencySymbol #-}
-currencySymbol :: ByteString -> CurrencySymbol
-currencySymbol = CurrencySymbol
+-- | Creates `CurrencySymbol` from raw `ByteString`. Shouldn't be used with literals.
+currencySymbol :: BS.ByteString -> CurrencySymbol
+currencySymbol = CurrencySymbol . PlutusTx.fromHaskellByteString
 
 -- | ByteString of a name of a token, shown as UTF-8 string when possible
-newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
+newtype TokenName = TokenName { unTokenName :: PlutusTx.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
@@ -129,13 +131,18 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
 instance IsString TokenName where
     fromString = fromText . Text.pack
 
+{-# INLINABLE tokenName #-}
+-- | Creates `TokenName` from raw `ByteString`. Shouldn't be used with literals.
+tokenName :: BS.ByteString -> TokenName
+tokenName = TokenName . PlutusTx.fromHaskellByteString
+
 fromText :: Text -> TokenName
-fromText = TokenName . E.encodeUtf8
+fromText = TokenName . PlutusTx.fromHaskellByteString . E.encodeUtf8
 
-fromTokenName :: (Builtins.ByteString -> r) -> (Text -> r) -> TokenName -> r
-fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring bs) handleText $ E.decodeUtf8' bs
+fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
+fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.toHaskellByteString bs) handleText $ E.decodeUtf8' (PlutusTx.toHaskellByteString bs)
 
-asBase16 :: Builtins.ByteString -> Text
+asBase16 :: BS.ByteString -> Text
 asBase16 bs = Text.concat ["0x", JSON.encodeByteString bs]
 
 quoted :: Text -> Text
@@ -169,15 +176,11 @@ instance FromJSON TokenName where
         fromJSONText raw
         where
             fromJSONText t = case Text.take 3 t of
-                "\NUL0x"       -> either Haskell.fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
+                "\NUL0x"       -> either Haskell.fail (Haskell.pure . TokenName . PlutusTx.fromHaskellByteString) . JSON.tryDecode . Text.drop 3 $ t
                 "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
                 _              -> Haskell.pure . fromText $ t
 
 makeLift ''TokenName
-
-{-# INLINABLE tokenName #-}
-tokenName :: ByteString -> TokenName
-tokenName = TokenName
 
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }

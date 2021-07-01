@@ -56,6 +56,7 @@ import           Ledger.Tx                        (Tx)
 import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
 import qualified Plutus.V1.Ledger.Bytes           as KB
+import qualified PlutusTx.ByteString              as PlutusTx
 import           Servant                          (ServerError (..), err400, err401, err404)
 import           Servant.Client                   (ClientEnv)
 import           Servant.Server                   (err500)
@@ -104,14 +105,14 @@ newKeyPair = do
 -- | Get the public key of a 'Wallet' by converting the wallet identifier
 --   to a private key bytestring.
 walletPubKey :: Wallet -> PubKeyHash
-walletPubKey (Wallet i) = PubKeyHash $ integer2ByteString32 i
+walletPubKey (Wallet i) = PubKeyHash $ PlutusTx.fromHaskellByteString $ integer2ByteString32 i
 
 -- | Get the 'Wallet' whose identifier is the integer representation of the
 --   pubkey hash.
 pubKeyHashWallet :: PubKeyHash -> Wallet
 pubKeyHashWallet (PubKeyHash kb) =
 --   TODO (jm): this is terrible and we need to change it - see SCP-2208
-    Wallet $ byteString2Integer kb
+    Wallet $ byteString2Integer $ PlutusTx.toHaskellByteString kb
 
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs.

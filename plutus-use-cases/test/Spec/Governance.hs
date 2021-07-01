@@ -28,7 +28,7 @@ import qualified Plutus.Contracts.Governance as Gov
 import           Plutus.Trace.Emulator       (EmulatorTrace)
 import qualified Plutus.Trace.Emulator       as Trace
 import qualified PlutusTx
-import           PlutusTx.Prelude            (ByteString)
+import           PlutusTx.Prelude            (ByteString, fromHaskellByteString)
 
 tests :: TestTree
 tests =
@@ -67,9 +67,9 @@ params = Gov.Params
     }
 
 lawv1, lawv2, lawv3 :: ByteString
-lawv1 = "Law v1"
-lawv2 = "Law v2"
-lawv3 = "Law v3"
+lawv1 = fromHaskellByteString "Law v1"
+lawv2 = fromHaskellByteString "Law v2"
+lawv3 = fromHaskellByteString "Law v3"
 
 doVoting :: Int -> Int -> Integer -> EmulatorTrace ()
 doVoting ayes nays rounds = do

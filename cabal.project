@@ -145,8 +145,8 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: a3ef848542961079b7cd53d599e5385198a3035c
+  location: https://github.com/ak3n/cardano-ledger-specs
+  tag: e6909b60c7b825277b63b9bbb823054907152de7
   subdir:
     byron/chain/executable-spec
     byron/crypto
@@ -168,8 +168,8 @@ source-repository-package
 -- of cardano-node are also updated.
 source-repository-package
   type: git
-  location: https://github.com/input-output-hk/cardano-node.git
-  tag: b3cabae6b3bf30a0b1b4e78bc4b67282dabad0a6
+  location: https://github.com/ak3n/cardano-node.git
+  tag: fccc81f3c7f87fb6a65ce353d7b87294e25c05b7
   subdir:
     cardano-api/test
     cardano-api

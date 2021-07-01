@@ -67,12 +67,12 @@ gameInstance = Scripts.mkTypedValidator @Game
 -- create a data script for the guessing game by hashing the string
 -- and lifting the hash to its on-chain representation
 hashString :: Haskell.String -> HashedString
-hashString = HashedString . sha2_256 . C.pack
+hashString = HashedString . sha2_256 . fromHaskellByteString . C.pack
 
 -- create a redeemer script for the guessing game by lifting the
 -- string to its on-chain representation
 clearString :: Haskell.String -> ClearString
-clearString = ClearString . C.pack
+clearString = ClearString . fromHaskellByteString . C.pack
 
 -- | The validation function (Datum -> Redeemer -> ScriptContext -> Bool)
 validateGuess :: HashedString -> ClearString -> ScriptContext -> Bool

@@ -31,8 +31,7 @@ import           Language.Haskell.Interpreter (InterpreterError, InterpreterResu
                                                SourceCode (SourceCode))
 import           Ledger.Ada                   (adaValueOf, lovelaceValueOf)
 import           Ledger.Blockchain            (OnChainTx (..))
-import           Ledger.Scripts               (ValidatorHash (ValidatorHash))
-import           Ledger.Value                 (TokenName (TokenName), Value)
+import           Ledger.Value                 (Value)
 import qualified Playground.Interpreter       as PI
 import           Playground.Types             (CompilationResult (CompilationResult),
                                                ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
@@ -299,13 +298,12 @@ knownCurrencyTest =
             [ "import Playground.Contract"
             , "import Data.Text"
             , "import Data.List.NonEmpty (NonEmpty ((:|)))"
-            , "import Ledger.Value (TokenName(TokenName))"
-            , "import Ledger.Scripts (ValidatorHash (..))"
+            , "import Ledger.Value (tokenName)"
             , "import Playground.Types (KnownCurrency (..))"
             , "import PlutusTx.Prelude"
             , ""
             , "myCurrency :: KnownCurrency"
-            , "myCurrency = KnownCurrency (ValidatorHash \"\") \"MyCurrency\" (TokenName \"MyToken\" :| [])"
+            , "myCurrency = KnownCurrency \"\" \"MyCurrency\" (tokenName \"MyToken\" :| [])"
             , "$(mkKnownCurrencies ['myCurrency])"
             , ""
             , "schemas = []"
@@ -314,9 +312,9 @@ knownCurrencyTest =
     expectedCurrencies =
         [ adaCurrency
         , KnownCurrency
-              (ValidatorHash "")
+              ""
               "MyCurrency"
-              (TokenName "MyToken" :| [])
+              ("MyToken" :| [])
         ]
     hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ currencies))) =
         assertEqual "" expectedCurrencies currencies

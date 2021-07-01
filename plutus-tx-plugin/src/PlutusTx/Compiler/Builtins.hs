@@ -20,6 +20,7 @@ module PlutusTx.Compiler.Builtins (
     , errorFunc) where
 
 import                qualified PlutusTx.Builtins             as Builtins
+import                qualified PlutusTx.ByteString           as ByteString
 import                qualified PlutusTx.String               as String
 
 import                          PlutusTx.Compiler.Error
@@ -177,6 +178,8 @@ builtinNames = [
     , 'Builtins.greaterThanByteString
     , 'Builtins.emptyByteString
     , 'Builtins.decodeUtf8
+    , 'Builtins.encodeUtf8
+    , 'ByteString.stringToBuiltinByteString
 
     , 'Builtins.verifySignature
 
@@ -201,7 +204,6 @@ builtinNames = [
     , 'Builtins.emptyString
     , 'Builtins.charToString
     , 'Builtins.equalsString
-    , 'Builtins.encodeUtf8
     , 'String.stringToBuiltinString
 
     , 'Builtins.trace
@@ -281,6 +283,9 @@ defineBuiltinTerms = do
     do
         let term = mkBuiltin PLC.DecodeUtf8
         defineBuiltinTerm 'Builtins.decodeUtf8 term [bs]
+    do
+        let term = mkBuiltin PLC.EncodeUtf8
+        defineBuiltinTerm 'Builtins.encodeUtf8 term [str]
 
     -- Integer builtins
     do
@@ -347,9 +352,6 @@ defineBuiltinTerms = do
     do
         term <- wrapUnitFun strTy $ mkBuiltin PLC.Trace
         defineBuiltinTerm 'Builtins.trace term [str, unit]
-    do
-        let term = mkBuiltin PLC.EncodeUtf8
-        defineBuiltinTerm 'Builtins.encodeUtf8 term [bs]
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m

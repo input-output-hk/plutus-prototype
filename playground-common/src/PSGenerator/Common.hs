@@ -34,6 +34,7 @@ import           Ledger.Time                               (POSIXTime)
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
+-- import           PlutusTx.ByteString                       (ByteString)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
 import           Plutus.Contract.Effects                   (ActiveEndpoint, PABReq, PABResp, UtxoAtAddress,
                                                             WriteTxResponse)
@@ -136,7 +137,7 @@ digestBridge = do
 byteStringBridge :: BridgePart
 byteStringBridge = do
     typeName ^== "ByteString"
-    typeModule ^== "Data.ByteString.Lazy.Internal" <|> typeModule ^== "Data.ByteString.Internal"
+    typeModule ^== "Data.ByteString.Lazy.Internal" <|> typeModule ^== "Data.ByteString.Internal" <|> typeModule ^== "PlutusTx.ByteString.Internal"
     pure psString
 
 scientificBridge :: BridgePart

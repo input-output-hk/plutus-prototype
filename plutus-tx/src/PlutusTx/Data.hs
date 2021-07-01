@@ -8,17 +8,18 @@
 
 module PlutusTx.Data (Data (..)) where
 
-import           Codec.CBOR.Decoding       (Decoder)
-import qualified Codec.CBOR.Decoding       as CBOR
-import qualified Codec.CBOR.Term           as CBOR
-import           Codec.Serialise           (Serialise (decode, encode))
-import           Codec.Serialise.Decoding  (decodeSequenceLenIndef, decodeSequenceLenN)
-import           Control.DeepSeq           (NFData)
+import           Codec.CBOR.Decoding          (Decoder)
+import qualified Codec.CBOR.Decoding          as CBOR
+import qualified Codec.CBOR.Term              as CBOR
+import           Codec.Serialise              (Serialise (decode, encode))
+import           Codec.Serialise.Decoding     (decodeSequenceLenIndef, decodeSequenceLenN)
+import           Control.DeepSeq              (NFData)
 import           Control.Monad.Except
-import           Data.Bifunctor            (bimap)
-import qualified Data.ByteString           as BS
+import           Data.Bifunctor               (bimap)
+import qualified Data.ByteString              as BS
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
+import qualified PlutusTx.ByteString.Internal as PlutusTx
 import           Prelude
 
 -- | A generic "data" type.
@@ -32,7 +33,7 @@ data Data =
     | Map [(Data, Data)]
     | List [Data]
     | I Integer
-    | B BS.ByteString
+    | B PlutusTx.ByteString
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
@@ -78,7 +79,7 @@ toTerm = \case
     Map es                          -> CBOR.TMap (fmap (bimap toTerm toTerm) es)
     List ds                         -> CBOR.TList $ fmap toTerm ds
     I i                             -> CBOR.TInteger i
-    B b                             -> CBOR.TBytes b
+    B b                             -> CBOR.TBytes $ PlutusTx.toHaskellByteString b
 
 {- Note [Definite and indefinite forms of CBOR]
 CBOR is annoying and you can have both definite (with a fixed length) and indefinite lists, maps, etc.
@@ -127,7 +128,7 @@ decodeBoundedBytes :: Decoder s Data
 decodeBoundedBytes =  do
   b <- CBOR.decodeBytes
   if BS.length b <= 64
-    then pure $ B b
+    then pure $ B $ PlutusTx.fromHaskellByteString b
     else fail $ "ByteString exceeds 64 bytes"
 
 decodeList :: Decoder s Data

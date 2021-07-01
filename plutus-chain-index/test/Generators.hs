@@ -32,17 +32,18 @@ import           Ledger.Tx                   (TxOutRef (..))
 import           Ledger.TxId                 (TxId (..))
 import           Plutus.ChainIndex.Types     (BlockId (..))
 import           Plutus.ChainIndex.UtxoState (TxUtxoBalance (..))
+import qualified PlutusTx.ByteString         as PlutusTx
 
 -- | Generate a random tx id
 genRandomTxId :: MonadGen m => m TxId
-genRandomTxId = TxId <$> Gen.bytes (Range.singleton 32)
+genRandomTxId = TxId . PlutusTx.fromHaskellByteString <$> Gen.bytes (Range.singleton 32)
 
 -- | Generate one of a known set of tx IDs
 genKnownTxId :: MonadGen m => m TxId
 genKnownTxId = Gen.element (txIdFromInt <$> [(1::Int)..50])
 
 txIdFromInt :: Int -> TxId
-txIdFromInt = TxId . BSL.toStrict . serialise
+txIdFromInt = TxId . PlutusTx.fromHaskellByteString . BSL.toStrict . serialise
 
 -- | Generate a tx id, using a known tx id in 80% of cases and a random one
 --   in 20%.

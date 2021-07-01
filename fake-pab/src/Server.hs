@@ -1,10 +1,12 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -56,8 +58,10 @@ import           Language.Marlowe                  (ChoiceId (ChoiceId), Contrac
                                                     computeTransaction, emptyState, extractContractRoles)
 import           Ledger                            (PubKeyHash (..))
 import           Network.Wai.Middleware.Cors       (cors, corsRequestHeaders, simpleCorsResourcePolicy)
-import           Plutus.V1.Ledger.Value            (CurrencySymbol (..), TokenName (..), Value (..))
+import           Plutus.V1.Ledger.Value            (CurrencySymbol (..), TokenName (..), Value (..), currencySymbol,
+                                                    tokenName)
 import qualified PlutusTx.AssocMap                 as AssocMap
+import qualified PlutusTx.ByteString               as PlutusTx
 import           Servant                           (Application, Handler (Handler), Server, ServerError, hoistServer,
                                                     serve, serveDirectoryFileServer, throwError, (:<|>) ((:<|>)), (:>))
 import           Text.Blaze.Html.Renderer.Pretty   (renderHtml)
@@ -65,16 +69,16 @@ import qualified Text.Blaze.Html5                  as H
 import qualified Text.Blaze.Html5.Attributes       as A
 
 fromCurrencySymbol :: CurrencySymbol -> String
-fromCurrencySymbol =  Text.unpack . TE.decodeUtf8 . B16.encode . unCurrencySymbol
+fromCurrencySymbol =  Text.unpack . TE.decodeUtf8 . B16.encode . PlutusTx.toHaskellByteString . unCurrencySymbol
 
 toCurrencySymbol :: String -> CurrencySymbol
-toCurrencySymbol = CurrencySymbol . fromRight mempty . B16.decode . TE.encodeUtf8 . Text.pack
+toCurrencySymbol = currencySymbol . fromRight mempty . B16.decode . TE.encodeUtf8 . Text.pack
 
 fromPubKeyHash :: PubKeyHash -> PublicKey
-fromPubKeyHash =  Text.unpack . TE.decodeUtf8 . B16.encode . getPubKeyHash
+fromPubKeyHash =  Text.unpack . TE.decodeUtf8 . B16.encode . PlutusTx.toHaskellByteString . getPubKeyHash
 
 toPubKeyHash :: PublicKey -> PubKeyHash
-toPubKeyHash = PubKeyHash . fromRight mempty . B16.decode . TE.encodeUtf8 . Text.pack
+toPubKeyHash = PubKeyHash . PlutusTx.fromHaskellByteString . fromRight mempty . B16.decode . TE.encodeUtf8 . Text.pack
 
 handlersJSON :: Pool Connection -> FilePath -> Server JSON_API
 handlersJSON conns staticPath = createWallet conns :<|>
@@ -136,7 +140,7 @@ listWalletFunds conns publicKey =
                         WHERE w.pub_key = ?
                         GROUP BY ca.currency_symbol, ca.token_name
                   |] [publicKey]
-      return $ Map.fromListWith (++) [(toCurrencySymbol cs, [(TokenName tn, fromRatio am)]) | (cs, tn, am) <- result])
+      return $ Map.fromListWith (++) [(toCurrencySymbol cs, [(tokenName tn, fromRatio am)]) | (cs, tn, am) <- result])
 
 
 
@@ -157,14 +161,14 @@ transferFunds conns srcPrivKey currSym (TokenName tok) amount destPubKey =
                      ((SELECT id FROM main_transaction), 2, (SELECT id FROM destination_container), ?, ?, ?)|]
                    (srcPubKey,
                     destPubKey,
-                    -amount, curr, tok, amount, curr, tok)
+                    -amount, curr, PlutusTx.toHaskellByteString tok, amount, curr, PlutusTx.toHaskellByteString tok)
       return ())
   where
     srcPubKey = BSU.toString $ B16.encode $ SHA256.hash $ BSU.fromString srcPrivKey
 
 transferFundsPlain :: Pool Connection -> String -> String -> String -> Integer -> String -> Handler String
 transferFundsPlain conns srcPrivKey curr tok amount destPubKey =
-  show <$> transferFunds conns srcPrivKey (toCurrencySymbol curr) (TokenName (BSU.fromString tok)) amount destPubKey
+  show <$> transferFunds conns srcPrivKey (toCurrencySymbol curr) (tokenName (BSU.fromString tok)) amount destPubKey
 
 transferFundsJSON :: Pool Connection -> API.TransferRequest -> Handler ()
 transferFundsJSON conns TransferRequest { src_priv_key = src_priv_key
@@ -177,7 +181,7 @@ transferFundsJSON conns TransferRequest { src_priv_key = src_priv_key
 -- Adds a contract to the list of contracts
 createContractPlain :: Pool Connection -> String -> String -> String -> Handler String
 createContractPlain conns creator_priv_key role_distribution contract =
-  show <$> createContract conns (read creator_priv_key) ([(TokenName name, pubkey) | (name, pubkey) <- read role_distribution]) (fromRight Close $ eitherDecode $ BSLU.fromString contract)
+  show <$> createContract conns (read creator_priv_key) ([(tokenName name, pubkey) | (name, pubkey) <- read role_distribution]) (fromRight Close $ eitherDecode $ BSLU.fromString contract)
 
 createContractJSON :: Pool Connection -> CreateContractRequest -> Handler (Either String CurrencySymbol)
 createContractJSON conns CreateContractRequest { creator_priv_key = creator_priv_key
@@ -202,10 +206,10 @@ createContract conns privkey distrib contract =
                                            |] :: IO [Only String]
       executeMany conn [sql| INSERT INTO token (currency_symbol, token_name)
                              VALUES (?, ?)
-                       |] ([(currencySymbol, BSU.toString tns) | tns <- ownerTokenNamesStr] :: [(String, String)])
+                       |] ([(currencySymbol, BSU.toString (PlutusTx.toHaskellByteString tns)) | tns <- ownerTokenNamesStr] :: [(String, String)])
       sequence_ [execute conn [sql| INSERT INTO currency_amount (amount, currency_symbol, token_name, money_container_id)
                                     VALUES (?, ?, ?, get_or_create_money_container_id_from_pubkey(?))
-                              |] (1 :: Integer, currencySymbol, BSU.toString tns, pk) | (TokenName tns, pk) <- Map.toList owners ]
+                              |] (1 :: Integer, currencySymbol, BSU.toString (PlutusTx.toHaskellByteString tns), pk) | (TokenName tns, pk) <- Map.toList owners ]
       [Only currSlot] <- query_ conn
                       [sql| SELECT MAX(slot_number) + 1
                             FROM slot
@@ -288,7 +292,7 @@ getContractHistory conns encCurrSymb =
         _ -> throwIO (toException ErrorParsingContractState))
 
 fromTokenName :: TokenName -> String
-fromTokenName = BSU.toString . unTokenName
+fromTokenName = BSU.toString . PlutusTx.toHaskellByteString . unTokenName
 
 extractPubkeysAndRoles :: [Input] -> (Set PublicKey, Set String)
 extractPubkeysAndRoles = foldl' extractPubkeyOrRole mempty

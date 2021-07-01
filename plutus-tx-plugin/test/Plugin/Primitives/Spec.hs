@@ -47,11 +47,11 @@ primitives = testNested "Primitives" [
   , goldenPir "emptyByteString" emptyByteString
   , goldenUEval "emptyByteStringApply" [ getPlc emptyByteString, liftProgram Builtins.emptyByteString ]
   , goldenPir "bytestring" bytestring
-  , goldenUEval "bytestringApply" [ getPlc bytestring, liftProgram ("hello"::Builtins.ByteString) ]
-  , goldenUEval "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.ByteString)]
-  , goldenUEval "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("hello" :: Builtins.ByteString)]
-  , goldenUEval "ltByteString" [ getPlc bsLt, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("world" :: Builtins.ByteString)]
-  , goldenUEval "decodeUtf8" [ getPlc bsDecode, liftProgram ("hello" :: Builtins.ByteString)]
+  , goldenUEval "bytestringApply" [ getPlc bytestring, liftProgram ((Builtins.fromHaskellByteString "hello") ::Builtins.ByteString) ]
+  , goldenUEval "sha2_256" [ getPlc sha2, liftProgram ((Builtins.fromHaskellByteString "hello") :: Builtins.ByteString)]
+  , goldenUEval "equalsByteString" [ getPlc bsEquals, liftProgram ((Builtins.fromHaskellByteString "hello") :: Builtins.ByteString), liftProgram ((Builtins.fromHaskellByteString "hello") :: Builtins.ByteString)]
+  , goldenUEval "ltByteString" [ getPlc bsLt, liftProgram ((Builtins.fromHaskellByteString "hello") :: Builtins.ByteString), liftProgram ((Builtins.fromHaskellByteString "world") :: Builtins.ByteString)]
+  , goldenUEval "decodeUtf8" [ getPlc bsDecode, liftProgram ((Builtins.fromHaskellByteString "hello") :: Builtins.ByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   , goldenPir "stringLiteral" stringLiteral

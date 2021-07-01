@@ -8,6 +8,7 @@ import qualified Codec.Serialise     as Serialise
 import           Hedgehog            (MonadGen, Property, annotateShow, assert, forAll, property, tripping)
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
+import           PlutusTx.ByteString (fromHaskellByteString)
 import           PlutusTx.Data       (Data (..))
 import           PlutusTx.Ratio      (Rational, denominator, numerator, (%))
 import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
@@ -113,7 +114,7 @@ genData =
     in
     Gen.recursive Gen.choice
         [ I <$> Gen.integral (Range.linear (-100000) 100000)
-        , B <$> Gen.bytes (Range.linear 0 64) ]
+        , (B . fromHaskellByteString) <$> Gen.bytes (Range.linear 0 64) ]
         [ Constr <$> positiveInteger <*> constructorArgList
         , List <$> constructorArgList
         , Map <$> kvMapList

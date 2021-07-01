@@ -239,8 +239,8 @@ writePangramJson outputDir = do
             S.Assert S.TrueObs
                 (S.When
                     [ S.Case (S.Deposit alicePk alicePk ada valueExpr)
-                        ( S.Let (S.ValueId "x") valueExpr
-                            (S.Pay alicePk (S.Party bobRole) ada (S.Cond S.TrueObs (S.UseValue (S.ValueId "x")) (S.UseValue (S.ValueId "y"))) S.Close)
+                        ( S.Let "x" valueExpr
+                            (S.Pay alicePk (S.Party bobRole) ada (S.Cond S.TrueObs (S.UseValue "x") (S.UseValue "y")) S.Close)
                         )
                     , S.Case (S.Choice choiceId [ S.Bound 0 1 ])
                         ( S.If (S.ChoseSomething choiceId `S.OrObs` (S.ChoiceValue choiceId `S.ValueEQ` S.Scale (1 S.% 10) const100))
@@ -257,7 +257,7 @@ writePangramJson outputDir = do
             State
             { accounts = Map.singleton (alicePk, token) 12
             , choices = Map.singleton choiceId 42
-            , boundValues = Map.fromList [ (ValueId "x", 1), (ValueId "y", 2) ]
+            , boundValues = Map.fromList [ ("x", 1), ("y", 2) ]
             , minSlot = S.Slot 123
             }
         encodedState = BS8.pack . Char8.unpack $ encode state

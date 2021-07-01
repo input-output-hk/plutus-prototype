@@ -55,13 +55,13 @@ import           Plutus.V1.Ledger.TxId
 import qualified PlutusTx                  as PlutusTx
 import qualified PlutusTx.Builtins         as Builtins
 import           PlutusTx.Lift             (makeLift)
-import qualified PlutusTx.Prelude          as P
+import qualified PlutusTx.Prelude          as PlutusTx
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (Newtype, ToJSON, FromJSON, NFData)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, PlutusTx.IsData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKey
@@ -73,10 +73,10 @@ instance FromJSONKey PubKey where
   fromJSONKey = FromJSONKeyValue (genericParseJSON JSON.defaultOptions)
 
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
-newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BS.ByteString }
+newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.ByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, NFData)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
+    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData, Newtype)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, PlutusTx.IsData, Hashable)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash
@@ -92,16 +92,16 @@ pubKeyHash (PubKey (LedgerBytes bs)) =
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Newtype)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, PlutusTx.IsData)
     deriving (Show, Pretty) via LedgerBytes
 
 makeLift ''PrivateKey
 
 -- | A message with a cryptographic signature.
-newtype Signature = Signature { getSignature :: Builtins.ByteString }
+newtype Signature = Signature { getSignature :: PlutusTx.ByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, NFData)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, PlutusTx.IsData, NFData)
     deriving (Show, Pretty) via LedgerBytes
 
 instance ToJSON Signature where
@@ -110,6 +110,7 @@ instance ToJSON Signature where
       [ ( "getSignature"
         , JSON.String .
           JSON.encodeByteString .
+          PlutusTx.toHaskellByteString .
           getSignature $
           signature)
       ]
@@ -119,7 +120,7 @@ instance FromJSON Signature where
     JSON.withObject "Signature" $ \object -> do
       raw <- object .: "getSignature"
       bytes <- JSON.decodeByteString raw
-      pure . Signature $ bytes
+      pure . Signature $ PlutusTx.fromHaskellByteString $ bytes
 
 makeLift ''Signature
 
@@ -141,7 +142,7 @@ sign  msg (PrivateKey privKey) =
         pk = ED25519.toPublic <$> k
         salt :: BS.ByteString
         salt = "" -- TODO: do we need better salt?
-        convert = Signature . BS.pack . BA.unpack
+        convert = Signature . PlutusTx.fromHaskellByteString . BS.pack . BA.unpack
     in throwCryptoError $ fmap convert (ED25519.sign <$> k <*> pure salt <*> pk <*> pure msg)
 
 fromHex :: BS.ByteString -> Either String PrivateKey

@@ -9,7 +9,7 @@ module HelloWorldApp where
 import qualified Data.Text           as T
 import           Playground.Contract
 import           Plutus.Contract
-import           PlutusTx.Prelude
+import           PlutusTx.Prelude    hiding (String)
 
 
 -- BLOCK1

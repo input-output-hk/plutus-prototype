@@ -57,6 +57,7 @@ module Plutus.V1.Ledger.Contexts
 import           GHC.Generics                (Generic)
 import           PlutusTx
 import qualified PlutusTx.Builtins           as Builtins
+import qualified PlutusTx.ByteString         as PlutusTx
 import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Ada        (Ada)
@@ -184,7 +185,7 @@ them from the correct types in Haskell, and for comparing them (in
 {-# INLINABLE scriptCurrencySymbol #-}
 -- | The 'CurrencySymbol' of a 'MintingPolicy'
 scriptCurrencySymbol :: MintingPolicy -> CurrencySymbol
-scriptCurrencySymbol scrpt = let (MintingPolicyHash hsh) = mintingPolicyHash scrpt in Value.currencySymbol hsh
+scriptCurrencySymbol scrpt = let (MintingPolicyHash hsh) = mintingPolicyHash scrpt in Value.currencySymbol $ PlutusTx.toHaskellByteString hsh
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.

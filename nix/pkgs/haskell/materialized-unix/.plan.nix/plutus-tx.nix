@@ -49,6 +49,8 @@
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
+          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           ];
         buildable = true;
         modules = [
@@ -62,6 +64,9 @@
           "PlutusTx/Evaluation"
           "PlutusTx/Applicative"
           "PlutusTx/Bool"
+          "PlutusTx/ByteString"
+          "PlutusTx/ByteString/Internal"
+          "PlutusTx/ByteString/Instances"
           "PlutusTx/IsData"
           "PlutusTx/IsData/Class"
           "PlutusTx/Eq"
@@ -88,6 +93,8 @@
           "PlutusTx/Plugin/Utils"
           "PlutusTx/Utils"
           "PlutusTx/String"
+          "PlutusTx/String/Internal"
+          "PlutusTx/String/Instances"
           ];
         hsSourceDirs = [ "src" ];
         };

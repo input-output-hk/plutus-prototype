@@ -68,13 +68,14 @@ import           Data.Hashable                    (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import qualified Flat
+import           Flat                             (Flat, flat, unflat)
 import           GHC.Generics                     (Generic)
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (..))
 import           Plutus.V1.Ledger.Orphans         ()
 import qualified PlutusCore                       as PLC
 import           PlutusTx                         (CompiledCode, IsData (..), getPlc, makeLift)
 import           PlutusTx.Builtins                as Builtins
+import           PlutusTx.ByteString              as P
 import           PlutusTx.Evaluation              (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
 import           PlutusTx.Lift                    (liftCode)
 import           PlutusTx.Prelude
@@ -83,6 +84,7 @@ import qualified UntypedPlutusCore                as UPLC
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
+  deriving newtype (Flat)
 
 {-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
@@ -99,10 +101,10 @@ data structures that include scripts (for example, transactions) no-longer benef
 for CBOR's ability to self-describe it's format.
 -}
 instance Serialise Script where
-  encode = encode . Flat.flat . unScript
+  encode = encode . flat . unScript
   decode = do
     bs <- decodeBytes
-    case Flat.unflat bs of
+    case unflat bs of
       Left  err    -> Haskell.fail (Haskell.show err)
       Right script -> return $ Script script
 
@@ -275,7 +277,7 @@ instance BA.ByteArrayAccess MintingPolicy where
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
-    ValidatorHash Builtins.ByteString
+    ValidatorHash P.ByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
@@ -283,7 +285,7 @@ newtype ValidatorHash =
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
-    DatumHash Builtins.ByteString
+    DatumHash P.ByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData, NFData)
@@ -291,7 +293,7 @@ newtype DatumHash =
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
-    RedeemerHash Builtins.ByteString
+    RedeemerHash P.ByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
@@ -299,17 +301,17 @@ newtype RedeemerHash =
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype MintingPolicyHash =
-    MintingPolicyHash Builtins.ByteString
+    MintingPolicyHash P.ByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 datumHash :: Datum -> DatumHash
-datumHash = DatumHash . Builtins.sha2_256 . BA.convert
+datumHash = DatumHash . P.sha2_256 . P.fromHaskellByteString . BA.convert
 
 redeemerHash :: Redeemer -> RedeemerHash
-redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
+redeemerHash = RedeemerHash . P.sha2_256 . P.fromHaskellByteString . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
 validatorHash vl = ValidatorHash $ BA.convert h' where

@@ -33,6 +33,9 @@ module Plutus.V1.Ledger.Api (
     , ScriptContext(..)
     , ScriptPurpose(..)
     -- ** Supporting types used in the context types
+    -- *** ByteStrings
+    , fromHaskellByteString
+    , toHaskellByteString
     -- *** Bytes
     , LedgerBytes (..)
     , fromBytes
@@ -101,6 +104,7 @@ import qualified PlutusCore.MkPlc                                 as PLC
 import           PlutusCore.Pretty
 import           PlutusTx                                         (Data (..), IsData (..))
 import qualified PlutusTx.Lift                                    as PlutusTx
+import           PlutusTx.Prelude                                 (fromHaskellByteString, toHaskellByteString)
 import qualified UntypedPlutusCore                                as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
 

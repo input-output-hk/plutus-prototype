@@ -1,11 +1,13 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Eq (Eq(..), (/=)) where
 
+import qualified Data.ByteString   as BS
 import           PlutusTx.Bool
 import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Data
 
 import           Prelude           hiding (Eq (..), not, (&&))
+import qualified Prelude           as Haskell
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -34,6 +36,10 @@ instance Eq Builtins.ByteString where
 instance Eq Builtins.String where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsString
+
+instance Eq BS.ByteString where
+    {-# INLINABLE (==) #-}
+    (==) = (Haskell.==)
 
 instance Eq a => Eq [a] where
     {-# INLINABLE (==) #-}

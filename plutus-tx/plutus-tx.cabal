@@ -41,6 +41,9 @@ library
         PlutusTx.Evaluation
         PlutusTx.Applicative
         PlutusTx.Bool
+        PlutusTx.ByteString
+        PlutusTx.ByteString.Internal
+        PlutusTx.ByteString.Instances
         PlutusTx.IsData
         PlutusTx.IsData.Class
         PlutusTx.Eq
@@ -67,6 +70,8 @@ library
         PlutusTx.Plugin.Utils
         PlutusTx.Utils
         PlutusTx.String
+        PlutusTx.String.Internal
+        PlutusTx.String.Instances
     other-modules:
         PlutusTx.IsData.Instances
         PlutusTx.IsData.TH
@@ -88,7 +93,9 @@ library
         plutus-core -any,
         lens -any,
         ghc-prim -any,
-        aeson -any
+        aeson -any,
+        hashable -any,
+        memory -any
 
 test-suite plutus-tx-test
     import: lang

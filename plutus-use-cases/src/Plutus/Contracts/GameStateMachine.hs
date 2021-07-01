@@ -195,8 +195,8 @@ guess :: Contract () GameStateMachineSchema GameError ()
 guess = do
     GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueTakenOut} <- mapError GameContractError $ endpoint @"guess"
 
-    let guessedSecret = ClearString (C.pack guessArgsOldSecret)
-        newSecret     = HashedString (sha2_256 (C.pack guessArgsNewSecret))
+    let guessedSecret = ClearString (fromHaskellByteString (C.pack guessArgsOldSecret))
+        newSecret     = HashedString (sha2_256 (fromHaskellByteString (C.pack guessArgsNewSecret)))
 
     void
         $ mapError GameSMError
@@ -206,7 +206,7 @@ guess = do
 lock :: Contract () GameStateMachineSchema GameError ()
 lock = do
     LockArgs{lockArgsSecret, lockArgsValue} <- mapError GameContractError $ endpoint @"lock"
-    let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
+    let secret = HashedString (sha2_256 (fromHaskellByteString (C.pack lockArgsSecret)))
         sym = Scripts.forwardingMintingPolicyHash typedValidator
     _ <- mapError GameSMError $ SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
     void $ mapError GameSMError $ SM.runStep client MintToken

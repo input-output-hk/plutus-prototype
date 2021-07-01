@@ -1,1 +1,1 @@
-Error: Unsupported feature: Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass
+Error: Unsupported feature: Use of == from the Haskell Eq typeclass

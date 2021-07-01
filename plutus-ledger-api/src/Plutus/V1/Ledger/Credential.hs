@@ -29,12 +29,12 @@ import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
 import           Plutus.V1.Ledger.Scripts  (ValidatorHash)
 import qualified PlutusTx                  as PlutusTx
 import qualified PlutusTx.Bool             as PlutusTx
-import qualified PlutusTx.Builtins         as Builtins
+import qualified PlutusTx.ByteString       as PlutusTx
 import qualified PlutusTx.Eq               as PlutusTx
 
 -- | Staking credential used to assign rewards
 data StakingCredential
-    = StakingHash Builtins.ByteString
+    = StakingHash PlutusTx.ByteString
     | StakingPtr Integer Integer Integer -- NB: The fields should really be Word64 / Natural / Natural, but 'Integer' is our only integral type so we need to use it instead.
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, Serialise, Hashable, NFData)

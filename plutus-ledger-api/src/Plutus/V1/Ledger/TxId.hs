@@ -13,7 +13,6 @@ module Plutus.V1.Ledger.TxId(
 import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.ByteString           as BS
 import           Data.Text.Prettyprint.Doc (Pretty)
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Bytes    (LedgerBytes (..))
@@ -22,9 +21,9 @@ import qualified PlutusTx                  as PlutusTx
 import qualified PlutusTx.Prelude          as PlutusTx
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
-newtype TxId = TxId { getTxId :: BS.ByteString }
+newtype TxId = TxId { getTxId :: PlutusTx.ByteString }
     deriving (Eq, Ord, Generic)
-    deriving anyclass (ToJSON, ToJSONKey, FromJSON, FromJSONKey, NFData)
+    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
     deriving (Show, Pretty) via LedgerBytes
 

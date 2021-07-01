@@ -125,7 +125,7 @@ genData =
     in Gen.recursive
             Gen.choice
             [ I <$> genInteger
-            , B <$> genBytes
+            , (B . PlutusTx.fromHaskellByteString) <$> genBytes
             ]
             [ Constr <$> genInteger <*> genList genData
             , Map <$> genList ((,) <$> genData <*> genData)

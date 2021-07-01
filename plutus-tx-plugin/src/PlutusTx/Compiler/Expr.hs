@@ -23,6 +23,7 @@ import           PlutusTx.PIRTypes
 
 import qualified PlutusTx.Builtins             as Builtins
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
+import qualified PlutusTx.ByteString           as ByteString
 import qualified PlutusTx.String               as String
 
 import qualified Class                         as GHC
@@ -403,13 +404,30 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
     CompileContext {ccScopes=stack,ccBuiltinNameInfo=nameInfo} <- ask
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
-    (stringTyName, sbsName) <- case (Map.lookup ''Builtins.String nameInfo, Map.lookup 'String.stringToBuiltinString nameInfo) of
-        (Just t1, Just t2) -> pure $ (GHC.getName t1, GHC.getName t2)
-        _                  -> throwPlain $ CompilationError "No info for String builtin"
+    (stringTyName, sbsName) <- case
+        ( Map.lookup ''Builtins.String nameInfo
+        , Map.lookup 'String.stringToBuiltinString nameInfo
+        ) of
+            (Just t1, Just t2) -> pure $ (GHC.getName t1, GHC.getName t2)
+            _                  -> throwPlain $ CompilationError "No info for String builtin"
+
+    (bsTyName, sbbsName) <- case
+        ( Map.lookup ''Builtins.ByteString nameInfo
+        , Map.lookup 'ByteString.stringToBuiltinByteString nameInfo
+        ) of
+            (Just t1, Just t2) -> pure $ (GHC.getName t1, GHC.getName t2)
+            _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
     let top = NE.head stack
     case e of
         -- See Note [String literals]
+        -- 'fromString' invocation at the builtin ByteString type
+        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc) `GHC.App` _ `GHC.App` (strip -> stringExprContent -> Just bs)
+            | GHC.getName cls == GHC.isStringClassName, GHC.getName tc == bsTyName -> do
+                pure $ PIR.Constant () $ PLC.someValue bs
+        -- 'stringToBuiltinByteString' invocation, will be wrapped in a 'noinline'
+        (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbbsName -> do
+                pure $ PIR.Constant () $ PLC.someValue bs
         -- 'fromString' invocation at the builtin String type
         (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc) `GHC.App` _ `GHC.App` (strip -> stringExprContent -> Just bs)
             | GHC.getName cls == GHC.isStringClassName, GHC.getName tc == stringTyName -> do

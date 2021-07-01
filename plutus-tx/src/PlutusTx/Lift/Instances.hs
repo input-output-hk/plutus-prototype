@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -14,7 +15,7 @@ module PlutusTx.Lift.Instances () where
 
 import qualified PlutusCore          as PLC
 
-import           PlutusTx.Builtins
+import           PlutusTx.Builtins   as Plutus
 import           PlutusTx.Lift.Class
 
 import           PlutusIR
@@ -90,6 +91,12 @@ instance uni `PLC.Includes` Char => Typeable uni Char where
 
 instance uni `PLC.Includes` Char => Lift uni Char where
     lift = liftBuiltin
+
+instance uni `PLC.Includes` BS.ByteString => Typeable uni ByteString where
+    typeRep _proxyPByteString = typeRepBuiltin (Proxy @BS.ByteString)
+
+instance uni `PLC.Includes` BS.ByteString => Lift uni ByteString where
+    lift b = liftBuiltin $ toHaskellByteString b
 
 -- Standard types
 -- These need to be in a separate file for TH staging reasons

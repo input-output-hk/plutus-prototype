@@ -31,12 +31,11 @@ import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
 import           Data.Word                        (Word8)
 import           GHC.Generics                     (Generic)
 import qualified PlutusTx                         as PlutusTx
-import qualified PlutusTx.Builtins                as Builtins
 import           PlutusTx.Lift
 import qualified PlutusTx.Prelude                 as P
 
 fromHex :: BS.ByteString -> Either String LedgerBytes
-fromHex = fmap LedgerBytes . asBSLiteral
+fromHex = fmap (LedgerBytes . P.fromHaskellByteString) . asBSLiteral
     where
 
     handleChar :: Word8 -> Either String Word8
@@ -62,23 +61,23 @@ fromHex = fmap LedgerBytes . asBSLiteral
     asBSLiteral :: BS.ByteString -> Either String BS.ByteString
     asBSLiteral = withBytes asBytes
         where
-          withBytes :: ([Word8] -> Either String [Word8]) -> P.ByteString -> Either String P.ByteString
+          withBytes :: ([Word8] -> Either String [Word8]) -> BS.ByteString -> Either String BS.ByteString
           withBytes f = fmap BS.pack . f . BS.unpack
 
 -- | 'Bultins.SizedByteString 32' with various useful JSON and
 --   servant instances for the Playground, and a convenient bridge
 --   type for PureScript.
-newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
+newtype LedgerBytes = LedgerBytes { getLedgerBytes :: P.ByteString } -- TODO: use strict bytestring
     deriving stock (Eq, Ord, Generic)
     deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.IsData)
     deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, NFData)
     deriving Pretty via (PrettyShow LedgerBytes)
 
 bytes :: LedgerBytes -> BS.ByteString
-bytes = getLedgerBytes
+bytes = P.toHaskellByteString . getLedgerBytes
 
 fromBytes :: BS.ByteString -> LedgerBytes
-fromBytes = LedgerBytes
+fromBytes = LedgerBytes . P.fromHaskellByteString
 
 instance IsString LedgerBytes where
     fromString = unsafeFromEither . fromHex . fromString

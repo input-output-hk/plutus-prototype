@@ -16,6 +16,7 @@ import           Data.Time                                                (Day)
 import           Data.Validation                                          (Validation (..))
 import           Language.Marlowe                                         (Action (Choice, Deposit), Bound (Bound),
                                                                            Case (Case), ChoiceId (ChoiceId),
+                                                                           ChoiceName (..),
                                                                            Contract (Close, Let, Pay, When),
                                                                            Observation, Party (Role), Payee (Party),
                                                                            Slot (..),
@@ -96,12 +97,12 @@ inquiryFs ev ct timePosfix date oracle context continue =
         letTemplate inputChoiceId inputOwner cont =
             Let
                 (ValueId inputChoiceId)
-                (ChoiceValue (ChoiceId inputChoiceId inputOwner))
+                (ChoiceValue (ChoiceId (ChoiceName inputChoiceId) inputOwner))
                 cont
 
         inputTemplate inputChoiceId inputOwner inputBound cont =
             When
-                [ Case (Choice (ChoiceId inputChoiceId inputOwner) inputBound) $
+                [ Case (Choice (ChoiceId (ChoiceName inputChoiceId) inputOwner) inputBound) $
                     letTemplate inputChoiceId inputOwner cont
                 ]
                 date

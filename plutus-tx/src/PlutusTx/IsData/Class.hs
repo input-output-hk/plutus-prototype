@@ -8,12 +8,12 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 module PlutusTx.IsData.Class where
 
-import           Data.ByteString      as BS
+import qualified Data.ByteString      as BS
 
 import           Prelude              (Int, Integer, Maybe (..), error)
 
+import           PlutusTx.ByteString
 import           PlutusTx.Data
-
 import           PlutusTx.Functor
 import           PlutusTx.Traversable
 
@@ -47,6 +47,13 @@ instance IsData Integer where
     toData = I
     {-# INLINABLE fromData #-}
     fromData (I i) = Just i
+    fromData _     = Nothing
+
+instance IsData BS.ByteString where
+    {-# INLINABLE toData #-}
+    toData b = B (fromHaskellByteString b)
+    {-# INLINABLE fromData #-}
+    fromData (B b) = Just (toHaskellByteString b)
     fromData _     = Nothing
 
 instance IsData ByteString where
