@@ -7,39 +7,48 @@ import           Data.Traversable
 import qualified Language.Haskell.TH          as TH
 import qualified Language.Haskell.TH.Datatype as TH
 
-import           PlutusCore.Data
-
 import qualified PlutusTx.Applicative         as PlutusTx
 import qualified PlutusTx.Eq                  as PlutusTx
 
+import           PlutusTx.Builtins
 import           PlutusTx.IsData.Class
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"
     let pat = TH.conP name (fmap TH.varP argNames)
-    let argsToData = fmap (\v -> [| toData $(TH.varE v) |]) argNames
-    let app = [| Constr index $(TH.listE argsToData) |]
+    let argsToData = fmap (\v -> [| toBuiltinData $(TH.varE v) |]) argNames
+    let app = [| mkConstr index $(TH.listE argsToData) |]
     TH.clause [pat] (TH.normalB app) []
 
 toDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
 toDataClauses indexedCons = toDataClause <$> indexedCons
 
-fromDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
-fromDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
+reconstructClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
+reconstructClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"
-    indexName <- TH.newName "i"
-    let pat = TH.conP 'Constr [TH.varP indexName , TH.listP (fmap TH.varP argNames)]
-    let argsFromData = fmap (\v -> [| fromData $(TH.varE v) |]) argNames
+    indexName <- TH.newName "index"
+    let lpat = TH.listP (fmap TH.varP argNames)
+    let argsFromData = fmap (\v -> [| fromBuiltinData $(TH.varE v) |]) argNames
     let app = foldl' (\h e -> [| $h PlutusTx.<*> $e |]) [| PlutusTx.pure $(TH.conE name) |] argsFromData
-    let guard = [| $(TH.varE indexName) PlutusTx.== index |]
-    TH.clause [pat] (TH.guardedB [TH.normalGE guard app]) []
+    let guard = [| $(TH.varE indexName) PlutusTx.== (index :: Integer) |]
+    TH.clause [TH.varP indexName, lpat] (TH.guardedB [TH.normalGE guard app]) []
 
-fromDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
-fromDataClauses indexedCons =
-    let mainClauses = fromDataClause <$> indexedCons
-        catchallClause = TH.clause [TH.wildP] (TH.normalB [| Nothing |]) []
+reconstructClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
+reconstructClauses indexedCons =
+    let mainClauses = reconstructClause <$> indexedCons
+        catchallClause = TH.clause [TH.wildP, TH.wildP] (TH.normalB [| Nothing |]) []
     in mainClauses ++ [ catchallClause ]
+
+fromDataClause :: [(TH.ConstructorInfo, Int)] -> TH.Q TH.Clause
+fromDataClause indexedCons = do
+    dName <- TH.newName "d"
+    rName <- TH.newName "reconstruct"
+    let clauses = reconstructClauses indexedCons
+    let reconstructDec = TH.funD rName clauses
+    let matcher = [| matchData $(TH.varE dName) $(TH.varE rName) (const Nothing) (const Nothing) (const Nothing) (const Nothing) |]
+    let body = TH.letE [ reconstructDec ] matcher
+    TH.clause [TH.varP dName ] (TH.normalB body) []
 
 defaultIndex :: TH.Name -> TH.Q [(TH.Name, Int)]
 defaultIndex name = do
@@ -64,11 +73,11 @@ makeIsDataIndexed name indices = do
             Just i  -> pure (c, i)
             Nothing -> fail $ "No index given for constructor" ++ show (TH.constructorName c)
 
-    toDataDecl <- TH.funD 'toData (toDataClauses indexedCons)
-    toDataPrag <- TH.pragInlD 'toData TH.Inlinable TH.FunLike TH.AllPhases
+    toDataDecl <- TH.funD 'toBuiltinData (toDataClauses indexedCons)
+    toDataPrag <- TH.pragInlD 'toBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
 
-    fromDataDecl <- TH.funD 'fromData (fromDataClauses indexedCons)
-    fromDataPrag <- TH.pragInlD 'fromData TH.Inlinable TH.FunLike TH.AllPhases
+    fromDataDecl <- TH.funD 'fromBuiltinData [fromDataClause indexedCons]
+    fromDataPrag <- TH.pragInlD 'fromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
 
     pure [TH.InstanceD Nothing constraints (TH.classPred ''IsData [appliedType]) [toDataPrag, toDataDecl, fromDataPrag, fromDataDecl]]
     where

@@ -133,7 +133,7 @@ instance Bifunctor TxConstraints where
             , txOwnOutputs = Haskell.fmap (Haskell.fmap g) (txOwnOutputs txc)
             }
 
-type UntypedConstraints = TxConstraints PlutusTx.Data PlutusTx.Data
+type UntypedConstraints = TxConstraints PlutusTx.BuiltinData PlutusTx.BuiltinData
 
 instance Semigroup (TxConstraints i o) where
     l <> r =
@@ -182,7 +182,7 @@ mustIncludeDatum = singleton . MustIncludeDatum
 mustPayToTheScript :: forall i o. PlutusTx.IsData o => o -> Value -> TxConstraints i o
 mustPayToTheScript dt vl =
     TxConstraints
-        { txConstraints = [MustIncludeDatum (Datum $ PlutusTx.toData dt)]
+        { txConstraints = [MustIncludeDatum (Datum $ PlutusTx.toBuiltinData dt)]
         , txOwnInputs = []
         , txOwnOutputs = [OutputConstraint dt vl]
         }
@@ -202,7 +202,7 @@ mustPayToOtherScript vh dv vl =
 {-# INLINABLE mustMintValue #-}
 -- | Create the given value
 mustMintValue :: forall i o. Value -> TxConstraints i o
-mustMintValue = mustMintValueWithRedeemer (Redeemer $ PlutusTx.toData ())
+mustMintValue = mustMintValueWithRedeemer (Redeemer $ PlutusTx.toBuiltinData ())
 
 {-# INLINABLE mustMintValueWithRedeemer #-}
 -- | Create the given value
@@ -215,7 +215,7 @@ mustMintValueWithRedeemer red = foldMap valueConstraint . (AssocMap.toList . Val
 {-# INLINABLE mustMintCurrency #-}
 -- | Create the given amount of the currency
 mustMintCurrency :: forall i o. MintingPolicyHash -> TokenName -> Integer -> TxConstraints i o
-mustMintCurrency mps = mustMintCurrencyWithRedeemer mps (Redeemer $ PlutusTx.toData ())
+mustMintCurrency mps = mustMintCurrencyWithRedeemer mps (Redeemer $ PlutusTx.toBuiltinData ())
 
 {-# INLINABLE mustMintCurrencyWithRedeemer #-}
 -- | Create the given amount of the currency

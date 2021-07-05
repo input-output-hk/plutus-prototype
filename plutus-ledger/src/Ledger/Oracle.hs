@@ -134,7 +134,7 @@ checkHashConstraints SignedMessage{osmMessageHash, osmDatum=Datum dt} =
     maybe
         (trace "DecodingError" $ Left DecodingError)
         (\a -> pure (a, Constraints.mustHashDatum osmMessageHash (Datum dt)))
-        (fromData dt)
+        (fromBuiltinData dt)
 
 {-# INLINABLE verifySignedMessageConstraints #-}
 -- | Check the signature on a 'SignedMessage' and extract the contents of the
@@ -176,7 +176,7 @@ checkHashOffChain ::
 checkHashOffChain SignedMessage{osmMessageHash, osmDatum=dt} = do
     unless (osmMessageHash == Scripts.datumHash dt) (Left DatumNotEqualToExpected)
     let Datum dv = dt
-    maybe (Left DecodingError) pure (fromData dv)
+    maybe (Left DecodingError) pure (fromBuiltinData dv)
 
 -- | Check the signature on a 'SignedMessage' and extract the contents of the
 --   message.
@@ -193,7 +193,7 @@ verifySignedMessageOffChain pk s@SignedMessage{osmSignature, osmMessageHash} =
 --   hash of the datum.
 signMessage :: IsData a => a -> PrivateKey -> SignedMessage a
 signMessage msg pk =
-  let dt = Datum (toData msg)
+  let dt = Datum (toBuiltinData msg)
       DatumHash msgHash = Scripts.datumHash dt
       sig     = Crypto.sign msgHash pk
   in SignedMessage

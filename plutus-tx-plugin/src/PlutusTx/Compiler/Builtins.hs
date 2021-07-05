@@ -222,6 +222,7 @@ builtinNames = [
 
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
+    , 'Builtins.equalsData
     , 'Builtins.mkConstr
     , 'Builtins.mkMap
     , 'Builtins.mkList
@@ -331,6 +332,7 @@ defineBuiltinTerms = do
 
     -- Data
     defineBuiltinTerm 'Builtins.chooseData $ mkBuiltin PLC.ChooseData
+    defineBuiltinTerm 'Builtins.equalsData $ mkBuiltin PLC.EqualsData
     defineBuiltinTerm 'Builtins.mkConstr $ mkBuiltin PLC.ConstrData
     defineBuiltinTerm 'Builtins.mkMap $ mkBuiltin PLC.MapData
     defineBuiltinTerm 'Builtins.mkList $ mkBuiltin PLC.ListData

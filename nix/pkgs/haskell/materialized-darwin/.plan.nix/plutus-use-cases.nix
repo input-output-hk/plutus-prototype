@@ -207,28 +207,5 @@
           mainPath = [ "Spec.hs" ];
           };
         };
-      benchmarks = {
-        "plutus-use-cases-bench" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
-            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
-            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
-            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
-            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
-          buildable = true;
-          modules = [ "Scott" "Recursion" "IFix" "Opt" ];
-          hsSourceDirs = [ "bench" ];
-          };
-        };
       };
     } // rec { src = (pkgs.lib).mkDefault ../plutus-use-cases; }

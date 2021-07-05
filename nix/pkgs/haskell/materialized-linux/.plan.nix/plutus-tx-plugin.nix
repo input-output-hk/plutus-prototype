@@ -92,6 +92,7 @@
             ];
           buildable = true;
           modules = [
+            "IsData/Spec"
             "Lift/Spec"
             "Plugin/Spec"
             "Plugin/Basic/Spec"

@@ -78,14 +78,16 @@ module PlutusTx.Prelude (
     fromInteger,
     round,
     divMod,
-    quotRem
+    quotRem,
+    -- * Data
+    BuiltinData,
     ) where
 
 import           Data.String          (IsString (..))
 import           PlutusCore.Data      (Data (..))
 import           PlutusTx.Applicative as Applicative
 import           PlutusTx.Bool        as Bool
-import           PlutusTx.Builtins    (BuiltinString, ByteString, appendString, charToString, concatenate,
+import           PlutusTx.Builtins    (BuiltinData, BuiltinString, ByteString, appendString, charToString, concatenate,
                                        dropByteString, emptyByteString, emptyString, encodeUtf8, equalsByteString,
                                        equalsString, error, greaterThanByteString, lessThanByteString, sha2_256,
                                        sha3_256, takeByteString, trace, verifySignature)

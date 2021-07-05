@@ -32,8 +32,6 @@ import           PlutusTx.Code
 import qualified PlutusTx.Lift              as Lift
 import           PlutusTx.Plugin
 
-import           PlutusTx.Code
-
 import qualified PlutusCore.Data            as PLC
 
 import           Data.Proxy

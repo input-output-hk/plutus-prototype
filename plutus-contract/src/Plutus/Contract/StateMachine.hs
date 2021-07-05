@@ -374,7 +374,7 @@ runInitialiseWith customLookups customConstraints StateMachineClient{scInstance}
         constraints = mustPayToTheScript initialState (initialValue <> SM.threadTokenValueOrZero scInstance)
             <> foldMap ttConstraints (smThreadToken stateMachine)
             <> customConstraints
-        red = Ledger.Redeemer (PlutusTx.toData (Scripts.validatorHash typedValidator, Mint))
+        red = Ledger.Redeemer (PlutusTx.toBuiltinData (Scripts.validatorHash typedValidator, Mint))
         ttConstraints ThreadToken{ttOutRef} =
             mustMintValueWithRedeemer red (SM.threadTokenValueOrZero scInstance)
             <> mustSpendPubKeyOutput ttOutRef
@@ -461,7 +461,7 @@ mkStep client@StateMachineClient{scInstance} input = do
                             Constraints.typedValidatorLookups typedValidator
                             <> Constraints.unspentOutputs utxo
                             <> if isFinal then foldMap (mintingPolicy . curPolicy . ttOutRef) (smThreadToken stateMachine) else mempty
-                        red = Ledger.Redeemer (PlutusTx.toData (Scripts.validatorHash typedValidator, Burn))
+                        red = Ledger.Redeemer (PlutusTx.toBuiltinData (Scripts.validatorHash typedValidator, Burn))
                         unmint = if isFinal then mustMintValueWithRedeemer red (inv $ SM.threadTokenValueOrZero scInstance) else mempty
                         outputConstraints =
                             [ OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValueOrZero scInstance }

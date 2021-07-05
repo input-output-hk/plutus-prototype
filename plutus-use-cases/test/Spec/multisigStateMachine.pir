@@ -1,117 +1,715 @@
 (program
   (let
-    (rec)
+    (nonrec)
     (datatypebind
       (datatype
-        (tyvardecl List (fun (type) (type)))
-        (tyvardecl a (type))
-        Nil_match
-        (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        Tuple2_match
+        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
       )
     )
     (let
-      (nonrec)
-      (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-      )
+      (rec)
       (datatypebind
         (datatype
-          (tyvardecl Bool (type))
-
-          Bool_match
-          (vardecl True Bool) (vardecl False Bool)
+          (tyvardecl List (fun (type) (type)))
+          (tyvardecl a (type))
+          Nil_match
+          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
         )
       )
       (let
-        (rec)
+        (nonrec)
+        (datatypebind
+          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl Bool (type))
+
+            Bool_match
+            (vardecl True Bool) (vardecl False Bool)
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl These (fun (type) (fun (type) (type))))
+            (tyvardecl a (type)) (tyvardecl b (type))
+            These_match
+            (vardecl That (fun b [[These a] b]))
+            (vardecl These (fun a (fun b [[These a] b])))
+            (vardecl This (fun a [[These a] b]))
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl Maybe (fun (type) (type)))
+            (tyvardecl a (type))
+            Maybe_match
+            (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+          )
+        )
+        (termbind
+          (strict)
+          (vardecl
+            fIsDataByteString_cfromBuiltinData
+            (fun (con data) [Maybe (con bytestring)])
+          )
+          (lam
+            d
+            (con data)
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          {
+                            (builtin chooseData)
+                            (fun Unit [Maybe (con bytestring)])
+                          }
+                          (lam
+                            ds
+                            Unit
+                            [
+                              { [ Unit_match ds ] [Maybe (con bytestring)] }
+                              { Nothing (con bytestring) }
+                            ]
+                          )
+                        ]
+                        (lam
+                          ds
+                          Unit
+                          [
+                            { [ Unit_match ds ] [Maybe (con bytestring)] }
+                            { Nothing (con bytestring) }
+                          ]
+                        )
+                      ]
+                      (lam
+                        ds
+                        Unit
+                        [
+                          { [ Unit_match ds ] [Maybe (con bytestring)] }
+                          { Nothing (con bytestring) }
+                        ]
+                      )
+                    ]
+                    (lam
+                      ds
+                      Unit
+                      [
+                        { [ Unit_match ds ] [Maybe (con bytestring)] }
+                        { Nothing (con bytestring) }
+                      ]
+                    )
+                  ]
+                  (lam
+                    ds
+                    Unit
+                    [
+                      { [ Unit_match ds ] [Maybe (con bytestring)] }
+                      [ { Just (con bytestring) } [ (builtin unBData) d ] ]
+                    ]
+                  )
+                ]
+                d
+              ]
+              Unit
+            ]
+          )
+        )
+        (termbind
+          (strict)
+          (vardecl mkB (fun (con bytestring) (con data)))
+          (lam b (con bytestring) [ (builtin bData) b ])
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl IsData (fun (type) (type)))
+            (tyvardecl a (type))
+            IsData_match
+            (vardecl
+              CConsIsData
+              (fun (fun a (con data)) (fun (fun (con data) [Maybe a]) [IsData a]))
+            )
+          )
+        )
         (termbind
           (nonstrict)
+          (vardecl fIsDataCurrencySymbol [IsData (con bytestring)])
+          [
+            [ { CConsIsData (con bytestring) } mkB ]
+            fIsDataByteString_cfromBuiltinData
+          ]
+        )
+        (termbind
+          (strict)
           (vardecl
-            fEqData_c
-            (all a (type) (fun [(lam a (type) (fun a (fun a Bool))) a] (fun [List a] (fun [List a] Bool))))
+            fIsDataInteger_cfromBuiltinData
+            (fun (con data) [Maybe (con integer)])
+          )
+          (lam
+            d
+            (con data)
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          {
+                            (builtin chooseData)
+                            (fun Unit [Maybe (con integer)])
+                          }
+                          (lam
+                            ds
+                            Unit
+                            [
+                              { [ Unit_match ds ] [Maybe (con integer)] }
+                              { Nothing (con integer) }
+                            ]
+                          )
+                        ]
+                        (lam
+                          ds
+                          Unit
+                          [
+                            { [ Unit_match ds ] [Maybe (con integer)] }
+                            { Nothing (con integer) }
+                          ]
+                        )
+                      ]
+                      (lam
+                        ds
+                        Unit
+                        [
+                          { [ Unit_match ds ] [Maybe (con integer)] }
+                          { Nothing (con integer) }
+                        ]
+                      )
+                    ]
+                    (lam
+                      ds
+                      Unit
+                      [
+                        { [ Unit_match ds ] [Maybe (con integer)] }
+                        [ { Just (con integer) } [ (builtin unIData) d ] ]
+                      ]
+                    )
+                  ]
+                  (lam
+                    ds
+                    Unit
+                    [
+                      { [ Unit_match ds ] [Maybe (con integer)] }
+                      { Nothing (con integer) }
+                    ]
+                  )
+                ]
+                d
+              ]
+              Unit
+            ]
+          )
+        )
+        (termbind
+          (strict)
+          (vardecl mkI (fun (con integer) (con data)))
+          (lam i (con integer) [ (builtin iData) i ])
+        )
+        (termbind
+          (nonstrict)
+          (vardecl fIsDataInteger [IsData (con integer)])
+          [
+            [ { CConsIsData (con integer) } mkI ]
+            fIsDataInteger_cfromBuiltinData
+          ]
+        )
+        (termbind
+          (strict)
+          (vardecl
+            fromBuiltinData
+            (all a (type) (fun [IsData a] (fun (con data) [Maybe a])))
           )
           (abs
             a
             (type)
             (lam
-              dEq
-              [(lam a (type) (fun a (fun a Bool))) a]
-              (lam
-                ds
-                [List a]
-                (lam
-                  ds
-                  [List a]
+              v
+              [IsData a]
+              [
+                { [ { IsData_match a } v ] (fun (con data) [Maybe a]) }
+                (lam v (fun a (con data)) (lam v (fun (con data) [Maybe a]) v))
+              ]
+            )
+          )
+        )
+        (let
+          (rec)
+          (termbind
+            (strict)
+            (vardecl
+              unsafeDataAsList_go
+              (fun [(con list) (con data)] [List (con data)])
+            )
+            (lam
+              l
+              [(con list) (con data)]
+              [
+                [
                   [
                     [
+                      {
+                        (builtin ifThenElse) (fun (con unit) [List (con data)])
+                      }
+                      [ { (builtin nullList) (con data) } l ]
+                    ]
+                    (lam ds (con unit) { Nil (con data) })
+                  ]
+                  (lam
+                    ds
+                    (con unit)
+                    [
                       [
-                        { [ { Nil_match a } ds ] (fun Unit Bool) }
-                        (lam
-                          thunk
-                          Unit
+                        { Cons (con data) }
+                        [ { (builtin headList) (con data) } l ]
+                      ]
+                      [
+                        unsafeDataAsList_go
+                        [ { (builtin tailList) (con data) } l ]
+                      ]
+                    ]
+                  )
+                ]
+                (con unit ())
+              ]
+            )
+          )
+          (let
+            (nonrec)
+            (termbind
+              (strict)
+              (vardecl
+                fIsDataTuple2_cfromBuiltinData
+                (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun (con data) [Maybe [[Tuple2 a] b]])))))
+              )
+              (abs
+                a
+                (type)
+                (abs
+                  b
+                  (type)
+                  (lam
+                    dIsData
+                    [IsData a]
+                    (lam
+                      dIsData
+                      [IsData b]
+                      (lam
+                        d
+                        (con data)
+                        [
                           [
                             [
                               [
-                                { [ { Nil_match a } ds ] (fun Unit Bool) }
-                                (lam thunk Unit True)
+                                [
+                                  [
+                                    [
+                                      {
+                                        (builtin chooseData)
+                                        (fun Unit [Maybe [[Tuple2 a] b]])
+                                      }
+                                      (lam
+                                        ds
+                                        Unit
+                                        (let
+                                          (nonrec)
+                                          (termbind
+                                            (nonstrict)
+                                            (vardecl
+                                              p
+                                              [[(con pair) (con integer)] [(con list) (con data)]]
+                                            )
+                                            [ (builtin unConstrData) d ]
+                                          )
+                                          [
+                                            {
+                                              [ Unit_match ds ]
+                                              [Maybe [[Tuple2 a] b]]
+                                            }
+                                            [
+                                              [
+                                                [
+                                                  {
+                                                    [
+                                                      { Nil_match (con data) }
+                                                      [
+                                                        unsafeDataAsList_go
+                                                        [
+                                                          {
+                                                            {
+                                                              (builtin sndPair)
+                                                              (con integer)
+                                                            }
+                                                            [(con list) (con data)]
+                                                          }
+                                                          p
+                                                        ]
+                                                      ]
+                                                    ]
+                                                    (fun Unit [Maybe [[Tuple2 a] b]])
+                                                  }
+                                                  (lam
+                                                    thunk
+                                                    Unit
+                                                    { Nothing [[Tuple2 a] b] }
+                                                  )
+                                                ]
+                                                (lam
+                                                  arg
+                                                  (con data)
+                                                  (lam
+                                                    ds
+                                                    [List (con data)]
+                                                    (lam
+                                                      thunk
+                                                      Unit
+                                                      [
+                                                        [
+                                                          [
+                                                            {
+                                                              [
+                                                                {
+                                                                  Nil_match
+                                                                  (con data)
+                                                                }
+                                                                ds
+                                                              ]
+                                                              (fun Unit [Maybe [[Tuple2 a] b]])
+                                                            }
+                                                            (lam
+                                                              thunk
+                                                              Unit
+                                                              {
+                                                                Nothing
+                                                                [[Tuple2 a] b]
+                                                              }
+                                                            )
+                                                          ]
+                                                          (lam
+                                                            arg
+                                                            (con data)
+                                                            (lam
+                                                              ds
+                                                              [List (con data)]
+                                                              (lam
+                                                                thunk
+                                                                Unit
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        [
+                                                                          {
+                                                                            Nil_match
+                                                                            (con data)
+                                                                          }
+                                                                          ds
+                                                                        ]
+                                                                        (fun Unit [Maybe [[Tuple2 a] b]])
+                                                                      }
+                                                                      (lam
+                                                                        thunk
+                                                                        Unit
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              {
+                                                                                [
+                                                                                  Bool_match
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        {
+                                                                                          (builtin
+                                                                                            ifThenElse
+                                                                                          )
+                                                                                          Bool
+                                                                                        }
+                                                                                        [
+                                                                                          [
+                                                                                            (builtin
+                                                                                              equalsInteger
+                                                                                            )
+                                                                                            [
+                                                                                              {
+                                                                                                {
+                                                                                                  (builtin
+                                                                                                    fstPair
+                                                                                                  )
+                                                                                                  (con integer)
+                                                                                                }
+                                                                                                [(con list) (con data)]
+                                                                                              }
+                                                                                              p
+                                                                                            ]
+                                                                                          ]
+                                                                                          (con
+                                                                                            integer
+                                                                                              0
+                                                                                          )
+                                                                                        ]
+                                                                                      ]
+                                                                                      True
+                                                                                    ]
+                                                                                    False
+                                                                                  ]
+                                                                                ]
+                                                                                (fun Unit [Maybe [[Tuple2 a] b]])
+                                                                              }
+                                                                              (lam
+                                                                                thunk
+                                                                                Unit
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      {
+                                                                                        [
+                                                                                          {
+                                                                                            Maybe_match
+                                                                                            a
+                                                                                          }
+                                                                                          [
+                                                                                            [
+                                                                                              {
+                                                                                                fromBuiltinData
+                                                                                                a
+                                                                                              }
+                                                                                              dIsData
+                                                                                            ]
+                                                                                            arg
+                                                                                          ]
+                                                                                        ]
+                                                                                        (fun Unit [Maybe [[Tuple2 a] b]])
+                                                                                      }
+                                                                                      (lam
+                                                                                        ipv
+                                                                                        a
+                                                                                        (lam
+                                                                                          thunk
+                                                                                          Unit
+                                                                                          [
+                                                                                            [
+                                                                                              [
+                                                                                                {
+                                                                                                  [
+                                                                                                    {
+                                                                                                      Maybe_match
+                                                                                                      b
+                                                                                                    }
+                                                                                                    [
+                                                                                                      [
+                                                                                                        {
+                                                                                                          fromBuiltinData
+                                                                                                          b
+                                                                                                        }
+                                                                                                        dIsData
+                                                                                                      ]
+                                                                                                      arg
+                                                                                                    ]
+                                                                                                  ]
+                                                                                                  (fun Unit [Maybe [[Tuple2 a] b]])
+                                                                                                }
+                                                                                                (lam
+                                                                                                  ipv
+                                                                                                  b
+                                                                                                  (lam
+                                                                                                    thunk
+                                                                                                    Unit
+                                                                                                    [
+                                                                                                      {
+                                                                                                        Just
+                                                                                                        [[Tuple2 a] b]
+                                                                                                      }
+                                                                                                      [
+                                                                                                        [
+                                                                                                          {
+                                                                                                            {
+                                                                                                              Tuple2
+                                                                                                              a
+                                                                                                            }
+                                                                                                            b
+                                                                                                          }
+                                                                                                          ipv
+                                                                                                        ]
+                                                                                                        ipv
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
+                                                                                              ]
+                                                                                              (lam
+                                                                                                thunk
+                                                                                                Unit
+                                                                                                {
+                                                                                                  Nothing
+                                                                                                  [[Tuple2 a] b]
+                                                                                                }
+                                                                                              )
+                                                                                            ]
+                                                                                            Unit
+                                                                                          ]
+                                                                                        )
+                                                                                      )
+                                                                                    ]
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      {
+                                                                                        Nothing
+                                                                                        [[Tuple2 a] b]
+                                                                                      }
+                                                                                    )
+                                                                                  ]
+                                                                                  Unit
+                                                                                ]
+                                                                              )
+                                                                            ]
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
+                                                                              {
+                                                                                Nothing
+                                                                                [[Tuple2 a] b]
+                                                                              }
+                                                                            )
+                                                                          ]
+                                                                          Unit
+                                                                        ]
+                                                                      )
+                                                                    ]
+                                                                    (lam
+                                                                      ipv
+                                                                      (con data)
+                                                                      (lam
+                                                                        ipv
+                                                                        [List (con data)]
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          {
+                                                                            Nothing
+                                                                            [[Tuple2 a] b]
+                                                                          }
+                                                                        )
+                                                                      )
+                                                                    )
+                                                                  ]
+                                                                  Unit
+                                                                ]
+                                                              )
+                                                            )
+                                                          )
+                                                        ]
+                                                        Unit
+                                                      ]
+                                                    )
+                                                  )
+                                                )
+                                              ]
+                                              Unit
+                                            ]
+                                          ]
+                                        )
+                                      )
+                                    ]
+                                    (lam
+                                      ds
+                                      Unit
+                                      [
+                                        {
+                                          [ Unit_match ds ]
+                                          [Maybe [[Tuple2 a] b]]
+                                        }
+                                        { Nothing [[Tuple2 a] b] }
+                                      ]
+                                    )
+                                  ]
+                                  (lam
+                                    ds
+                                    Unit
+                                    [
+                                      {
+                                        [ Unit_match ds ] [Maybe [[Tuple2 a] b]]
+                                      }
+                                      { Nothing [[Tuple2 a] b] }
+                                    ]
+                                  )
+                                ]
+                                (lam
+                                  ds
+                                  Unit
+                                  [
+                                    { [ Unit_match ds ] [Maybe [[Tuple2 a] b]] }
+                                    { Nothing [[Tuple2 a] b] }
+                                  ]
+                                )
                               ]
                               (lam
-                                ipv a (lam ipv [List a] (lam thunk Unit False))
+                                ds
+                                Unit
+                                [
+                                  { [ Unit_match ds ] [Maybe [[Tuple2 a] b]] }
+                                  { Nothing [[Tuple2 a] b] }
+                                ]
                               )
                             ]
-                            Unit
+                            d
                           ]
-                        )
+                          Unit
+                        ]
+                      )
+                    )
+                  )
+                )
+              )
+            )
+            (let
+              (rec)
+              (termbind
+                (strict)
+                (vardecl
+                  fToBuiltinNilBuiltinList0_ctoBuiltin
+                  (fun [List (con data)] [(con list) (con data)])
+                )
+                (lam
+                  ds
+                  [List (con data)]
+                  [
+                    [
+                      [
+                        {
+                          [ { Nil_match (con data) } ds ]
+                          (fun Unit [(con list) (con data)])
+                        }
+                        (lam thunk Unit [ (builtin mkNilData) (con unit ()) ])
                       ]
                       (lam
-                        x
-                        a
+                        d
+                        (con data)
                         (lam
-                          xs
-                          [List a]
+                          ds
+                          [List (con data)]
                           (lam
                             thunk
                             Unit
                             [
-                              [
-                                [
-                                  { [ { Nil_match a } ds ] (fun Unit Bool) }
-                                  (lam thunk Unit False)
-                                ]
-                                (lam
-                                  y
-                                  a
-                                  (lam
-                                    ys
-                                    [List a]
-                                    (lam
-                                      thunk
-                                      Unit
-                                      [
-                                        [
-                                          [
-                                            {
-                                              [ Bool_match [ [ dEq x ] y ] ]
-                                              (fun Unit Bool)
-                                            }
-                                            (lam
-                                              thunk
-                                              Unit
-                                              [
-                                                [ [ { fEqData_c a } dEq ] xs ]
-                                                ys
-                                              ]
-                                            )
-                                          ]
-                                          (lam thunk Unit False)
-                                        ]
-                                        Unit
-                                      ]
-                                    )
-                                  )
-                                )
-                              ]
-                              Unit
+                              [ { (builtin mkCons) (con data) } d ]
+                              [ fToBuiltinNilBuiltinList0_ctoBuiltin ds ]
                             ]
                           )
                         )
@@ -121,629 +719,164 @@
                   ]
                 )
               )
-            )
-          )
-        )
-        (let
-          (nonrec)
-          (termbind
-            (strict)
-            (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
-            (lam
-              x
-              (con integer)
-              (lam
-                y
-                (con integer)
-                [
-                  [
-                    [
-                      { (builtin ifThenElse) Bool }
-                      [ [ (builtin equalsInteger) x ] y ]
-                    ]
-                    True
-                  ]
-                  False
-                ]
-              )
-            )
-          )
-          (termbind
-            (strict)
-            (vardecl
-              equalsByteString
-              (fun (con bytestring) (fun (con bytestring) Bool))
-            )
-            (lam
-              x
-              (con bytestring)
-              (lam
-                y
-                (con bytestring)
-                [
-                  [
-                    [
-                      { (builtin ifThenElse) Bool }
-                      [ [ (builtin equalsByteString) x ] y ]
-                    ]
-                    True
-                  ]
-                  False
-                ]
-              )
-            )
-          )
-          (datatypebind
-            (datatype
-              (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
-              (tyvardecl a (type)) (tyvardecl b (type))
-              Tuple2_match
-              (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
-            )
-          )
-          (let
-            (rec)
-            (datatypebind
-              (datatype
-                (tyvardecl Data (type))
-
-                Data_match
-                (vardecl B (fun (con bytestring) Data))
-                (vardecl Constr (fun (con integer) (fun [List Data] Data)))
-                (vardecl I (fun (con integer) Data))
-                (vardecl List (fun [List Data] Data))
-                (vardecl Map (fun [List [[Tuple2 Data] Data]] Data))
-              )
-            )
-            (let
-              (rec)
-              (termbind
-                (nonstrict)
-                (vardecl fEqData_c (fun Data (fun Data Bool)))
-                (lam
-                  ds
-                  Data
-                  (lam
-                    ds
-                    Data
-                    [
-                      [
-                        [
-                          [
-                            [
-                              { [ Data_match ds ] Bool }
-                              (lam
-                                b
-                                (con bytestring)
-                                [
-                                  [
-                                    [
-                                      [
-                                        [
-                                          [
-                                            {
-                                              [ Data_match ds ] (fun Unit Bool)
-                                            }
-                                            (lam
-                                              b
-                                              (con bytestring)
-                                              (lam
-                                                thunk
-                                                Unit
-                                                [ [ equalsByteString b ] b ]
-                                              )
-                                            )
-                                          ]
-                                          (lam
-                                            default_arg0
-                                            (con integer)
-                                            (lam
-                                              default_arg1
-                                              [List Data]
-                                              (lam thunk Unit False)
-                                            )
-                                          )
-                                        ]
-                                        (lam
-                                          default_arg0
-                                          (con integer)
-                                          (lam thunk Unit False)
-                                        )
-                                      ]
-                                      (lam
-                                        default_arg0
-                                        [List Data]
-                                        (lam thunk Unit False)
-                                      )
-                                    ]
-                                    (lam
-                                      default_arg0
-                                      [List [[Tuple2 Data] Data]]
-                                      (lam thunk Unit False)
-                                    )
-                                  ]
-                                  Unit
-                                ]
-                              )
-                            ]
-                            (lam
-                              i
-                              (con integer)
-                              (lam
-                                ds
-                                [List Data]
-                                [
-                                  [
-                                    [
-                                      [
-                                        [
-                                          [
-                                            {
-                                              [ Data_match ds ] (fun Unit Bool)
-                                            }
-                                            (lam
-                                              default_arg0
-                                              (con bytestring)
-                                              (lam thunk Unit False)
-                                            )
-                                          ]
-                                          (lam
-                                            i
-                                            (con integer)
-                                            (lam
-                                              ds
-                                              [List Data]
-                                              (lam
-                                                thunk
-                                                Unit
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        [
-                                                          Bool_match
-                                                          [
-                                                            [
-                                                              [
-                                                                {
-                                                                  (builtin
-                                                                    ifThenElse
-                                                                  )
-                                                                  Bool
-                                                                }
-                                                                [
-                                                                  [
-                                                                    (builtin
-                                                                      equalsInteger
-                                                                    )
-                                                                    i
-                                                                  ]
-                                                                  i
-                                                                ]
-                                                              ]
-                                                              True
-                                                            ]
-                                                            False
-                                                          ]
-                                                        ]
-                                                        (fun Unit Bool)
-                                                      }
-                                                      (lam
-                                                        thunk
-                                                        Unit
-                                                        [
-                                                          [
-                                                            [
-                                                              { fEqData_c Data }
-                                                              fEqData_c
-                                                            ]
-                                                            ds
-                                                          ]
-                                                          ds
-                                                        ]
-                                                      )
-                                                    ]
-                                                    (lam thunk Unit False)
-                                                  ]
-                                                  Unit
-                                                ]
-                                              )
-                                            )
-                                          )
-                                        ]
-                                        (lam
-                                          default_arg0
-                                          (con integer)
-                                          (lam thunk Unit False)
-                                        )
-                                      ]
-                                      (lam
-                                        default_arg0
-                                        [List Data]
-                                        (lam thunk Unit False)
-                                      )
-                                    ]
-                                    (lam
-                                      default_arg0
-                                      [List [[Tuple2 Data] Data]]
-                                      (lam thunk Unit False)
-                                    )
-                                  ]
-                                  Unit
-                                ]
-                              )
-                            )
-                          ]
-                          (lam
-                            i
-                            (con integer)
-                            [
-                              [
-                                [
-                                  [
-                                    [
-                                      [
-                                        { [ Data_match ds ] (fun Unit Bool) }
-                                        (lam
-                                          default_arg0
-                                          (con bytestring)
-                                          (lam thunk Unit False)
-                                        )
-                                      ]
-                                      (lam
-                                        default_arg0
-                                        (con integer)
-                                        (lam
-                                          default_arg1
-                                          [List Data]
-                                          (lam thunk Unit False)
-                                        )
-                                      )
-                                    ]
-                                    (lam
-                                      i
-                                      (con integer)
-                                      (lam thunk Unit [ [ equalsInteger i ] i ])
-                                    )
-                                  ]
-                                  (lam
-                                    default_arg0
-                                    [List Data]
-                                    (lam thunk Unit False)
-                                  )
-                                ]
-                                (lam
-                                  default_arg0
-                                  [List [[Tuple2 Data] Data]]
-                                  (lam thunk Unit False)
-                                )
-                              ]
-                              Unit
-                            ]
-                          )
-                        ]
-                        (lam
-                          ls
-                          [List Data]
-                          [
-                            [
-                              [
-                                [
-                                  [
-                                    [
-                                      { [ Data_match ds ] (fun Unit Bool) }
-                                      (lam
-                                        default_arg0
-                                        (con bytestring)
-                                        (lam thunk Unit False)
-                                      )
-                                    ]
-                                    (lam
-                                      default_arg0
-                                      (con integer)
-                                      (lam
-                                        default_arg1
-                                        [List Data]
-                                        (lam thunk Unit False)
-                                      )
-                                    )
-                                  ]
-                                  (lam
-                                    default_arg0
-                                    (con integer)
-                                    (lam thunk Unit False)
-                                  )
-                                ]
-                                (lam
-                                  ls
-                                  [List Data]
-                                  (lam
-                                    thunk
-                                    Unit
-                                    [
-                                      [ [ { fEqData_c Data } fEqData_c ] ls ] ls
-                                    ]
-                                  )
-                                )
-                              ]
-                              (lam
-                                default_arg0
-                                [List [[Tuple2 Data] Data]]
-                                (lam thunk Unit False)
-                              )
-                            ]
-                            Unit
-                          ]
-                        )
-                      ]
-                      (lam
-                        ds
-                        [List [[Tuple2 Data] Data]]
-                        [
-                          [
-                            [
-                              [
-                                [
-                                  [
-                                    { [ Data_match ds ] (fun Unit Bool) }
-                                    (lam
-                                      default_arg0
-                                      (con bytestring)
-                                      (lam thunk Unit False)
-                                    )
-                                  ]
-                                  (lam
-                                    default_arg0
-                                    (con integer)
-                                    (lam
-                                      default_arg1
-                                      [List Data]
-                                      (lam thunk Unit False)
-                                    )
-                                  )
-                                ]
-                                (lam
-                                  default_arg0
-                                  (con integer)
-                                  (lam thunk Unit False)
-                                )
-                              ]
-                              (lam
-                                default_arg0 [List Data] (lam thunk Unit False)
-                              )
-                            ]
-                            (lam
-                              ds
-                              [List [[Tuple2 Data] Data]]
-                              (lam
-                                thunk
-                                Unit
-                                [
-                                  [
-                                    [ { fEqData_c [[Tuple2 Data] Data] } dEq ]
-                                    ds
-                                  ]
-                                  ds
-                                ]
-                              )
-                            )
-                          ]
-                          Unit
-                        ]
-                      )
-                    ]
-                  )
-                )
-              )
-              (termbind
-                (strict)
-                (vardecl
-                  dEq (fun [[Tuple2 Data] Data] (fun [[Tuple2 Data] Data] Bool))
-                )
-                (lam
-                  ds
-                  [[Tuple2 Data] Data]
-                  (lam
-                    ds
-                    [[Tuple2 Data] Data]
-                    [
-                      { [ { { Tuple2_match Data } Data } ds ] Bool }
-                      (lam
-                        a
-                        Data
-                        (lam
-                          b
-                          Data
-                          [
-                            { [ { { Tuple2_match Data } Data } ds ] Bool }
-                            (lam
-                              a
-                              Data
-                              (lam
-                                b
-                                Data
-                                [
-                                  [
-                                    [
-                                      {
-                                        [ Bool_match [ [ fEqData_c a ] a ] ]
-                                        (fun Unit Bool)
-                                      }
-                                      (lam thunk Unit [ [ fEqData_c b ] b ])
-                                    ]
-                                    (lam thunk Unit False)
-                                  ]
-                                  Unit
-                                ]
-                              )
-                            )
-                          ]
-                        )
-                      )
-                    ]
-                  )
-                )
-              )
               (let
                 (nonrec)
-                (datatypebind
-                  (datatype
-                    (tyvardecl These (fun (type) (fun (type) (type))))
-                    (tyvardecl a (type)) (tyvardecl b (type))
-                    These_match
-                    (vardecl That (fun b [[These a] b]))
-                    (vardecl These (fun a (fun b [[These a] b])))
-                    (vardecl This (fun a [[These a] b]))
-                  )
-                )
-                (datatypebind
-                  (datatype
-                    (tyvardecl Maybe (fun (type) (type)))
-                    (tyvardecl a (type))
-                    Maybe_match
-                    (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
-                  )
-                )
                 (termbind
                   (strict)
                   (vardecl
-                    fIsDataByteString_cfromData
-                    (fun Data [Maybe (con bytestring)])
+                    toBuiltinData
+                    (all a (type) (fun [IsData a] (fun a (con data))))
                   )
-                  (lam
-                    ds
-                    Data
-                    [
+                  (abs
+                    a
+                    (type)
+                    (lam
+                      v
+                      [IsData a]
                       [
-                        [
-                          [
-                            [
-                              [
-                                {
-                                  [ Data_match ds ]
-                                  (fun Unit [Maybe (con bytestring)])
-                                }
-                                (lam
-                                  b
-                                  (con bytestring)
-                                  (lam
-                                    thunk Unit [ { Just (con bytestring) } b ]
-                                  )
-                                )
-                              ]
-                              (lam
-                                default_arg0
-                                (con integer)
-                                (lam
-                                  default_arg1
-                                  [List Data]
-                                  (lam thunk Unit { Nothing (con bytestring) })
-                                )
-                              )
-                            ]
-                            (lam
-                              default_arg0
-                              (con integer)
-                              (lam thunk Unit { Nothing (con bytestring) })
-                            )
-                          ]
-                          (lam
-                            default_arg0
-                            [List Data]
-                            (lam thunk Unit { Nothing (con bytestring) })
-                          )
-                        ]
+                        { [ { IsData_match a } v ] (fun a (con data)) }
                         (lam
-                          default_arg0
-                          [List [[Tuple2 Data] Data]]
-                          (lam thunk Unit { Nothing (con bytestring) })
+                          v
+                          (fun a (con data))
+                          (lam v (fun (con data) [Maybe a]) v)
                         )
                       ]
-                      Unit
-                    ]
-                  )
-                )
-                (datatypebind
-                  (datatype
-                    (tyvardecl IsData (fun (type) (type)))
-                    (tyvardecl a (type))
-                    IsData_match
-                    (vardecl
-                      CConsIsData
-                      (fun (fun a Data) (fun (fun Data [Maybe a]) [IsData a]))
                     )
                   )
                 )
                 (termbind
-                  (nonstrict)
-                  (vardecl fIsDataCurrencySymbol [IsData (con bytestring)])
-                  [
-                    [ { CConsIsData (con bytestring) } B ]
-                    fIsDataByteString_cfromData
-                  ]
+                  (strict)
+                  (vardecl
+                    build
+                    (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
+                  )
+                  (abs
+                    a
+                    (type)
+                    (lam
+                      g
+                      (all b (type) (fun (fun a (fun b b)) (fun b b)))
+                      [ [ { g [List a] } { Cons a } ] { Nil a } ]
+                    )
+                  )
                 )
                 (termbind
                   (strict)
                   (vardecl
-                    fIsDataInteger_cfromData (fun Data [Maybe (con integer)])
+                    fIsDataTuple2_ctoBuiltinData
+                    (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun [[Tuple2 a] b] (con data))))))
                   )
-                  (lam
-                    ds
-                    Data
-                    [
-                      [
-                        [
-                          [
+                  (abs
+                    a
+                    (type)
+                    (abs
+                      b
+                      (type)
+                      (lam
+                        dIsData
+                        [IsData a]
+                        (lam
+                          dIsData
+                          [IsData b]
+                          (lam
+                            ds
+                            [[Tuple2 a] b]
                             [
-                              [
-                                {
-                                  [ Data_match ds ]
-                                  (fun Unit [Maybe (con integer)])
-                                }
-                                (lam
-                                  default_arg0
-                                  (con bytestring)
-                                  (lam thunk Unit { Nothing (con integer) })
-                                )
-                              ]
+                              { [ { { Tuple2_match a } b } ds ] (con data) }
                               (lam
-                                default_arg0
-                                (con integer)
+                                arg
+                                a
                                 (lam
-                                  default_arg1
-                                  [List Data]
-                                  (lam thunk Unit { Nothing (con integer) })
+                                  arg
+                                  b
+                                  [
+                                    [ (builtin constrData) (con integer 0) ]
+                                    [
+                                      fToBuiltinNilBuiltinList0_ctoBuiltin
+                                      [
+                                        { build (con data) }
+                                        (abs
+                                          a
+                                          (type)
+                                          (lam
+                                            c
+                                            (fun (con data) (fun a a))
+                                            (lam
+                                              n
+                                              a
+                                              [
+                                                [
+                                                  c
+                                                  [
+                                                    [
+                                                      { toBuiltinData a }
+                                                      dIsData
+                                                    ]
+                                                    arg
+                                                  ]
+                                                ]
+                                                [
+                                                  [
+                                                    c
+                                                    [
+                                                      [
+                                                        { toBuiltinData b }
+                                                        dIsData
+                                                      ]
+                                                      arg
+                                                    ]
+                                                  ]
+                                                  n
+                                                ]
+                                              ]
+                                            )
+                                          )
+                                        )
+                                      ]
+                                    ]
+                                  ]
                                 )
                               )
                             ]
-                            (lam
-                              i
-                              (con integer)
-                              (lam thunk Unit [ { Just (con integer) } i ])
-                            )
-                          ]
-                          (lam
-                            default_arg0
-                            [List Data]
-                            (lam thunk Unit { Nothing (con integer) })
                           )
-                        ]
-                        (lam
-                          default_arg0
-                          [List [[Tuple2 Data] Data]]
-                          (lam thunk Unit { Nothing (con integer) })
                         )
-                      ]
-                      Unit
-                    ]
+                      )
+                    )
                   )
                 )
                 (termbind
-                  (nonstrict)
-                  (vardecl fIsDataInteger [IsData (con integer)])
-                  [
-                    [ { CConsIsData (con integer) } I ] fIsDataInteger_cfromData
-                  ]
+                  (strict)
+                  (vardecl
+                    fIsDataTuple2
+                    (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] [IsData [[Tuple2 a] b]]))))
+                  )
+                  (abs
+                    a
+                    (type)
+                    (abs
+                      b
+                      (type)
+                      (lam
+                        v
+                        [IsData a]
+                        (lam
+                          v
+                          [IsData b]
+                          [
+                            [
+                              { CConsIsData [[Tuple2 a] b] }
+                              [
+                                [ { { fIsDataTuple2_ctoBuiltinData a } b } v ] v
+                              ]
+                            ]
+                            [
+                              [ { { fIsDataTuple2_cfromBuiltinData a } b } v ] v
+                            ]
+                          ]
+                        )
+                      )
+                    )
+                  )
                 )
                 (termbind
                   (strict)
@@ -863,361 +996,6 @@
                     [ [ { CConsApplicative Maybe } fFunctorMaybe_cfmap ] Just ]
                     fApplicativeMaybe_c
                   ]
-                )
-                (termbind
-                  (strict)
-                  (vardecl
-                    fromData
-                    (all a (type) (fun [IsData a] (fun Data [Maybe a])))
-                  )
-                  (abs
-                    a
-                    (type)
-                    (lam
-                      v
-                      [IsData a]
-                      [
-                        { [ { IsData_match a } v ] (fun Data [Maybe a]) }
-                        (lam v (fun a Data) (lam v (fun Data [Maybe a]) v))
-                      ]
-                    )
-                  )
-                )
-                (termbind
-                  (strict)
-                  (vardecl
-                    fIsDataTuple2_cfromData
-                    (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun Data [Maybe [[Tuple2 a] b]])))))
-                  )
-                  (abs
-                    a
-                    (type)
-                    (abs
-                      b
-                      (type)
-                      (lam
-                        dIsData
-                        [IsData a]
-                        (lam
-                          dIsData
-                          [IsData b]
-                          (lam
-                            ds
-                            Data
-                            [
-                              [
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          [ Data_match ds ]
-                                          (fun Unit [Maybe [[Tuple2 a] b]])
-                                        }
-                                        (lam
-                                          default_arg0
-                                          (con bytestring)
-                                          (lam
-                                            thunk
-                                            Unit
-                                            { Nothing [[Tuple2 a] b] }
-                                          )
-                                        )
-                                      ]
-                                      (lam
-                                        i
-                                        (con integer)
-                                        (lam
-                                          ds
-                                          [List Data]
-                                          (lam
-                                            thunk
-                                            Unit
-                                            [
-                                              [
-                                                [
-                                                  {
-                                                    [ { Nil_match Data } ds ]
-                                                    (fun Unit [Maybe [[Tuple2 a] b]])
-                                                  }
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    { Nothing [[Tuple2 a] b] }
-                                                  )
-                                                ]
-                                                (lam
-                                                  arg
-                                                  Data
-                                                  (lam
-                                                    ds
-                                                    [List Data]
-                                                    (lam
-                                                      thunk
-                                                      Unit
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Nil_match Data
-                                                                }
-                                                                ds
-                                                              ]
-                                                              (fun Unit [Maybe [[Tuple2 a] b]])
-                                                            }
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              {
-                                                                Nothing
-                                                                [[Tuple2 a] b]
-                                                              }
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            arg
-                                                            Data
-                                                            (lam
-                                                              ds
-                                                              [List Data]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      {
-                                                                        [
-                                                                          {
-                                                                            Nil_match
-                                                                            Data
-                                                                          }
-                                                                          ds
-                                                                        ]
-                                                                        (fun Unit [Maybe [[Tuple2 a] b]])
-                                                                      }
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        [
-                                                                          [
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  Bool_match
-                                                                                  [
-                                                                                    [
-                                                                                      [
-                                                                                        {
-                                                                                          (builtin
-                                                                                            ifThenElse
-                                                                                          )
-                                                                                          Bool
-                                                                                        }
-                                                                                        [
-                                                                                          [
-                                                                                            (builtin
-                                                                                              equalsInteger
-                                                                                            )
-                                                                                            i
-                                                                                          ]
-                                                                                          (con
-                                                                                            integer
-                                                                                              0
-                                                                                          )
-                                                                                        ]
-                                                                                      ]
-                                                                                      True
-                                                                                    ]
-                                                                                    False
-                                                                                  ]
-                                                                                ]
-                                                                                (fun Unit [Maybe [[Tuple2 a] b]])
-                                                                              }
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
-                                                                                [
-                                                                                  [
-                                                                                    [
-                                                                                      {
-                                                                                        [
-                                                                                          {
-                                                                                            Maybe_match
-                                                                                            a
-                                                                                          }
-                                                                                          [
-                                                                                            [
-                                                                                              {
-                                                                                                fromData
-                                                                                                a
-                                                                                              }
-                                                                                              dIsData
-                                                                                            ]
-                                                                                            arg
-                                                                                          ]
-                                                                                        ]
-                                                                                        (fun Unit [Maybe [[Tuple2 a] b]])
-                                                                                      }
-                                                                                      (lam
-                                                                                        ipv
-                                                                                        a
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
-                                                                                            [
-                                                                                              [
-                                                                                                {
-                                                                                                  [
-                                                                                                    {
-                                                                                                      Maybe_match
-                                                                                                      b
-                                                                                                    }
-                                                                                                    [
-                                                                                                      [
-                                                                                                        {
-                                                                                                          fromData
-                                                                                                          b
-                                                                                                        }
-                                                                                                        dIsData
-                                                                                                      ]
-                                                                                                      arg
-                                                                                                    ]
-                                                                                                  ]
-                                                                                                  (fun Unit [Maybe [[Tuple2 a] b]])
-                                                                                                }
-                                                                                                (lam
-                                                                                                  ipv
-                                                                                                  b
-                                                                                                  (lam
-                                                                                                    thunk
-                                                                                                    Unit
-                                                                                                    [
-                                                                                                      {
-                                                                                                        Just
-                                                                                                        [[Tuple2 a] b]
-                                                                                                      }
-                                                                                                      [
-                                                                                                        [
-                                                                                                          {
-                                                                                                            {
-                                                                                                              Tuple2
-                                                                                                              a
-                                                                                                            }
-                                                                                                            b
-                                                                                                          }
-                                                                                                          ipv
-                                                                                                        ]
-                                                                                                        ipv
-                                                                                                      ]
-                                                                                                    ]
-                                                                                                  )
-                                                                                                )
-                                                                                              ]
-                                                                                              (lam
-                                                                                                thunk
-                                                                                                Unit
-                                                                                                {
-                                                                                                  Nothing
-                                                                                                  [[Tuple2 a] b]
-                                                                                                }
-                                                                                              )
-                                                                                            ]
-                                                                                            Unit
-                                                                                          ]
-                                                                                        )
-                                                                                      )
-                                                                                    ]
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
-                                                                                      {
-                                                                                        Nothing
-                                                                                        [[Tuple2 a] b]
-                                                                                      }
-                                                                                    )
-                                                                                  ]
-                                                                                  Unit
-                                                                                ]
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              {
-                                                                                Nothing
-                                                                                [[Tuple2 a] b]
-                                                                              }
-                                                                            )
-                                                                          ]
-                                                                          Unit
-                                                                        ]
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      ipv
-                                                                      Data
-                                                                      (lam
-                                                                        ipv
-                                                                        [List Data]
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          {
-                                                                            Nothing
-                                                                            [[Tuple2 a] b]
-                                                                          }
-                                                                        )
-                                                                      )
-                                                                    )
-                                                                  ]
-                                                                  Unit
-                                                                ]
-                                                              )
-                                                            )
-                                                          )
-                                                        ]
-                                                        Unit
-                                                      ]
-                                                    )
-                                                  )
-                                                )
-                                              ]
-                                              Unit
-                                            ]
-                                          )
-                                        )
-                                      )
-                                    ]
-                                    (lam
-                                      default_arg0
-                                      (con integer)
-                                      (lam thunk Unit { Nothing [[Tuple2 a] b] }
-                                      )
-                                    )
-                                  ]
-                                  (lam
-                                    default_arg0
-                                    [List Data]
-                                    (lam thunk Unit { Nothing [[Tuple2 a] b] })
-                                  )
-                                ]
-                                (lam
-                                  default_arg0
-                                  [List [[Tuple2 Data] Data]]
-                                  (lam thunk Unit { Nothing [[Tuple2 a] b] })
-                                )
-                              ]
-                              Unit
-                            ]
-                          )
-                        )
-                      )
-                    )
-                  )
                 )
                 (termbind
                   (strict)
@@ -1440,8 +1218,113 @@
                     (termbind
                       (strict)
                       (vardecl
+                        fIsDataNil_cfromBuiltinData
+                        (all a (type) (fun [IsData a] (fun (con data) [Maybe [List a]])))
+                      )
+                      (abs
+                        a
+                        (type)
+                        (lam
+                          dIsData
+                          [IsData a]
+                          (lam
+                            d
+                            (con data)
+                            [
+                              [
+                                [
+                                  [
+                                    [
+                                      [
+                                        [
+                                          {
+                                            (builtin chooseData)
+                                            (fun Unit [Maybe [List a]])
+                                          }
+                                          (lam
+                                            ds
+                                            Unit
+                                            [
+                                              {
+                                                [ Unit_match ds ]
+                                                [Maybe [List a]]
+                                              }
+                                              { Nothing [List a] }
+                                            ]
+                                          )
+                                        ]
+                                        (lam
+                                          ds
+                                          Unit
+                                          [
+                                            {
+                                              [ Unit_match ds ] [Maybe [List a]]
+                                            }
+                                            { Nothing [List a] }
+                                          ]
+                                        )
+                                      ]
+                                      (lam
+                                        ds
+                                        Unit
+                                        [
+                                          { [ Unit_match ds ] [Maybe [List a]] }
+                                          [
+                                            [
+                                              [
+                                                {
+                                                  {
+                                                    {
+                                                      fTraversableNil_ctraverse
+                                                      Maybe
+                                                    }
+                                                    (con data)
+                                                  }
+                                                  a
+                                                }
+                                                fApplicativeMaybe
+                                              ]
+                                              [ { fromBuiltinData a } dIsData ]
+                                            ]
+                                            [
+                                              unsafeDataAsList_go
+                                              [ (builtin unListData) d ]
+                                            ]
+                                          ]
+                                        ]
+                                      )
+                                    ]
+                                    (lam
+                                      ds
+                                      Unit
+                                      [
+                                        { [ Unit_match ds ] [Maybe [List a]] }
+                                        { Nothing [List a] }
+                                      ]
+                                    )
+                                  ]
+                                  (lam
+                                    ds
+                                    Unit
+                                    [
+                                      { [ Unit_match ds ] [Maybe [List a]] }
+                                      { Nothing [List a] }
+                                    ]
+                                  )
+                                ]
+                                d
+                              ]
+                              Unit
+                            ]
+                          )
+                        )
+                      )
+                    )
+                    (termbind
+                      (strict)
+                      (vardecl
                         fIsDataMap
-                        (all k (type) (all v (type) (fun [IsData k] (fun [IsData v] (fun Data [Maybe [List [[Tuple2 k] v]]])))))
+                        (all k (type) (all v (type) (fun [IsData k] (fun [IsData v] (fun (con data) [Maybe [List [[Tuple2 k] v]]])))))
                       )
                       (abs
                         k
@@ -1455,218 +1338,12 @@
                             (lam
                               dIsData
                               [IsData v]
-                              (lam
-                                ds
-                                Data
+                              [
+                                { fIsDataNil_cfromBuiltinData [[Tuple2 k] v] }
                                 [
-                                  [
-                                    [
-                                      [
-                                        [
-                                          [
-                                            {
-                                              [ Data_match ds ]
-                                              (fun Unit [Maybe [List [[Tuple2 k] v]]])
-                                            }
-                                            (lam
-                                              default_arg0
-                                              (con bytestring)
-                                              (lam
-                                                thunk
-                                                Unit
-                                                {
-                                                  Nothing [List [[Tuple2 k] v]]
-                                                }
-                                              )
-                                            )
-                                          ]
-                                          (lam
-                                            default_arg0
-                                            (con integer)
-                                            (lam
-                                              default_arg1
-                                              [List Data]
-                                              (lam
-                                                thunk
-                                                Unit
-                                                {
-                                                  Nothing [List [[Tuple2 k] v]]
-                                                }
-                                              )
-                                            )
-                                          )
-                                        ]
-                                        (lam
-                                          default_arg0
-                                          (con integer)
-                                          (lam
-                                            thunk
-                                            Unit
-                                            { Nothing [List [[Tuple2 k] v]] }
-                                          )
-                                        )
-                                      ]
-                                      (lam
-                                        ds
-                                        [List Data]
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  {
-                                                    {
-                                                      fTraversableNil_ctraverse
-                                                      Maybe
-                                                    }
-                                                    Data
-                                                  }
-                                                  [[Tuple2 k] v]
-                                                }
-                                                fApplicativeMaybe
-                                              ]
-                                              [
-                                                [
-                                                  {
-                                                    {
-                                                      fIsDataTuple2_cfromData k
-                                                    }
-                                                    v
-                                                  }
-                                                  dIsData
-                                                ]
-                                                dIsData
-                                              ]
-                                            ]
-                                            ds
-                                          ]
-                                        )
-                                      )
-                                    ]
-                                    (lam
-                                      default_arg0
-                                      [List [[Tuple2 Data] Data]]
-                                      (lam
-                                        thunk
-                                        Unit
-                                        { Nothing [List [[Tuple2 k] v]] }
-                                      )
-                                    )
-                                  ]
-                                  Unit
+                                  [ { { fIsDataTuple2 k } v } dIsData ] dIsData
                                 ]
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                    (termbind
-                      (strict)
-                      (vardecl
-                        toData (all a (type) (fun [IsData a] (fun a Data)))
-                      )
-                      (abs
-                        a
-                        (type)
-                        (lam
-                          v
-                          [IsData a]
-                          [
-                            { [ { IsData_match a } v ] (fun a Data) }
-                            (lam v (fun a Data) (lam v (fun Data [Maybe a]) v))
-                          ]
-                        )
-                      )
-                    )
-                    (termbind
-                      (strict)
-                      (vardecl
-                        build
-                        (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
-                      )
-                      (abs
-                        a
-                        (type)
-                        (lam
-                          g
-                          (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                          [ [ { g [List a] } { Cons a } ] { Nil a } ]
-                        )
-                      )
-                    )
-                    (termbind
-                      (strict)
-                      (vardecl
-                        fIsDataTuple2_ctoData
-                        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun [[Tuple2 a] b] Data)))))
-                      )
-                      (abs
-                        a
-                        (type)
-                        (abs
-                          b
-                          (type)
-                          (lam
-                            dIsData
-                            [IsData a]
-                            (lam
-                              dIsData
-                              [IsData b]
-                              (lam
-                                ds
-                                [[Tuple2 a] b]
-                                [
-                                  { [ { { Tuple2_match a } b } ds ] Data }
-                                  (lam
-                                    arg
-                                    a
-                                    (lam
-                                      arg
-                                      b
-                                      [
-                                        [ Constr (con integer 0) ]
-                                        [
-                                          { build Data }
-                                          (abs
-                                            a
-                                            (type)
-                                            (lam
-                                              c
-                                              (fun Data (fun a a))
-                                              (lam
-                                                n
-                                                a
-                                                [
-                                                  [
-                                                    c
-                                                    [
-                                                      [ { toData a } dIsData ]
-                                                      arg
-                                                    ]
-                                                  ]
-                                                  [
-                                                    [
-                                                      c
-                                                      [
-                                                        [ { toData b } dIsData ]
-                                                        arg
-                                                      ]
-                                                    ]
-                                                    n
-                                                  ]
-                                                ]
-                                              )
-                                            )
-                                          )
-                                        ]
-                                      ]
-                                    )
-                                  )
-                                ]
-                              )
+                              ]
                             )
                           )
                         )
@@ -1736,7 +1413,7 @@
                           (strict)
                           (vardecl
                             fIsDataMap
-                            (all k (type) (all v (type) (fun [IsData k] (fun [IsData v] (fun [List [[Tuple2 k] v]] Data)))))
+                            (all k (type) (all v (type) (fun [IsData k] (fun [IsData v] (fun [List [[Tuple2 k] v]] (con data))))))
                           )
                           (abs
                             k
@@ -1754,22 +1431,33 @@
                                     xs
                                     [List [[Tuple2 k] v]]
                                     [
-                                      List
+                                      (builtin listData)
                                       [
+                                        fToBuiltinNilBuiltinList0_ctoBuiltin
                                         [
-                                          {
-                                            { fFunctorNil_cfmap [[Tuple2 k] v] }
-                                            Data
-                                          }
                                           [
+                                            {
+                                              {
+                                                fFunctorNil_cfmap [[Tuple2 k] v]
+                                              }
+                                              (con data)
+                                            }
                                             [
-                                              { { fIsDataTuple2_ctoData k } v }
+                                              [
+                                                {
+                                                  {
+                                                    fIsDataTuple2_ctoBuiltinData
+                                                    k
+                                                  }
+                                                  v
+                                                }
+                                                dIsData
+                                              ]
                                               dIsData
                                             ]
-                                            dIsData
                                           ]
+                                          xs
                                         ]
-                                        xs
                                       ]
                                     ]
                                   )
@@ -1815,8 +1503,8 @@
                           (nonstrict)
                           (vardecl fIsDataTokenName [IsData (con bytestring)])
                           [
-                            [ { CConsIsData (con bytestring) } B ]
-                            fIsDataByteString_cfromData
+                            [ { CConsIsData (con bytestring) } mkB ]
+                            fIsDataByteString_cfromBuiltinData
                           ]
                         )
                         (termbind
@@ -1837,12 +1525,12 @@
                           (nonstrict)
                           (vardecl
                             fIsDataValue
-                            (fun Data [Maybe [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
+                            [IsData [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
                           )
                           [
                             [
                               {
-                                { fIsDataTuple2_cfromData (con bytestring) }
+                                { fIsDataTuple2 (con bytestring) }
                                 [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
                               }
                               fIsDataCurrencySymbol
@@ -1864,422 +1552,300 @@
                         (termbind
                           (strict)
                           (vardecl
-                            fIsDataInput_cfromData (fun Data [Maybe Payment])
+                            fIsDataInput_cfromBuiltinData
+                            (fun (con data) [Maybe Payment])
                           )
                           (lam
-                            ds
-                            Data
+                            d
+                            (con data)
                             [
                               [
                                 [
                                   [
                                     [
                                       [
-                                        {
-                                          [ Data_match ds ]
-                                          (fun Unit [Maybe Payment])
-                                        }
-                                        (lam
-                                          default_arg0
-                                          (con bytestring)
-                                          (lam thunk Unit { Nothing Payment })
-                                        )
-                                      ]
-                                      (lam
-                                        i
-                                        (con integer)
-                                        (lam
-                                          ds
-                                          [List Data]
+                                        [
+                                          {
+                                            (builtin chooseData)
+                                            (fun Unit [Maybe Payment])
+                                          }
                                           (lam
-                                            thunk
+                                            ds
                                             Unit
-                                            [
+                                            (let
+                                              (nonrec)
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  p
+                                                  [[(con pair) (con integer)] [(con list) (con data)]]
+                                                )
+                                                [ (builtin unConstrData) d ]
+                                              )
                                               [
+                                                {
+                                                  [ Unit_match ds ]
+                                                  [Maybe Payment]
+                                                }
                                                 [
-                                                  {
-                                                    [ { Nil_match Data } ds ]
-                                                    (fun Unit [Maybe Payment])
-                                                  }
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    { Nothing Payment }
-                                                  )
-                                                ]
-                                                (lam
-                                                  arg
-                                                  Data
-                                                  (lam
-                                                    ds
-                                                    [List Data]
-                                                    (lam
-                                                      thunk
-                                                      Unit
-                                                      [
+                                                  [
+                                                    [
+                                                      {
                                                         [
+                                                          {
+                                                            Nil_match (con data)
+                                                          }
                                                           [
-                                                            {
+                                                            unsafeDataAsList_go
+                                                            [
+                                                              {
+                                                                {
+                                                                  (builtin
+                                                                    sndPair
+                                                                  )
+                                                                  (con integer)
+                                                                }
+                                                                [(con list) (con data)]
+                                                              }
+                                                              p
+                                                            ]
+                                                          ]
+                                                        ]
+                                                        (fun Unit [Maybe Payment])
+                                                      }
+                                                      (lam
+                                                        thunk
+                                                        Unit
+                                                        { Nothing Payment }
+                                                      )
+                                                    ]
+                                                    (lam
+                                                      arg
+                                                      (con data)
+                                                      (lam
+                                                        ds
+                                                        [List (con data)]
+                                                        (lam
+                                                          thunk
+                                                          Unit
+                                                          [
+                                                            [
                                                               [
                                                                 {
-                                                                  Nil_match Data
-                                                                }
-                                                                ds
-                                                              ]
-                                                              (fun Unit [Maybe Payment])
-                                                            }
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              {
-                                                                Nothing Payment
-                                                              }
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            arg
-                                                            Data
-                                                            (lam
-                                                              ds
-                                                              [List Data]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
                                                                   [
+                                                                    {
+                                                                      Nil_match
+                                                                      (con data)
+                                                                    }
+                                                                    ds
+                                                                  ]
+                                                                  (fun Unit [Maybe Payment])
+                                                                }
+                                                                (lam
+                                                                  thunk
+                                                                  Unit
+                                                                  {
+                                                                    Nothing
+                                                                    Payment
+                                                                  }
+                                                                )
+                                                              ]
+                                                              (lam
+                                                                arg
+                                                                (con data)
+                                                                (lam
+                                                                  ds
+                                                                  [List (con data)]
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
                                                                     [
-                                                                      {
+                                                                      [
                                                                         [
                                                                           {
-                                                                            Nil_match
-                                                                            Data
-                                                                          }
-                                                                          ds
-                                                                        ]
-                                                                        (fun Unit [Maybe Payment])
-                                                                      }
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        {
-                                                                          Nothing
-                                                                          Payment
-                                                                        }
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      arg
-                                                                      Data
-                                                                      (lam
-                                                                        ds
-                                                                        [List Data]
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          [
                                                                             [
+                                                                              {
+                                                                                Nil_match
+                                                                                (con data)
+                                                                              }
+                                                                              ds
+                                                                            ]
+                                                                            (fun Unit [Maybe Payment])
+                                                                          }
+                                                                          (lam
+                                                                            thunk
+                                                                            Unit
+                                                                            {
+                                                                              Nothing
+                                                                              Payment
+                                                                            }
+                                                                          )
+                                                                        ]
+                                                                        (lam
+                                                                          arg
+                                                                          (con data)
+                                                                          (lam
+                                                                            ds
+                                                                            [List (con data)]
+                                                                            (lam
+                                                                              thunk
+                                                                              Unit
                                                                               [
-                                                                                {
+                                                                                [
                                                                                   [
                                                                                     {
-                                                                                      Nil_match
-                                                                                      Data
-                                                                                    }
-                                                                                    ds
-                                                                                  ]
-                                                                                  (fun Unit [Maybe Payment])
-                                                                                }
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    [
                                                                                       [
                                                                                         {
-                                                                                          [
-                                                                                            Bool_match
-                                                                                            [
-                                                                                              [
-                                                                                                [
-                                                                                                  {
-                                                                                                    (builtin
-                                                                                                      ifThenElse
-                                                                                                    )
-                                                                                                    Bool
-                                                                                                  }
-                                                                                                  [
-                                                                                                    [
-                                                                                                      (builtin
-                                                                                                        equalsInteger
-                                                                                                      )
-                                                                                                      i
-                                                                                                    ]
-                                                                                                    (con
-                                                                                                      integer
-                                                                                                        0
-                                                                                                    )
-                                                                                                  ]
-                                                                                                ]
-                                                                                                True
-                                                                                              ]
-                                                                                              False
-                                                                                            ]
-                                                                                          ]
-                                                                                          (fun Unit [Maybe Payment])
+                                                                                          Nil_match
+                                                                                          (con data)
                                                                                         }
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
+                                                                                        ds
+                                                                                      ]
+                                                                                      (fun Unit [Maybe Payment])
+                                                                                    }
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      [
+                                                                                        [
                                                                                           [
-                                                                                            [
+                                                                                            {
                                                                                               [
+                                                                                                Bool_match
                                                                                                 [
                                                                                                   [
                                                                                                     [
                                                                                                       {
-                                                                                                        [
-                                                                                                          Data_match
-                                                                                                          arg
-                                                                                                        ]
-                                                                                                        (fun Unit [Maybe Payment])
-                                                                                                      }
-                                                                                                      (lam
-                                                                                                        default_arg0
-                                                                                                        (con bytestring)
-                                                                                                        (lam
-                                                                                                          thunk
-                                                                                                          Unit
-                                                                                                          {
-                                                                                                            Nothing
-                                                                                                            Payment
-                                                                                                          }
+                                                                                                        (builtin
+                                                                                                          ifThenElse
                                                                                                         )
-                                                                                                      )
-                                                                                                    ]
-                                                                                                    (lam
-                                                                                                      default_arg0
-                                                                                                      (con integer)
-                                                                                                      (lam
-                                                                                                        default_arg1
-                                                                                                        [List Data]
-                                                                                                        (lam
-                                                                                                          thunk
-                                                                                                          Unit
-                                                                                                          {
-                                                                                                            Nothing
-                                                                                                            Payment
-                                                                                                          }
-                                                                                                        )
-                                                                                                      )
-                                                                                                    )
-                                                                                                  ]
-                                                                                                  (lam
-                                                                                                    default_arg0
-                                                                                                    (con integer)
-                                                                                                    (lam
-                                                                                                      thunk
-                                                                                                      Unit
-                                                                                                      {
-                                                                                                        Nothing
-                                                                                                        Payment
+                                                                                                        Bool
                                                                                                       }
-                                                                                                    )
-                                                                                                  )
-                                                                                                ]
-                                                                                                (lam
-                                                                                                  ds
-                                                                                                  [List Data]
-                                                                                                  (lam
-                                                                                                    thunk
-                                                                                                    Unit
-                                                                                                    [
                                                                                                       [
                                                                                                         [
-                                                                                                          {
+                                                                                                          (builtin
+                                                                                                            equalsInteger
+                                                                                                          )
+                                                                                                          [
+                                                                                                            {
+                                                                                                              {
+                                                                                                                (builtin
+                                                                                                                  fstPair
+                                                                                                                )
+                                                                                                                (con integer)
+                                                                                                              }
+                                                                                                              [(con list) (con data)]
+                                                                                                            }
+                                                                                                            p
+                                                                                                          ]
+                                                                                                        ]
+                                                                                                        (con
+                                                                                                          integer
+                                                                                                            0
+                                                                                                        )
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                    True
+                                                                                                  ]
+                                                                                                  False
+                                                                                                ]
+                                                                                              ]
+                                                                                              (fun Unit [Maybe Payment])
+                                                                                            }
+                                                                                            (lam
+                                                                                              thunk
+                                                                                              Unit
+                                                                                              [
+                                                                                                [
+                                                                                                  [
+                                                                                                    {
+                                                                                                      [
+                                                                                                        {
+                                                                                                          Maybe_match
+                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                        }
+                                                                                                        [
+                                                                                                          [
+                                                                                                            {
+                                                                                                              fIsDataNil_cfromBuiltinData
+                                                                                                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                            }
+                                                                                                            fIsDataValue
+                                                                                                          ]
+                                                                                                          arg
+                                                                                                        ]
+                                                                                                      ]
+                                                                                                      (fun Unit [Maybe Payment])
+                                                                                                    }
+                                                                                                    (lam
+                                                                                                      ipv
+                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                      (lam
+                                                                                                        thunk
+                                                                                                        Unit
+                                                                                                        [
+                                                                                                          [
                                                                                                             [
                                                                                                               {
-                                                                                                                Maybe_match
-                                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                              }
-                                                                                                              [
                                                                                                                 [
+                                                                                                                  {
+                                                                                                                    Maybe_match
+                                                                                                                    (con bytestring)
+                                                                                                                  }
                                                                                                                   [
-                                                                                                                    {
-                                                                                                                      {
-                                                                                                                        {
-                                                                                                                          fTraversableNil_ctraverse
-                                                                                                                          Maybe
-                                                                                                                        }
-                                                                                                                        Data
-                                                                                                                      }
-                                                                                                                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                                    }
-                                                                                                                    fApplicativeMaybe
+                                                                                                                    fIsDataByteString_cfromBuiltinData
+                                                                                                                    arg
                                                                                                                   ]
-                                                                                                                  fIsDataValue
                                                                                                                 ]
-                                                                                                                ds
-                                                                                                              ]
-                                                                                                            ]
-                                                                                                            (fun Unit [Maybe Payment])
-                                                                                                          }
-                                                                                                          (lam
-                                                                                                            ipv
-                                                                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                            (lam
-                                                                                                              thunk
-                                                                                                              Unit
-                                                                                                              [
-                                                                                                                [
+                                                                                                                (fun Unit [Maybe Payment])
+                                                                                                              }
+                                                                                                              (lam
+                                                                                                                ipv
+                                                                                                                (con bytestring)
+                                                                                                                (lam
+                                                                                                                  thunk
+                                                                                                                  Unit
                                                                                                                   [
                                                                                                                     [
                                                                                                                       [
-                                                                                                                        [
-                                                                                                                          {
+                                                                                                                        {
+                                                                                                                          [
+                                                                                                                            {
+                                                                                                                              Maybe_match
+                                                                                                                              (con integer)
+                                                                                                                            }
                                                                                                                             [
-                                                                                                                              Data_match
+                                                                                                                              fIsDataInteger_cfromBuiltinData
                                                                                                                               arg
                                                                                                                             ]
-                                                                                                                            (fun Unit [Maybe Payment])
-                                                                                                                          }
+                                                                                                                          ]
+                                                                                                                          (fun Unit [Maybe Payment])
+                                                                                                                        }
+                                                                                                                        (lam
+                                                                                                                          ipv
+                                                                                                                          (con integer)
                                                                                                                           (lam
-                                                                                                                            b
-                                                                                                                            (con bytestring)
-                                                                                                                            (lam
-                                                                                                                              thunk
-                                                                                                                              Unit
+                                                                                                                            thunk
+                                                                                                                            Unit
+                                                                                                                            [
+                                                                                                                              {
+                                                                                                                                Just
+                                                                                                                                Payment
+                                                                                                                              }
                                                                                                                               [
                                                                                                                                 [
                                                                                                                                   [
-                                                                                                                                    [
-                                                                                                                                      [
-                                                                                                                                        [
-                                                                                                                                          {
-                                                                                                                                            [
-                                                                                                                                              Data_match
-                                                                                                                                              arg
-                                                                                                                                            ]
-                                                                                                                                            (fun Unit [Maybe Payment])
-                                                                                                                                          }
-                                                                                                                                          (lam
-                                                                                                                                            default_arg0
-                                                                                                                                            (con bytestring)
-                                                                                                                                            (lam
-                                                                                                                                              thunk
-                                                                                                                                              Unit
-                                                                                                                                              {
-                                                                                                                                                Nothing
-                                                                                                                                                Payment
-                                                                                                                                              }
-                                                                                                                                            )
-                                                                                                                                          )
-                                                                                                                                        ]
-                                                                                                                                        (lam
-                                                                                                                                          default_arg0
-                                                                                                                                          (con integer)
-                                                                                                                                          (lam
-                                                                                                                                            default_arg1
-                                                                                                                                            [List Data]
-                                                                                                                                            (lam
-                                                                                                                                              thunk
-                                                                                                                                              Unit
-                                                                                                                                              {
-                                                                                                                                                Nothing
-                                                                                                                                                Payment
-                                                                                                                                              }
-                                                                                                                                            )
-                                                                                                                                          )
-                                                                                                                                        )
-                                                                                                                                      ]
-                                                                                                                                      (lam
-                                                                                                                                        i
-                                                                                                                                        (con integer)
-                                                                                                                                        (lam
-                                                                                                                                          thunk
-                                                                                                                                          Unit
-                                                                                                                                          [
-                                                                                                                                            {
-                                                                                                                                              Just
-                                                                                                                                              Payment
-                                                                                                                                            }
-                                                                                                                                            [
-                                                                                                                                              [
-                                                                                                                                                [
-                                                                                                                                                  Payment
-                                                                                                                                                  ipv
-                                                                                                                                                ]
-                                                                                                                                                b
-                                                                                                                                              ]
-                                                                                                                                              i
-                                                                                                                                            ]
-                                                                                                                                          ]
-                                                                                                                                        )
-                                                                                                                                      )
-                                                                                                                                    ]
-                                                                                                                                    (lam
-                                                                                                                                      default_arg0
-                                                                                                                                      [List Data]
-                                                                                                                                      (lam
-                                                                                                                                        thunk
-                                                                                                                                        Unit
-                                                                                                                                        {
-                                                                                                                                          Nothing
-                                                                                                                                          Payment
-                                                                                                                                        }
-                                                                                                                                      )
-                                                                                                                                    )
+                                                                                                                                    Payment
+                                                                                                                                    ipv
                                                                                                                                   ]
-                                                                                                                                  (lam
-                                                                                                                                    default_arg0
-                                                                                                                                    [List [[Tuple2 Data] Data]]
-                                                                                                                                    (lam
-                                                                                                                                      thunk
-                                                                                                                                      Unit
-                                                                                                                                      {
-                                                                                                                                        Nothing
-                                                                                                                                        Payment
-                                                                                                                                      }
-                                                                                                                                    )
-                                                                                                                                  )
+                                                                                                                                  ipv
                                                                                                                                 ]
-                                                                                                                                Unit
+                                                                                                                                ipv
                                                                                                                               ]
-                                                                                                                            )
-                                                                                                                          )
-                                                                                                                        ]
-                                                                                                                        (lam
-                                                                                                                          default_arg0
-                                                                                                                          (con integer)
-                                                                                                                          (lam
-                                                                                                                            default_arg1
-                                                                                                                            [List Data]
-                                                                                                                            (lam
-                                                                                                                              thunk
-                                                                                                                              Unit
-                                                                                                                              {
-                                                                                                                                Nothing
-                                                                                                                                Payment
-                                                                                                                              }
-                                                                                                                            )
+                                                                                                                            ]
                                                                                                                           )
                                                                                                                         )
                                                                                                                       ]
-                                                                                                                      (lam
-                                                                                                                        default_arg0
-                                                                                                                        (con integer)
-                                                                                                                        (lam
-                                                                                                                          thunk
-                                                                                                                          Unit
-                                                                                                                          {
-                                                                                                                            Nothing
-                                                                                                                            Payment
-                                                                                                                          }
-                                                                                                                        )
-                                                                                                                      )
-                                                                                                                    ]
-                                                                                                                    (lam
-                                                                                                                      default_arg0
-                                                                                                                      [List Data]
                                                                                                                       (lam
                                                                                                                         thunk
                                                                                                                         Unit
@@ -2288,57 +1854,58 @@
                                                                                                                           Payment
                                                                                                                         }
                                                                                                                       )
-                                                                                                                    )
+                                                                                                                    ]
+                                                                                                                    Unit
                                                                                                                   ]
-                                                                                                                  (lam
-                                                                                                                    default_arg0
-                                                                                                                    [List [[Tuple2 Data] Data]]
-                                                                                                                    (lam
-                                                                                                                      thunk
-                                                                                                                      Unit
-                                                                                                                      {
-                                                                                                                        Nothing
-                                                                                                                        Payment
-                                                                                                                      }
-                                                                                                                    )
-                                                                                                                  )
-                                                                                                                ]
-                                                                                                                Unit
-                                                                                                              ]
+                                                                                                                )
+                                                                                                              )
+                                                                                                            ]
+                                                                                                            (lam
+                                                                                                              thunk
+                                                                                                              Unit
+                                                                                                              {
+                                                                                                                Nothing
+                                                                                                                Payment
+                                                                                                              }
                                                                                                             )
-                                                                                                          )
-                                                                                                        ]
-                                                                                                        (lam
-                                                                                                          thunk
+                                                                                                          ]
                                                                                                           Unit
-                                                                                                          {
-                                                                                                            Nothing
-                                                                                                            Payment
-                                                                                                          }
-                                                                                                        )
-                                                                                                      ]
-                                                                                                      Unit
-                                                                                                    ]
+                                                                                                        ]
+                                                                                                      )
+                                                                                                    )
+                                                                                                  ]
+                                                                                                  (lam
+                                                                                                    thunk
+                                                                                                    Unit
+                                                                                                    {
+                                                                                                      Nothing
+                                                                                                      Payment
+                                                                                                    }
                                                                                                   )
-                                                                                                )
+                                                                                                ]
+                                                                                                Unit
                                                                                               ]
-                                                                                              (lam
-                                                                                                default_arg0
-                                                                                                [List [[Tuple2 Data] Data]]
-                                                                                                (lam
-                                                                                                  thunk
-                                                                                                  Unit
-                                                                                                  {
-                                                                                                    Nothing
-                                                                                                    Payment
-                                                                                                  }
-                                                                                                )
-                                                                                              )
-                                                                                            ]
-                                                                                            Unit
+                                                                                            )
                                                                                           ]
-                                                                                        )
+                                                                                          (lam
+                                                                                            thunk
+                                                                                            Unit
+                                                                                            {
+                                                                                              Nothing
+                                                                                              Payment
+                                                                                            }
+                                                                                          )
+                                                                                        ]
+                                                                                        Unit
                                                                                       ]
+                                                                                    )
+                                                                                  ]
+                                                                                  (lam
+                                                                                    ipv
+                                                                                    (con data)
+                                                                                    (lam
+                                                                                      ipv
+                                                                                      [List (con data)]
                                                                                       (lam
                                                                                         thunk
                                                                                         Unit
@@ -2347,73 +1914,84 @@
                                                                                           Payment
                                                                                         }
                                                                                       )
-                                                                                    ]
-                                                                                    Unit
-                                                                                  ]
-                                                                                )
-                                                                              ]
-                                                                              (lam
-                                                                                ipv
-                                                                                Data
-                                                                                (lam
-                                                                                  ipv
-                                                                                  [List Data]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    {
-                                                                                      Nothing
-                                                                                      Payment
-                                                                                    }
+                                                                                    )
                                                                                   )
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                            Unit
-                                                                          ]
+                                                                                ]
+                                                                                Unit
+                                                                              ]
+                                                                            )
+                                                                          )
                                                                         )
-                                                                      )
-                                                                    )
-                                                                  ]
-                                                                  Unit
-                                                                ]
+                                                                      ]
+                                                                      Unit
+                                                                    ]
+                                                                  )
+                                                                )
                                                               )
-                                                            )
-                                                          )
-                                                        ]
-                                                        Unit
-                                                      ]
+                                                            ]
+                                                            Unit
+                                                          ]
+                                                        )
+                                                      )
                                                     )
-                                                  )
-                                                )
+                                                  ]
+                                                  Unit
+                                                ]
                                               ]
-                                              Unit
-                                            ]
+                                            )
                                           )
+                                        ]
+                                        (lam
+                                          ds
+                                          Unit
+                                          [
+                                            {
+                                              [ Unit_match ds ] [Maybe Payment]
+                                            }
+                                            { Nothing Payment }
+                                          ]
                                         )
+                                      ]
+                                      (lam
+                                        ds
+                                        Unit
+                                        [
+                                          { [ Unit_match ds ] [Maybe Payment] }
+                                          { Nothing Payment }
+                                        ]
                                       )
                                     ]
                                     (lam
-                                      default_arg0
-                                      (con integer)
-                                      (lam thunk Unit { Nothing Payment })
+                                      ds
+                                      Unit
+                                      [
+                                        { [ Unit_match ds ] [Maybe Payment] }
+                                        { Nothing Payment }
+                                      ]
                                     )
                                   ]
                                   (lam
-                                    default_arg0
-                                    [List Data]
-                                    (lam thunk Unit { Nothing Payment })
+                                    ds
+                                    Unit
+                                    [
+                                      { [ Unit_match ds ] [Maybe Payment] }
+                                      { Nothing Payment }
+                                    ]
                                   )
                                 ]
-                                (lam
-                                  default_arg0
-                                  [List [[Tuple2 Data] Data]]
-                                  (lam thunk Unit { Nothing Payment })
-                                )
+                                d
                               ]
                               Unit
                             ]
                           )
+                        )
+                        (termbind
+                          (nonstrict)
+                          (vardecl fIsDataPubKeyHash [IsData (con bytestring)])
+                          [
+                            [ { CConsIsData (con bytestring) } mkB ]
+                            fIsDataByteString_cfromBuiltinData
+                          ]
                         )
                         (datatypebind
                           (datatype
@@ -2430,121 +2008,127 @@
                         (termbind
                           (strict)
                           (vardecl
-                            fIsDataMSState_cfromData (fun Data [Maybe MSState])
+                            fIsDataMSState_cfromBuiltinData
+                            (fun (con data) [Maybe MSState])
                           )
                           (lam
-                            ds
-                            Data
+                            d
+                            (con data)
                             [
                               [
                                 [
                                   [
                                     [
                                       [
-                                        {
-                                          [ Data_match ds ]
-                                          (fun Unit [Maybe MSState])
-                                        }
-                                        (lam
-                                          default_arg0
-                                          (con bytestring)
-                                          (lam thunk Unit { Nothing MSState })
-                                        )
-                                      ]
-                                      (lam
-                                        i
-                                        (con integer)
-                                        (lam
-                                          ds
-                                          [List Data]
+                                        [
+                                          {
+                                            (builtin chooseData)
+                                            (fun Unit [Maybe MSState])
+                                          }
                                           (lam
-                                            thunk
+                                            ds
                                             Unit
-                                            [
+                                            (let
+                                              (nonrec)
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  p
+                                                  [[(con pair) (con integer)] [(con list) (con data)]]
+                                                )
+                                                [ (builtin unConstrData) d ]
+                                              )
                                               [
+                                                {
+                                                  [ Unit_match ds ]
+                                                  [Maybe MSState]
+                                                }
                                                 [
-                                                  {
-                                                    [ { Nil_match Data } ds ]
-                                                    (fun Unit [Maybe MSState])
-                                                  }
-                                                  (lam
-                                                    thunk
-                                                    Unit
+                                                  [
                                                     [
-                                                      [
+                                                      {
                                                         [
                                                           {
-                                                            [
-                                                              Bool_match
-                                                              [
-                                                                [
-                                                                  [
-                                                                    {
-                                                                      (builtin
-                                                                        ifThenElse
-                                                                      )
-                                                                      Bool
-                                                                    }
-                                                                    [
-                                                                      [
-                                                                        (builtin
-                                                                          equalsInteger
-                                                                        )
-                                                                        i
-                                                                      ]
-                                                                      (con
-                                                                        integer
-                                                                          0
-                                                                      )
-                                                                    ]
-                                                                  ]
-                                                                  True
-                                                                ]
-                                                                False
-                                                              ]
-                                                            ]
-                                                            (fun Unit [Maybe MSState])
+                                                            Nil_match (con data)
                                                           }
-                                                          (lam
-                                                            thunk
-                                                            Unit
+                                                          [
+                                                            unsafeDataAsList_go
                                                             [
-                                                              { Just MSState }
-                                                              Holding
+                                                              {
+                                                                {
+                                                                  (builtin
+                                                                    sndPair
+                                                                  )
+                                                                  (con integer)
+                                                                }
+                                                                [(con list) (con data)]
+                                                              }
+                                                              p
                                                             ]
-                                                          )
+                                                          ]
                                                         ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          { Nothing MSState }
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
-                                                ]
-                                                (lam
-                                                  arg
-                                                  Data
-                                                  (lam
-                                                    ds
-                                                    [List Data]
-                                                    (lam
-                                                      thunk
-                                                      Unit
-                                                      [
+                                                        (fun Unit [Maybe MSState])
+                                                      }
+                                                      (lam
+                                                        thunk
+                                                        Unit
                                                         [
                                                           [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Nil_match Data
-                                                                }
-                                                                ds
-                                                              ]
-                                                              (fun Unit [Maybe MSState])
-                                                            }
+                                                            [
+                                                              {
+                                                                [
+                                                                  Bool_match
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        {
+                                                                          (builtin
+                                                                            ifThenElse
+                                                                          )
+                                                                          Bool
+                                                                        }
+                                                                        [
+                                                                          [
+                                                                            (builtin
+                                                                              equalsInteger
+                                                                            )
+                                                                            [
+                                                                              {
+                                                                                {
+                                                                                  (builtin
+                                                                                    fstPair
+                                                                                  )
+                                                                                  (con integer)
+                                                                                }
+                                                                                [(con list) (con data)]
+                                                                              }
+                                                                              p
+                                                                            ]
+                                                                          ]
+                                                                          (con
+                                                                            integer
+                                                                              0
+                                                                          )
+                                                                        ]
+                                                                      ]
+                                                                      True
+                                                                    ]
+                                                                    False
+                                                                  ]
+                                                                ]
+                                                                (fun Unit [Maybe MSState])
+                                                              }
+                                                              (lam
+                                                                thunk
+                                                                Unit
+                                                                [
+                                                                  {
+                                                                    Just MSState
+                                                                  }
+                                                                  Holding
+                                                                ]
+                                                              )
+                                                            ]
                                                             (lam
                                                               thunk
                                                               Unit
@@ -2553,251 +2137,227 @@
                                                               }
                                                             )
                                                           ]
-                                                          (lam
-                                                            arg
-                                                            Data
-                                                            (lam
-                                                              ds
-                                                              [List Data]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
+                                                          Unit
+                                                        ]
+                                                      )
+                                                    ]
+                                                    (lam
+                                                      arg
+                                                      (con data)
+                                                      (lam
+                                                        ds
+                                                        [List (con data)]
+                                                        (lam
+                                                          thunk
+                                                          Unit
+                                                          [
+                                                            [
+                                                              [
+                                                                {
                                                                   [
+                                                                    {
+                                                                      Nil_match
+                                                                      (con data)
+                                                                    }
+                                                                    ds
+                                                                  ]
+                                                                  (fun Unit [Maybe MSState])
+                                                                }
+                                                                (lam
+                                                                  thunk
+                                                                  Unit
+                                                                  {
+                                                                    Nothing
+                                                                    MSState
+                                                                  }
+                                                                )
+                                                              ]
+                                                              (lam
+                                                                arg
+                                                                (con data)
+                                                                (lam
+                                                                  ds
+                                                                  [List (con data)]
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
                                                                     [
-                                                                      {
+                                                                      [
                                                                         [
                                                                           {
-                                                                            Nil_match
-                                                                            Data
-                                                                          }
-                                                                          ds
-                                                                        ]
-                                                                        (fun Unit [Maybe MSState])
-                                                                      }
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        [
-                                                                          [
                                                                             [
                                                                               {
+                                                                                Nil_match
+                                                                                (con data)
+                                                                              }
+                                                                              ds
+                                                                            ]
+                                                                            (fun Unit [Maybe MSState])
+                                                                          }
+                                                                          (lam
+                                                                            thunk
+                                                                            Unit
+                                                                            [
+                                                                              [
                                                                                 [
-                                                                                  Bool_match
-                                                                                  [
+                                                                                  {
+                                                                                    [
+                                                                                      Bool_match
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            {
+                                                                                              (builtin
+                                                                                                ifThenElse
+                                                                                              )
+                                                                                              Bool
+                                                                                            }
+                                                                                            [
+                                                                                              [
+                                                                                                (builtin
+                                                                                                  equalsInteger
+                                                                                                )
+                                                                                                [
+                                                                                                  {
+                                                                                                    {
+                                                                                                      (builtin
+                                                                                                        fstPair
+                                                                                                      )
+                                                                                                      (con integer)
+                                                                                                    }
+                                                                                                    [(con list) (con data)]
+                                                                                                  }
+                                                                                                  p
+                                                                                                ]
+                                                                                              ]
+                                                                                              (con
+                                                                                                integer
+                                                                                                  1
+                                                                                              )
+                                                                                            ]
+                                                                                          ]
+                                                                                          True
+                                                                                        ]
+                                                                                        False
+                                                                                      ]
+                                                                                    ]
+                                                                                    (fun Unit [Maybe MSState])
+                                                                                  }
+                                                                                  (lam
+                                                                                    thunk
+                                                                                    Unit
                                                                                     [
                                                                                       [
-                                                                                        {
-                                                                                          (builtin
-                                                                                            ifThenElse
-                                                                                          )
-                                                                                          Bool
-                                                                                        }
-                                                                                        [
-                                                                                          [
-                                                                                            (builtin
-                                                                                              equalsInteger
-                                                                                            )
-                                                                                            i
-                                                                                          ]
-                                                                                          (con
-                                                                                            integer
-                                                                                              1
-                                                                                          )
-                                                                                        ]
-                                                                                      ]
-                                                                                      True
-                                                                                    ]
-                                                                                    False
-                                                                                  ]
-                                                                                ]
-                                                                                (fun Unit [Maybe MSState])
-                                                                              }
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
-                                                                                [
-                                                                                  [
-                                                                                    [
-                                                                                      {
                                                                                         [
                                                                                           {
-                                                                                            Maybe_match
-                                                                                            Payment
-                                                                                          }
-                                                                                          [
-                                                                                            fIsDataInput_cfromData
-                                                                                            arg
-                                                                                          ]
-                                                                                        ]
-                                                                                        (fun Unit [Maybe MSState])
-                                                                                      }
-                                                                                      (lam
-                                                                                        ipv
-                                                                                        Payment
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
                                                                                             [
+                                                                                              {
+                                                                                                Maybe_match
+                                                                                                Payment
+                                                                                              }
+                                                                                              [
+                                                                                                fIsDataInput_cfromBuiltinData
+                                                                                                arg
+                                                                                              ]
+                                                                                            ]
+                                                                                            (fun Unit [Maybe MSState])
+                                                                                          }
+                                                                                          (lam
+                                                                                            ipv
+                                                                                            Payment
+                                                                                            (lam
+                                                                                              thunk
+                                                                                              Unit
                                                                                               [
                                                                                                 [
                                                                                                   [
-                                                                                                    [
-                                                                                                      {
+                                                                                                    {
+                                                                                                      [
+                                                                                                        {
+                                                                                                          Maybe_match
+                                                                                                          [List (con bytestring)]
+                                                                                                        }
                                                                                                         [
-                                                                                                          Data_match
+                                                                                                          [
+                                                                                                            {
+                                                                                                              fIsDataNil_cfromBuiltinData
+                                                                                                              (con bytestring)
+                                                                                                            }
+                                                                                                            fIsDataPubKeyHash
+                                                                                                          ]
                                                                                                           arg
                                                                                                         ]
-                                                                                                        (fun Unit [Maybe MSState])
-                                                                                                      }
-                                                                                                      (lam
-                                                                                                        default_arg0
-                                                                                                        (con bytestring)
-                                                                                                        (lam
-                                                                                                          thunk
-                                                                                                          Unit
-                                                                                                          {
-                                                                                                            Nothing
-                                                                                                            MSState
-                                                                                                          }
-                                                                                                        )
-                                                                                                      )
-                                                                                                    ]
+                                                                                                      ]
+                                                                                                      (fun Unit [Maybe MSState])
+                                                                                                    }
                                                                                                     (lam
-                                                                                                      default_arg0
-                                                                                                      (con integer)
+                                                                                                      ipv
+                                                                                                      [List (con bytestring)]
                                                                                                       (lam
-                                                                                                        default_arg1
-                                                                                                        [List Data]
-                                                                                                        (lam
-                                                                                                          thunk
-                                                                                                          Unit
+                                                                                                        thunk
+                                                                                                        Unit
+                                                                                                        [
                                                                                                           {
-                                                                                                            Nothing
+                                                                                                            Just
                                                                                                             MSState
                                                                                                           }
-                                                                                                        )
+                                                                                                          [
+                                                                                                            [
+                                                                                                              CollectingSignatures
+                                                                                                              ipv
+                                                                                                            ]
+                                                                                                            ipv
+                                                                                                          ]
+                                                                                                        ]
                                                                                                       )
                                                                                                     )
                                                                                                   ]
                                                                                                   (lam
-                                                                                                    default_arg0
-                                                                                                    (con integer)
-                                                                                                    (lam
-                                                                                                      thunk
-                                                                                                      Unit
-                                                                                                      {
-                                                                                                        Nothing
-                                                                                                        MSState
-                                                                                                      }
-                                                                                                    )
-                                                                                                  )
-                                                                                                ]
-                                                                                                (lam
-                                                                                                  ds
-                                                                                                  [List Data]
-                                                                                                  (lam
                                                                                                     thunk
                                                                                                     Unit
-                                                                                                    [
-                                                                                                      [
-                                                                                                        [
-                                                                                                          {
-                                                                                                            [
-                                                                                                              {
-                                                                                                                Maybe_match
-                                                                                                                [List (con bytestring)]
-                                                                                                              }
-                                                                                                              [
-                                                                                                                [
-                                                                                                                  [
-                                                                                                                    {
-                                                                                                                      {
-                                                                                                                        {
-                                                                                                                          fTraversableNil_ctraverse
-                                                                                                                          Maybe
-                                                                                                                        }
-                                                                                                                        Data
-                                                                                                                      }
-                                                                                                                      (con bytestring)
-                                                                                                                    }
-                                                                                                                    fApplicativeMaybe
-                                                                                                                  ]
-                                                                                                                  fIsDataByteString_cfromData
-                                                                                                                ]
-                                                                                                                ds
-                                                                                                              ]
-                                                                                                            ]
-                                                                                                            (fun Unit [Maybe MSState])
-                                                                                                          }
-                                                                                                          (lam
-                                                                                                            ipv
-                                                                                                            [List (con bytestring)]
-                                                                                                            (lam
-                                                                                                              thunk
-                                                                                                              Unit
-                                                                                                              [
-                                                                                                                {
-                                                                                                                  Just
-                                                                                                                  MSState
-                                                                                                                }
-                                                                                                                [
-                                                                                                                  [
-                                                                                                                    CollectingSignatures
-                                                                                                                    ipv
-                                                                                                                  ]
-                                                                                                                  ipv
-                                                                                                                ]
-                                                                                                              ]
-                                                                                                            )
-                                                                                                          )
-                                                                                                        ]
-                                                                                                        (lam
-                                                                                                          thunk
-                                                                                                          Unit
-                                                                                                          {
-                                                                                                            Nothing
-                                                                                                            MSState
-                                                                                                          }
-                                                                                                        )
-                                                                                                      ]
-                                                                                                      Unit
-                                                                                                    ]
+                                                                                                    {
+                                                                                                      Nothing
+                                                                                                      MSState
+                                                                                                    }
                                                                                                   )
-                                                                                                )
+                                                                                                ]
+                                                                                                Unit
                                                                                               ]
-                                                                                              (lam
-                                                                                                default_arg0
-                                                                                                [List [[Tuple2 Data] Data]]
-                                                                                                (lam
-                                                                                                  thunk
-                                                                                                  Unit
-                                                                                                  {
-                                                                                                    Nothing
-                                                                                                    MSState
-                                                                                                  }
-                                                                                                )
-                                                                                              )
-                                                                                            ]
-                                                                                            Unit
-                                                                                          ]
+                                                                                            )
+                                                                                          )
+                                                                                        ]
+                                                                                        (lam
+                                                                                          thunk
+                                                                                          Unit
+                                                                                          {
+                                                                                            Nothing
+                                                                                            MSState
+                                                                                          }
                                                                                         )
-                                                                                      )
-                                                                                    ]
-                                                                                    (lam
-                                                                                      thunk
+                                                                                      ]
                                                                                       Unit
-                                                                                      {
-                                                                                        Nothing
-                                                                                        MSState
-                                                                                      }
-                                                                                    )
-                                                                                  ]
-                                                                                  Unit
+                                                                                    ]
+                                                                                  )
                                                                                 ]
-                                                                              )
+                                                                                (lam
+                                                                                  thunk
+                                                                                  Unit
+                                                                                  {
+                                                                                    Nothing
+                                                                                    MSState
+                                                                                  }
+                                                                                )
+                                                                              ]
+                                                                              Unit
                                                                             ]
+                                                                          )
+                                                                        ]
+                                                                        (lam
+                                                                          ipv
+                                                                          (con data)
+                                                                          (lam
+                                                                            ipv
+                                                                            [List (con data)]
                                                                             (lam
                                                                               thunk
                                                                               Unit
@@ -2806,120 +2366,81 @@
                                                                                 MSState
                                                                               }
                                                                             )
-                                                                          ]
-                                                                          Unit
-                                                                        ]
-                                                                      )
-                                                                    ]
-                                                                    (lam
-                                                                      ipv
-                                                                      Data
-                                                                      (lam
-                                                                        ipv
-                                                                        [List Data]
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          {
-                                                                            Nothing
-                                                                            MSState
-                                                                          }
+                                                                          )
                                                                         )
-                                                                      )
-                                                                    )
-                                                                  ]
-                                                                  Unit
-                                                                ]
+                                                                      ]
+                                                                      Unit
+                                                                    ]
+                                                                  )
+                                                                )
                                                               )
-                                                            )
-                                                          )
-                                                        ]
-                                                        Unit
-                                                      ]
+                                                            ]
+                                                            Unit
+                                                          ]
+                                                        )
+                                                      )
                                                     )
-                                                  )
-                                                )
+                                                  ]
+                                                  Unit
+                                                ]
                                               ]
-                                              Unit
-                                            ]
+                                            )
                                           )
+                                        ]
+                                        (lam
+                                          ds
+                                          Unit
+                                          [
+                                            {
+                                              [ Unit_match ds ] [Maybe MSState]
+                                            }
+                                            { Nothing MSState }
+                                          ]
                                         )
+                                      ]
+                                      (lam
+                                        ds
+                                        Unit
+                                        [
+                                          { [ Unit_match ds ] [Maybe MSState] }
+                                          { Nothing MSState }
+                                        ]
                                       )
                                     ]
                                     (lam
-                                      default_arg0
-                                      (con integer)
-                                      (lam thunk Unit { Nothing MSState })
+                                      ds
+                                      Unit
+                                      [
+                                        { [ Unit_match ds ] [Maybe MSState] }
+                                        { Nothing MSState }
+                                      ]
                                     )
                                   ]
                                   (lam
-                                    default_arg0
-                                    [List Data]
-                                    (lam thunk Unit { Nothing MSState })
+                                    ds
+                                    Unit
+                                    [
+                                      { [ Unit_match ds ] [Maybe MSState] }
+                                      { Nothing MSState }
+                                    ]
                                   )
                                 ]
-                                (lam
-                                  default_arg0
-                                  [List [[Tuple2 Data] Data]]
-                                  (lam thunk Unit { Nothing MSState })
-                                )
+                                d
                               ]
                               Unit
                             ]
                           )
                         )
                         (termbind
-                          (nonstrict)
-                          (vardecl
-                            fIsDataValue
-                            (fun [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] Data)
-                          )
-                          [
-                            [
-                              {
-                                { fIsDataTuple2_ctoData (con bytestring) }
-                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                              }
-                              fIsDataCurrencySymbol
-                            ]
-                            fIsDataValue
-                          ]
-                        )
-                        (termbind
                           (strict)
                           (vardecl
-                            fIsDataValue
-                            (fun [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]] Data)
+                            fIsDataInput_ctoBuiltinData (fun Payment (con data))
                           )
-                          (lam
-                            xs
-                            [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                            [
-                              List
-                              [
-                                [
-                                  {
-                                    {
-                                      fFunctorNil_cfmap
-                                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                    }
-                                    Data
-                                  }
-                                  fIsDataValue
-                                ]
-                                xs
-                              ]
-                            ]
-                          )
-                        )
-                        (termbind
-                          (strict)
-                          (vardecl fIsDataInput_ctoData (fun Payment Data))
                           (lam
                             ds
                             Payment
                             [
-                              { [ Payment_match ds ] Data }
+                              { [ Payment_match ds ] (con data) }
                               (lam
                                 arg
                                 [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
@@ -2930,28 +2451,72 @@
                                     arg
                                     (con integer)
                                     [
-                                      [ Constr (con integer 0) ]
+                                      [ (builtin constrData) (con integer 0) ]
                                       [
-                                        { build Data }
-                                        (abs
-                                          a
-                                          (type)
-                                          (lam
-                                            c
-                                            (fun Data (fun a a))
+                                        fToBuiltinNilBuiltinList0_ctoBuiltin
+                                        [
+                                          { build (con data) }
+                                          (abs
+                                            a
+                                            (type)
                                             (lam
-                                              n
-                                              a
-                                              [
-                                                [ c [ fIsDataValue arg ] ]
+                                              c
+                                              (fun (con data) (fun a a))
+                                              (lam
+                                                n
+                                                a
                                                 [
-                                                  [ c [ B arg ] ]
-                                                  [ [ c [ I arg ] ] n ]
+                                                  [
+                                                    c
+                                                    [
+                                                      (builtin listData)
+                                                      [
+                                                        fToBuiltinNilBuiltinList0_ctoBuiltin
+                                                        [
+                                                          [
+                                                            {
+                                                              {
+                                                                fFunctorNil_cfmap
+                                                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                              }
+                                                              (con data)
+                                                            }
+                                                            [
+                                                              [
+                                                                {
+                                                                  {
+                                                                    fIsDataTuple2_ctoBuiltinData
+                                                                    (con bytestring)
+                                                                  }
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                }
+                                                                fIsDataCurrencySymbol
+                                                              ]
+                                                              fIsDataValue
+                                                            ]
+                                                          ]
+                                                          arg
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                  [
+                                                    [
+                                                      c [ (builtin bData) arg ]
+                                                    ]
+                                                    [
+                                                      [
+                                                        c
+                                                        [ (builtin iData) arg ]
+                                                      ]
+                                                      n
+                                                    ]
+                                                  ]
                                                 ]
-                                              ]
+                                              )
                                             )
                                           )
-                                        )
+                                        ]
                                       ]
                                     ]
                                   )
@@ -2962,14 +2527,17 @@
                         )
                         (termbind
                           (strict)
-                          (vardecl fIsDataMSState_ctoData (fun MSState Data))
+                          (vardecl
+                            fIsDataMSState_ctoBuiltinData
+                            (fun MSState (con data))
+                          )
                           (lam
                             ds
                             MSState
                             [
                               [
                                 [
-                                  { [ MSState_match ds ] (fun Unit Data) }
+                                  { [ MSState_match ds ] (fun Unit (con data)) }
                                   (lam
                                     arg
                                     Payment
@@ -2980,51 +2548,60 @@
                                         thunk
                                         Unit
                                         [
-                                          [ Constr (con integer 1) ]
                                           [
-                                            { build Data }
-                                            (abs
-                                              a
-                                              (type)
-                                              (lam
-                                                c
-                                                (fun Data (fun a a))
+                                            (builtin constrData) (con integer 1)
+                                          ]
+                                          [
+                                            fToBuiltinNilBuiltinList0_ctoBuiltin
+                                            [
+                                              { build (con data) }
+                                              (abs
+                                                a
+                                                (type)
                                                 (lam
-                                                  n
-                                                  a
-                                                  [
-                                                    [
-                                                      c
-                                                      [
-                                                        fIsDataInput_ctoData arg
-                                                      ]
-                                                    ]
+                                                  c
+                                                  (fun (con data) (fun a a))
+                                                  (lam
+                                                    n
+                                                    a
                                                     [
                                                       [
                                                         c
                                                         [
-                                                          List
-                                                          [
-                                                            [
-                                                              {
-                                                                {
-                                                                  fFunctorNil_cfmap
-                                                                  (con bytestring)
-                                                                }
-                                                                Data
-                                                              }
-                                                              B
-                                                            ]
-                                                            arg
-                                                          ]
+                                                          fIsDataInput_ctoBuiltinData
+                                                          arg
                                                         ]
                                                       ]
-                                                      n
+                                                      [
+                                                        [
+                                                          c
+                                                          [
+                                                            (builtin listData)
+                                                            [
+                                                              fToBuiltinNilBuiltinList0_ctoBuiltin
+                                                              [
+                                                                [
+                                                                  {
+                                                                    {
+                                                                      fFunctorNil_cfmap
+                                                                      (con bytestring)
+                                                                    }
+                                                                    (con data)
+                                                                  }
+                                                                  mkB
+                                                                ]
+                                                                arg
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                        n
+                                                      ]
                                                     ]
-                                                  ]
+                                                  )
                                                 )
                                               )
-                                            )
+                                            ]
                                           ]
                                         ]
                                       )
@@ -3034,7 +2611,13 @@
                                 (lam
                                   thunk
                                   Unit
-                                  [ [ Constr (con integer 0) ] { Nil Data } ]
+                                  [
+                                    [ (builtin constrData) (con integer 0) ]
+                                    [
+                                      fToBuiltinNilBuiltinList0_ctoBuiltin
+                                      { Nil (con data) }
+                                    ]
+                                  ]
                                 )
                               ]
                               Unit
@@ -3045,8 +2628,11 @@
                           (nonstrict)
                           (vardecl fIsDataMSState [IsData MSState])
                           [
-                            [ { CConsIsData MSState } fIsDataMSState_ctoData ]
-                            fIsDataMSState_cfromData
+                            [
+                              { CConsIsData MSState }
+                              fIsDataMSState_ctoBuiltinData
+                            ]
+                            fIsDataMSState_cfromBuiltinData
                           ]
                         )
                         (datatypebind
@@ -3211,7 +2797,7 @@
                             TxInfo_match
                             (vardecl
                               TxInfo
-                              (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [List DCert] (fun [List [[Tuple2 StakingCredential] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo))))))))))
+                              (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [List DCert] (fun [List [[Tuple2 StakingCredential] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] (con data)]] (fun (con bytestring) TxInfo))))))))))
                             )
                           )
                         )
@@ -3299,16 +2885,18 @@
                             )
                             (vardecl
                               MustHashDatum
-                              (fun (con bytestring) (fun Data TxConstraint))
+                              (fun (con bytestring) (fun (con data) TxConstraint))
                             )
-                            (vardecl MustIncludeDatum (fun Data TxConstraint))
+                            (vardecl
+                              MustIncludeDatum (fun (con data) TxConstraint)
+                            )
                             (vardecl
                               MustMintValue
-                              (fun (con bytestring) (fun Data (fun (con bytestring) (fun (con integer) TxConstraint))))
+                              (fun (con bytestring) (fun (con data) (fun (con bytestring) (fun (con integer) TxConstraint))))
                             )
                             (vardecl
                               MustPayToOtherScript
-                              (fun (con bytestring) (fun Data (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)))
+                              (fun (con bytestring) (fun (con data) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)))
                             )
                             (vardecl
                               MustPayToPubKey
@@ -3327,7 +2915,7 @@
                             )
                             (vardecl
                               MustSpendScriptOutput
-                              (fun TxOutRef (fun Data TxConstraint))
+                              (fun TxOutRef (fun (con data) TxConstraint))
                             )
                             (vardecl
                               MustValidateIn
@@ -3591,6 +3179,31 @@
                             (con integer)
                             (lam
                               y (con integer) [ [ (builtin addInteger) x ] y ]
+                            )
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            equalsByteString
+                            (fun (con bytestring) (fun (con bytestring) Bool))
+                          )
+                          (lam
+                            x
+                            (con bytestring)
+                            (lam
+                              y
+                              (con bytestring)
+                              [
+                                [
+                                  [
+                                    { (builtin ifThenElse) Bool }
+                                    [ [ (builtin equalsByteString) x ] y ]
+                                  ]
+                                  True
+                                ]
+                                False
+                              ]
                             )
                           )
                         )
@@ -6713,10 +6326,10 @@
                                 (termbind
                                   (strict)
                                   (vardecl
-                                    fIsDataVoid_cfromData
-                                    (fun Data [Maybe Void])
+                                    fIsDataVoid_cfromBuiltinData
+                                    (fun (con data) [Maybe Void])
                                   )
-                                  (lam ds Data { Nothing Void })
+                                  (lam ds (con data) { Nothing Void })
                                 )
                                 (termbind
                                   (strict)
@@ -6729,8 +6342,10 @@
                                   (nonstrict)
                                   (vardecl fIsDataVoid [IsData Void])
                                   [
-                                    [ { CConsIsData Void } { absurd Data } ]
-                                    fIsDataVoid_cfromData
+                                    [
+                                      { CConsIsData Void } { absurd (con data) }
+                                    ]
+                                    fIsDataVoid_cfromBuiltinData
                                   ]
                                 )
                                 (datatypebind
@@ -7070,7 +6685,7 @@
                                                                       [List (con bytestring)]
                                                                       (lam
                                                                         ds
-                                                                        [List [[Tuple2 (con bytestring)] Data]]
+                                                                        [List [[Tuple2 (con bytestring)] (con data)]]
                                                                         (lam
                                                                           ds
                                                                           (con bytestring)
@@ -7243,11 +6858,11 @@
                                   (strict)
                                   (vardecl
                                     findDatumHash
-                                    (fun Data (fun TxInfo [Maybe (con bytestring)]))
+                                    (fun (con data) (fun TxInfo [Maybe (con bytestring)]))
                                   )
                                   (lam
                                     ds
-                                    Data
+                                    (con data)
                                     (lam
                                       ds
                                       TxInfo
@@ -7282,7 +6897,7 @@
                                                         [List (con bytestring)]
                                                         (lam
                                                           ds
-                                                          [List [[Tuple2 (con bytestring)] Data]]
+                                                          [List [[Tuple2 (con bytestring)] (con data)]]
                                                           (lam
                                                             ds
                                                             (con bytestring)
@@ -7293,7 +6908,7 @@
                                                                     [
                                                                       {
                                                                         Maybe_match
-                                                                        [[Tuple2 (con bytestring)] Data]
+                                                                        [[Tuple2 (con bytestring)] (con data)]
                                                                       }
                                                                       [
                                                                         [
@@ -7301,18 +6916,18 @@
                                                                             {
                                                                               {
                                                                                 fFoldableNil_cfoldMap
-                                                                                [(lam a (type) [Maybe a]) [[Tuple2 (con bytestring)] Data]]
+                                                                                [(lam a (type) [Maybe a]) [[Tuple2 (con bytestring)] (con data)]]
                                                                               }
-                                                                              [[Tuple2 (con bytestring)] Data]
+                                                                              [[Tuple2 (con bytestring)] (con data)]
                                                                             }
                                                                             {
                                                                               fMonoidFirst
-                                                                              [[Tuple2 (con bytestring)] Data]
+                                                                              [[Tuple2 (con bytestring)] (con data)]
                                                                             }
                                                                           ]
                                                                           (lam
                                                                             x
-                                                                            [[Tuple2 (con bytestring)] Data]
+                                                                            [[Tuple2 (con bytestring)] (con data)]
                                                                             [
                                                                               {
                                                                                 [
@@ -7321,18 +6936,18 @@
                                                                                       Tuple2_match
                                                                                       (con bytestring)
                                                                                     }
-                                                                                    Data
+                                                                                    (con data)
                                                                                   }
                                                                                   x
                                                                                 ]
-                                                                                [Maybe [[Tuple2 (con bytestring)] Data]]
+                                                                                [Maybe [[Tuple2 (con bytestring)] (con data)]]
                                                                               }
                                                                               (lam
                                                                                 ds
                                                                                 (con bytestring)
                                                                                 (lam
                                                                                   ds
-                                                                                  Data
+                                                                                  (con data)
                                                                                   [
                                                                                     [
                                                                                       [
@@ -7341,13 +6956,29 @@
                                                                                             Bool_match
                                                                                             [
                                                                                               [
-                                                                                                fEqData_c
-                                                                                                ds
+                                                                                                [
+                                                                                                  {
+                                                                                                    (builtin
+                                                                                                      ifThenElse
+                                                                                                    )
+                                                                                                    Bool
+                                                                                                  }
+                                                                                                  [
+                                                                                                    [
+                                                                                                      (builtin
+                                                                                                        equalsData
+                                                                                                      )
+                                                                                                      ds
+                                                                                                    ]
+                                                                                                    ds
+                                                                                                  ]
+                                                                                                ]
+                                                                                                True
                                                                                               ]
-                                                                                              ds
+                                                                                              False
                                                                                             ]
                                                                                           ]
-                                                                                          (fun Unit [Maybe [[Tuple2 (con bytestring)] Data]])
+                                                                                          (fun Unit [Maybe [[Tuple2 (con bytestring)] (con data)]])
                                                                                         }
                                                                                         (lam
                                                                                           thunk
@@ -7355,7 +6986,7 @@
                                                                                           [
                                                                                             {
                                                                                               Just
-                                                                                              [[Tuple2 (con bytestring)] Data]
+                                                                                              [[Tuple2 (con bytestring)] (con data)]
                                                                                             }
                                                                                             x
                                                                                           ]
@@ -7366,7 +6997,7 @@
                                                                                         Unit
                                                                                         {
                                                                                           Nothing
-                                                                                          [[Tuple2 (con bytestring)] Data]
+                                                                                          [[Tuple2 (con bytestring)] (con data)]
                                                                                         }
                                                                                       )
                                                                                     ]
@@ -7384,7 +7015,7 @@
                                                                   }
                                                                   (lam
                                                                     a
-                                                                    [[Tuple2 (con bytestring)] Data]
+                                                                    [[Tuple2 (con bytestring)] (con data)]
                                                                     (lam
                                                                       thunk
                                                                       Unit
@@ -7401,7 +7032,7 @@
                                                                                   Tuple2_match
                                                                                   (con bytestring)
                                                                                 }
-                                                                                Data
+                                                                                (con data)
                                                                               }
                                                                               a
                                                                             ]
@@ -7412,7 +7043,7 @@
                                                                             (con bytestring)
                                                                             (lam
                                                                               ds
-                                                                              Data
+                                                                              (con data)
                                                                               a
                                                                             )
                                                                           )
@@ -7492,6 +7123,31 @@
                                             )
                                           ]
                                         )
+                                      ]
+                                    )
+                                  )
+                                )
+                                (termbind
+                                  (strict)
+                                  (vardecl
+                                    equalsInteger
+                                    (fun (con integer) (fun (con integer) Bool))
+                                  )
+                                  (lam
+                                    x
+                                    (con integer)
+                                    (lam
+                                      y
+                                      (con integer)
+                                      [
+                                        [
+                                          [
+                                            { (builtin ifThenElse) Bool }
+                                            [ [ (builtin equalsInteger) x ] y ]
+                                          ]
+                                          True
+                                        ]
+                                        False
                                       ]
                                     )
                                   )
@@ -8021,7 +7677,7 @@
                                                             [List (con bytestring)]
                                                             (lam
                                                               ds
-                                                              [List [[Tuple2 (con bytestring)] Data]]
+                                                              [List [[Tuple2 (con bytestring)] (con data)]]
                                                               (lam
                                                                 ds
                                                                 (con bytestring)
@@ -8279,7 +7935,7 @@
                                                                                     [List (con bytestring)]
                                                                                     (lam
                                                                                       ds
-                                                                                      [List [[Tuple2 (con bytestring)] Data]]
+                                                                                      [List [[Tuple2 (con bytestring)] (con data)]]
                                                                                       (lam
                                                                                         ds
                                                                                         (con bytestring)
@@ -8460,7 +8116,10 @@
                                                               findDatumHash
                                                               [
                                                                 [
-                                                                  { toData o }
+                                                                  {
+                                                                    toBuiltinData
+                                                                    o
+                                                                  }
                                                                   dIsData
                                                                 ]
                                                                 ds
@@ -11090,8 +10749,33 @@
                                 (termbind
                                   (strict)
                                   (vardecl
+                                    equalsData
+                                    (fun (con data) (fun (con data) Bool))
+                                  )
+                                  (lam
+                                    d
+                                    (con data)
+                                    (lam
+                                      d
+                                      (con data)
+                                      [
+                                        [
+                                          [
+                                            { (builtin ifThenElse) Bool }
+                                            [ [ (builtin equalsData) d ] d ]
+                                          ]
+                                          True
+                                        ]
+                                        False
+                                      ]
+                                    )
+                                  )
+                                )
+                                (termbind
+                                  (strict)
+                                  (vardecl
                                     findDatum
-                                    (fun (con bytestring) (fun TxInfo [Maybe Data]))
+                                    (fun (con bytestring) (fun TxInfo [Maybe (con data)]))
                                   )
                                   (lam
                                     dsh
@@ -11100,7 +10784,9 @@
                                       ds
                                       TxInfo
                                       [
-                                        { [ TxInfo_match ds ] [Maybe Data] }
+                                        {
+                                          [ TxInfo_match ds ] [Maybe (con data)]
+                                        }
                                         (lam
                                           ds
                                           [List TxInInfo]
@@ -11127,7 +10813,7 @@
                                                         [List (con bytestring)]
                                                         (lam
                                                           ds
-                                                          [List [[Tuple2 (con bytestring)] Data]]
+                                                          [List [[Tuple2 (con bytestring)] (con data)]]
                                                           (lam
                                                             ds
                                                             (con bytestring)
@@ -11138,7 +10824,7 @@
                                                                     [
                                                                       {
                                                                         Maybe_match
-                                                                        [[Tuple2 (con bytestring)] Data]
+                                                                        [[Tuple2 (con bytestring)] (con data)]
                                                                       }
                                                                       [
                                                                         [
@@ -11146,18 +10832,18 @@
                                                                             {
                                                                               {
                                                                                 fFoldableNil_cfoldMap
-                                                                                [(lam a (type) [Maybe a]) [[Tuple2 (con bytestring)] Data]]
+                                                                                [(lam a (type) [Maybe a]) [[Tuple2 (con bytestring)] (con data)]]
                                                                               }
-                                                                              [[Tuple2 (con bytestring)] Data]
+                                                                              [[Tuple2 (con bytestring)] (con data)]
                                                                             }
                                                                             {
                                                                               fMonoidFirst
-                                                                              [[Tuple2 (con bytestring)] Data]
+                                                                              [[Tuple2 (con bytestring)] (con data)]
                                                                             }
                                                                           ]
                                                                           (lam
                                                                             x
-                                                                            [[Tuple2 (con bytestring)] Data]
+                                                                            [[Tuple2 (con bytestring)] (con data)]
                                                                             [
                                                                               {
                                                                                 [
@@ -11166,18 +10852,18 @@
                                                                                       Tuple2_match
                                                                                       (con bytestring)
                                                                                     }
-                                                                                    Data
+                                                                                    (con data)
                                                                                   }
                                                                                   x
                                                                                 ]
-                                                                                [Maybe [[Tuple2 (con bytestring)] Data]]
+                                                                                [Maybe [[Tuple2 (con bytestring)] (con data)]]
                                                                               }
                                                                               (lam
                                                                                 dsh
                                                                                 (con bytestring)
                                                                                 (lam
                                                                                   ds
-                                                                                  Data
+                                                                                  (con data)
                                                                                   [
                                                                                     [
                                                                                       [
@@ -11208,7 +10894,7 @@
                                                                                               False
                                                                                             ]
                                                                                           ]
-                                                                                          (fun Unit [Maybe [[Tuple2 (con bytestring)] Data]])
+                                                                                          (fun Unit [Maybe [[Tuple2 (con bytestring)] (con data)]])
                                                                                         }
                                                                                         (lam
                                                                                           thunk
@@ -11216,7 +10902,7 @@
                                                                                           [
                                                                                             {
                                                                                               Just
-                                                                                              [[Tuple2 (con bytestring)] Data]
+                                                                                              [[Tuple2 (con bytestring)] (con data)]
                                                                                             }
                                                                                             x
                                                                                           ]
@@ -11227,7 +10913,7 @@
                                                                                         Unit
                                                                                         {
                                                                                           Nothing
-                                                                                          [[Tuple2 (con bytestring)] Data]
+                                                                                          [[Tuple2 (con bytestring)] (con data)]
                                                                                         }
                                                                                       )
                                                                                     ]
@@ -11241,18 +10927,18 @@
                                                                         ds
                                                                       ]
                                                                     ]
-                                                                    (fun Unit [Maybe Data])
+                                                                    (fun Unit [Maybe (con data)])
                                                                   }
                                                                   (lam
                                                                     a
-                                                                    [[Tuple2 (con bytestring)] Data]
+                                                                    [[Tuple2 (con bytestring)] (con data)]
                                                                     (lam
                                                                       thunk
                                                                       Unit
                                                                       [
                                                                         {
                                                                           Just
-                                                                          Data
+                                                                          (con data)
                                                                         }
                                                                         [
                                                                           {
@@ -11262,18 +10948,18 @@
                                                                                   Tuple2_match
                                                                                   (con bytestring)
                                                                                 }
-                                                                                Data
+                                                                                (con data)
                                                                               }
                                                                               a
                                                                             ]
-                                                                            Data
+                                                                            (con data)
                                                                           }
                                                                           (lam
                                                                             ds
                                                                             (con bytestring)
                                                                             (lam
                                                                               b
-                                                                              Data
+                                                                              (con data)
                                                                               b
                                                                             )
                                                                           )
@@ -11286,7 +10972,8 @@
                                                                   thunk
                                                                   Unit
                                                                   {
-                                                                    Nothing Data
+                                                                    Nothing
+                                                                    (con data)
                                                                   }
                                                                 )
                                                               ]
@@ -11346,7 +11033,7 @@
                                                         [List (con bytestring)]
                                                         (lam
                                                           ds
-                                                          [List [[Tuple2 (con bytestring)] Data]]
+                                                          [List [[Tuple2 (con bytestring)] (con data)]]
                                                           (lam
                                                             ds
                                                             (con bytestring)
@@ -11505,7 +11192,7 @@
                                                         [List (con bytestring)]
                                                         (lam
                                                           ds
-                                                          [List [[Tuple2 (con bytestring)] Data]]
+                                                          [List [[Tuple2 (con bytestring)] (con data)]]
                                                           (lam
                                                             ds
                                                             (con bytestring)
@@ -11980,7 +11667,7 @@
                                                         [List (con bytestring)]
                                                         (lam
                                                           ds
-                                                          [List [[Tuple2 (con bytestring)] Data]]
+                                                          [List [[Tuple2 (con bytestring)] (con data)]]
                                                           (lam
                                                             ds
                                                             (con bytestring)
@@ -12265,7 +11952,7 @@
                                                       [List (con bytestring)]
                                                       (lam
                                                         ds
-                                                        [List [[Tuple2 (con bytestring)] Data]]
+                                                        [List [[Tuple2 (con bytestring)] (con data)]]
                                                         (lam
                                                           ds
                                                           (con bytestring)
@@ -12398,7 +12085,7 @@
                                                                   (con bytestring)
                                                                   (lam
                                                                     dv
-                                                                    Data
+                                                                    (con data)
                                                                     (let
                                                                       (nonrec)
                                                                       (termbind
@@ -12435,7 +12122,7 @@
                                                                               [
                                                                                 {
                                                                                   Maybe_match
-                                                                                  Data
+                                                                                  (con data)
                                                                                 }
                                                                                 [
                                                                                   [
@@ -12449,7 +12136,7 @@
                                                                             }
                                                                             (lam
                                                                               a
-                                                                              Data
+                                                                              (con data)
                                                                               (lam
                                                                                 thunk
                                                                                 Unit
@@ -12461,10 +12148,26 @@
                                                                                           Bool_match
                                                                                           [
                                                                                             [
-                                                                                              fEqData_c
-                                                                                              a
+                                                                                              [
+                                                                                                {
+                                                                                                  (builtin
+                                                                                                    ifThenElse
+                                                                                                  )
+                                                                                                  Bool
+                                                                                                }
+                                                                                                [
+                                                                                                  [
+                                                                                                    (builtin
+                                                                                                      equalsData
+                                                                                                    )
+                                                                                                    a
+                                                                                                  ]
+                                                                                                  dv
+                                                                                                ]
+                                                                                              ]
+                                                                                              True
                                                                                             ]
-                                                                                            dv
+                                                                                            False
                                                                                           ]
                                                                                         ]
                                                                                         (fun Unit Bool)
@@ -12500,7 +12203,7 @@
                                                               ]
                                                               (lam
                                                                 dv
-                                                                Data
+                                                                (con data)
                                                                 [
                                                                   {
                                                                     [
@@ -12535,7 +12238,7 @@
                                                                                   [List (con bytestring)]
                                                                                   (lam
                                                                                     ds
-                                                                                    [List [[Tuple2 (con bytestring)] Data]]
+                                                                                    [List [[Tuple2 (con bytestring)] (con data)]]
                                                                                     (lam
                                                                                       ds
                                                                                       (con bytestring)
@@ -12553,7 +12256,7 @@
                                                                                                           fFoldableNil_cfoldMap
                                                                                                           [(lam a (type) a) Bool]
                                                                                                         }
-                                                                                                        Data
+                                                                                                        (con data)
                                                                                                       }
                                                                                                       [
                                                                                                         {
@@ -12564,7 +12267,7 @@
                                                                                                       ]
                                                                                                     ]
                                                                                                     [
-                                                                                                      fEqData_c
+                                                                                                      equalsData
                                                                                                       dv
                                                                                                     ]
                                                                                                   ]
@@ -12573,16 +12276,16 @@
                                                                                                       {
                                                                                                         {
                                                                                                           fFunctorNil_cfmap
-                                                                                                          [[Tuple2 (con bytestring)] Data]
+                                                                                                          [[Tuple2 (con bytestring)] (con data)]
                                                                                                         }
-                                                                                                        Data
+                                                                                                        (con data)
                                                                                                       }
                                                                                                       {
                                                                                                         {
                                                                                                           snd
                                                                                                           (con bytestring)
                                                                                                         }
-                                                                                                        Data
+                                                                                                        (con data)
                                                                                                       }
                                                                                                     ]
                                                                                                     ds
@@ -12642,7 +12345,7 @@
                                                               (con bytestring)
                                                               (lam
                                                                 ds
-                                                                Data
+                                                                (con data)
                                                                 (lam
                                                                   tn
                                                                   (con bytestring)
@@ -12707,7 +12410,7 @@
                                                                                                                 [List (con bytestring)]
                                                                                                                 (lam
                                                                                                                   ds
-                                                                                                                  [List [[Tuple2 (con bytestring)] Data]]
+                                                                                                                  [List [[Tuple2 (con bytestring)] (con data)]]
                                                                                                                   (lam
                                                                                                                     ds
                                                                                                                     (con bytestring)
@@ -12782,7 +12485,7 @@
                                                             (con bytestring)
                                                             (lam
                                                               dv
-                                                              Data
+                                                              (con data)
                                                               (lam
                                                                 vl
                                                                 [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
@@ -12864,7 +12567,7 @@
                                                                                     [List (con bytestring)]
                                                                                     (lam
                                                                                       ds
-                                                                                      [List [[Tuple2 (con bytestring)] Data]]
+                                                                                      [List [[Tuple2 (con bytestring)] (con data)]]
                                                                                       (lam
                                                                                         ds
                                                                                         (con bytestring)
@@ -13292,7 +12995,7 @@
                                                                                     [List (con bytestring)]
                                                                                     (lam
                                                                                       ds
-                                                                                      [List [[Tuple2 (con bytestring)] Data]]
+                                                                                      [List [[Tuple2 (con bytestring)] (con data)]]
                                                                                       (lam
                                                                                         ds
                                                                                         (con bytestring)
@@ -13536,7 +13239,7 @@
                                                   TxOutRef
                                                   (lam
                                                     ds
-                                                    Data
+                                                    (con data)
                                                     [
                                                       [
                                                         [
@@ -13645,7 +13348,7 @@
                                                                               [List (con bytestring)]
                                                                               (lam
                                                                                 ds
-                                                                                [List [[Tuple2 (con bytestring)] Data]]
+                                                                                [List [[Tuple2 (con bytestring)] (con data)]]
                                                                                 (lam
                                                                                   ds
                                                                                   (con bytestring)

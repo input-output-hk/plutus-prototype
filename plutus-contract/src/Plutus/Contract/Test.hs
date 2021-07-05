@@ -341,7 +341,7 @@ dataAtAddress :: IsData a => Address -> (a -> Bool) -> TracePredicate
 dataAtAddress address check =
     flip postMapM (L.generalize $ Folds.utxoAtAddress address) $ \utxo -> do
         let isSingletonWith p xs = length xs == 1 && all p xs
-        let result = isSingletonWith (isSingletonWith (maybe False check . fromData . Ledger.getDatum) . Ledger.txData . Ledger.txOutTxTx) utxo
+        let result = isSingletonWith (isSingletonWith (maybe False check . fromBuiltinData . Ledger.getDatum) . Ledger.txData . Ledger.txOutTxTx) utxo
         unless result $ do
             tell @(Doc Void) ("Data at address" <+> pretty address <+> "was"
                 <+> foldMap (foldMap pretty . Ledger.txData . Ledger.txOutTxTx) utxo)
