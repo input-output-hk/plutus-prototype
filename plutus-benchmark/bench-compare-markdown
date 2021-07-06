@@ -20,41 +20,27 @@ then
   exit 1
 fi
 
-input1="$1"
-input2="$2"
+INPUT1="$1"
+INPUT2="$2"
 
-if [[ ! -r "$input1" ]]
-then echo "Error: can't open $input1" && exit 1
+if [[ ! -r "$INPUT1" ]]
+then echo "Error: can't open $INPUT1" && exit 1
 fi
 
-if [[ ! -r "$input2" ]]
-then echo "Error: can't open $input2" && exit 1
+if [[ ! -r "$INPUT2" ]]
+then echo "Error: can't open $INPUT2" && exit 1
 fi
 
-if [[ -n "$3" ]]
-then 
-    hdr1="$3"
-else
-    hdr1="Old"
-fi
+TMP1=$(mktemp /tmp/bc1-XXXXXXX)
+TMP2=$(mktemp /tmp/bc2-XXXXXXX)
 
-if [[ -n "$4" ]]
-then 
-    hdr2="$4"
-else
-    hdr2="New"
-fi
-
-tmp1=/tmp/bc1
-tmp2=/tmp/bc2
-
-trap 'rm -f $tmp1 $tmp2' EXIT
+trap 'rm -f "$TMP1" "$TMP2"' EXIT
 
 awk '/^bench/ {printf ("%-40s ", $2)}
-     /^time/ {printf ("%10s %-2s\n", $2, $3)}' "$input1" > $tmp1  # %-2s to get the units properly aligned
-awk '/^time/ {printf ("%10s %-2s\n", $2, $3)}' "$input2" > $tmp2
-paste $tmp1 $tmp2 |
-  awk -v hdr1="$hdr1" -v hdr2="$hdr2" 'BEGIN {
+     /^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT1" > "$TMP1"  # %-2s to get the units properly aligned
+awk '/^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT2" > "$TMP2"
+paste "$TMP1" "$TMP2" |
+  awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" 'BEGIN {
        # Initialise array of unit conversion factors
        ps["s"]  = 12  # 1 s = 10^12 ps
        ps["ms"] = 9 
@@ -63,8 +49,8 @@ paste $tmp1 $tmp2 |
        ps["ns"] = 3
        ps["ps"] = 0
        # Print markdown table headers, attempting to make the output reasonably well aligned even in raw form.
-       printf ("| %-40s | %-10s | %-10s | %-8s |\n", "Script", hdr1, hdr2, "Change")
-       printf ("| %-40s | %-10s | %-10s | %-8s |\n", ":-----", ":-----:", ":-----:", ":-----:")
+       printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", "Script", hdr1, hdr2, " Change")
+       printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", ":------", ":------:", ":------:", ":------:")
    }
    {
    time1 = $2
@@ -72,7 +58,7 @@ paste $tmp1 $tmp2 |
    d = (time2-time1)/time1 * 100
    sign = (d<0) ? "" : ((d==0) ? " " : "+")     # We get the "-" anyway if d<0
    change = sprintf ("%s%.1f%%", sign, d)
-   printf ("| %-40s |  %s %s  |  %s %s  |  %6s  |\n", $1, $2, $3, $4, $5, change)
+   printf ("| %-40s |  %s %s  |  %s %s  |  %7s   |\n", $1, $2, $3, $4, $5, change)
  }' 
 
 

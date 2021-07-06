@@ -24,32 +24,48 @@
 #     first before we can insert it.
 
 set -e
+set -x
 
 if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
    exit 1
 fi
+
+PR_LOG=bench-PR.log
+BASE_LOG=bench-base.log
+
+trap 'rm -f "$PR_LOG" "$BASE_LOG"' EXIT
+# ^ Should do this for the other files too
+
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for PR $PR_NUMBER"
-PR_BRANCH_REF=$(git show-ref -s HEAD)
+PR_BRANCH_REF=$(git rev-parse HEAD)
+echo "### PR_BRANCH_REF=$PR_BRANCH_REF"
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-nix-shell --run "cabal bench plutus-benchmark:validation >bench-PR.log 2>&1"
+cabal bench plutus-benchmark:validation >"$PR_LOG" 2>&1
 
-echo "[ci-plutus-benchmark]: Switching branches ..."
-git checkout "$(git merge-base HEAD master)"
-BASE_BRANCH_REF=$(git show-ref -s HEAD)
+echo "[ci-plutus-benchmark]: Updating master ..."
+git checkout master
+git pull
+git checkout "$PR_BRANCH_REF"  # Back to the PR branch
+
+echo "[ci-plutus-benchmark]: switching to base branch ..."
+BASE_BRANCH_REF=$(git merge-base HEAD master)
+echo "### BASE_BRANCH_REF=$BASE_BRANCH_REF" 
+git checkout "$BASE_BRANCH_REF" # At this point, 'git rev-parse HEAD' should be the same as $BASE_BRANCH_REF
+
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-nix-shell --run "cabal bench plutus-benchmark:validation >bench-base.log 2>&1"
+cabal bench plutus-benchmark:validation >"$BASE_LOG" 2>&1
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 echo -e "Comparing benchmark results of '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)\n" >bench-compare-result.log
-./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:1:7}" "${PR_BRANCH_REF:1:7}" >>bench-compare-result.log
+./plutus-benchmark/bench-compare-markdown "$BASE_LOG" "$PR_LOG" "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}" >>bench-compare-result.log
 nix-shell -p jq --run "jq -Rs '.' bench-compare-result.log >bench-compare.json"
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
