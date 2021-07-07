@@ -34,8 +34,6 @@ module Wallet.API(
     PubKey(..),
     Payment(..),
     emptyPayment,
-    signTxAndSubmit,
-    signTxAndSubmit_,
     payToPublicKey,
     payToPublicKey_,
     -- * Slot ranges
@@ -79,7 +77,7 @@ payToPublicKey ::
 payToPublicKey range v pk = do
     let tx = mempty{txOutputs = [pubKeyTxOut v pk], txValidRange = range}
     balancedTx <- balanceTx emptyUnbalancedTx{unBalancedTxTx = tx}
-    either throwError signTxAndSubmit balancedTx
+    either throwError (\t -> do { submitTxn t; pure t }) balancedTx
 
 -- | Transfer some funds to an address locked by a public key.
 payToPublicKey_ ::
@@ -88,24 +86,6 @@ payToPublicKey_ ::
     )
     => SlotRange -> Value -> PubKey -> Eff effs ()
 payToPublicKey_ r v = void . payToPublicKey r v
-
--- | Add the wallet's signature to the transaction and submit it. Returns
---   the transaction with the wallet's signature.
-signTxAndSubmit ::
-    ( Member WalletEffect effs
-    )
-    => Tx -> Eff effs Tx
-signTxAndSubmit t = do
-    tx' <- walletAddSignature t
-    submitTxn tx'
-    pure tx'
-
--- | A version of 'signTxAndSubmit' that discards the result.
-signTxAndSubmit_ ::
-    ( Member WalletEffect effs
-    )
-    => Tx -> Eff effs ()
-signTxAndSubmit_ = void . signTxAndSubmit
 
 -- | The default slot validity range for transactions.
 defaultSlotRange :: SlotRange

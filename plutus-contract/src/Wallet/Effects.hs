@@ -19,7 +19,6 @@ module Wallet.Effects(
     , ownPubKey
     , balanceTx
     , totalFunds
-    , walletAddSignature
     -- * Node client
     , NodeClientEffect(..)
     , publishTx
@@ -51,7 +50,6 @@ data WalletEffect r where
     OwnPubKey :: WalletEffect PubKey
     BalanceTx :: UnbalancedTx -> WalletEffect (Either WalletAPIError Tx)
     TotalFunds :: WalletEffect Value -- ^ Total of all funds that are in the wallet (incl. tokens)
-    WalletAddSignature :: Tx -> WalletEffect Tx
 makeEffect ''WalletEffect
 
 data NodeClientEffect r where

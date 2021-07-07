@@ -39,8 +39,7 @@ import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
 import           Servant                          (Application, NoContent (..), hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                   (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
-import           Wallet.Effects                   (balanceTx, ownPubKey, startWatching, submitTxn, totalFunds,
-                                                   walletAddSignature)
+import           Wallet.Effects                   (balanceTx, ownPubKey, startWatching, submitTxn, totalFunds)
 import           Wallet.Emulator.Wallet           (Wallet (..), emptyWalletState)
 import qualified Wallet.Emulator.Wallet           as Wallet
 
@@ -54,8 +53,7 @@ app trace txSendHandle chainSyncHandle chainIndexEnv mVarState =
             (\w tx -> multiWallet (Wallet w) (submitTxn tx) >>= const (pure NoContent)) :<|>
             (\w -> (\pk -> WalletInfo{wiWallet = Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk}) <$> multiWallet (Wallet w) ownPubKey) :<|>
             (\w -> multiWallet (Wallet w) . balanceTx) :<|>
-            (\w -> multiWallet (Wallet w) totalFunds) :<|>
-            (\w tx -> multiWallet (Wallet w) (walletAddSignature tx))
+            (\w -> multiWallet (Wallet w) totalFunds)
 
 main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> SlotConfig -> ChainIndexUrl -> Availability -> IO ()
 main trace WalletConfig { baseUrl, wallet } serverSocket slotConfig (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do

@@ -30,21 +30,18 @@ submitTxn :: Wallet -> Tx -> ClientM ()
 ownPublicKey :: Wallet -> ClientM WalletInfo
 balanceTx :: Wallet -> UnbalancedTx -> ClientM (Either WalletAPIError Tx)
 totalFunds :: Wallet -> ClientM Value
-sign :: Wallet -> Tx -> ClientM Tx
-(createWallet, submitTxn, ownPublicKey, balanceTx, totalFunds, sign) =
+(createWallet, submitTxn, ownPublicKey, balanceTx, totalFunds) =
   ( createWallet_
   , \(Wallet wid) tx -> void (submitTxn_ wid tx)
   , ownPublicKey_ . getWallet
   , \(Wallet w) -> balanceTx_ w
-  , totalFunds_ . getWallet
-  , \(Wallet w) -> sign_ w)
+  , totalFunds_ . getWallet)
   where
     ( createWallet_
       :<|> (submitTxn_
       :<|> ownPublicKey_
       :<|> balanceTx_
-      :<|> totalFunds_
-      :<|> sign_)) = client (Proxy @(API Integer))
+      :<|> totalFunds_)) = client (Proxy @(API Integer))
 
 handleWalletClient ::
   forall m effs.
@@ -62,8 +59,7 @@ handleWalletClient wallet event = do
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     case event of
-        SubmitTxn t           -> runClient (submitTxn wallet t)
-        OwnPubKey             -> wiPubKey <$> runClient (ownPublicKey wallet)
-        BalanceTx utx         -> runClient (balanceTx wallet utx)
-        WalletAddSignature tx -> runClient $ sign wallet tx
-        TotalFunds            -> runClient (totalFunds wallet)
+        SubmitTxn t   -> runClient (submitTxn wallet t)
+        OwnPubKey     -> wiPubKey <$> runClient (ownPublicKey wallet)
+        BalanceTx utx -> runClient (balanceTx wallet utx)
+        TotalFunds    -> runClient (totalFunds wallet)

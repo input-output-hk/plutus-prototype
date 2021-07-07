@@ -39,4 +39,3 @@ type API walletId -- see note [WalletID type in wallet API]
       :<|> Capture "walletId" walletId :> "own-public-key" :> Get '[JSON] WalletInfo
       :<|> Capture "walletId" walletId :> "balance-tx" :> ReqBody '[JSON] UnbalancedTx :> Post '[JSON] (Either WalletAPIError Tx)
       :<|> Capture "walletId" walletId :> "total-funds" :> Get '[JSON] Value
-      :<|> Capture "walletId" walletId :> "sign" :> ReqBody '[JSON] Tx :> Post '[JSON] Tx

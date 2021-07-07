@@ -189,8 +189,7 @@ walletProxyClientEnv ::
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
     :<|> (Integer -> PABAction t env WalletInfo)
     :<|> (Integer -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
-    :<|> (Integer -> PABAction t env Value)
-    :<|> (Integer -> Tx -> PABAction t env Tx))
+    :<|> (Integer -> PABAction t env Value))
 walletProxyClientEnv clientEnv =
     let createWallet = runWalletClientM clientEnv Wallet.Client.createWallet
     in walletProxy createWallet
@@ -211,13 +210,11 @@ walletProxy ::
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
     :<|> (Integer -> PABAction t env WalletInfo)
     :<|> (Integer -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
-    :<|> (Integer -> PABAction t env Value)
-    :<|> (Integer -> Tx -> PABAction t env Tx))
+    :<|> (Integer -> PABAction t env Value))
 walletProxy createNewWallet =
     ( createNewWallet
     :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
     :<|> (\w -> (\pk -> WalletInfo{wiWallet=Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
     :<|> (\w -> Core.handleAgentThread (Wallet w) . Wallet.Effects.balanceTx)
     :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.totalFunds)
-    :<|> (\w tx -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.walletAddSignature tx)
     )

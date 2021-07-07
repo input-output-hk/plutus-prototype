@@ -66,4 +66,4 @@ handleTx ::
     , Member (Error WalletAPIError) effs
     )
     => UnbalancedTx -> Eff effs Tx
-handleTx = balanceTx >=> either throwError WAPI.signTxAndSubmit
+handleTx = balanceTx >=> either throwError (\e -> do{ submitTxn e; return e})

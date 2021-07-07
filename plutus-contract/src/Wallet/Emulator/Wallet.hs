@@ -172,7 +172,6 @@ handleWallet = \case
         tx'' <- handleAddSignature tx'
         logInfo $ FinishedBalancing tx''
         pure tx''
-    WalletAddSignature tx -> handleAddSignature tx
     TotalFunds -> foldMap (txOutValue . txOutTxOut) <$> (get >>= ownOutputs)
 
 handleAddSignature ::
