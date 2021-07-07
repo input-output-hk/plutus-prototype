@@ -71,6 +71,7 @@ library
         Plutus.V1.Ledger.Contexts as Ledger.Contexts,
         Plutus.V1.Ledger.Credential as Ledger.Credential,
         Plutus.V1.Ledger.DCert as Ledger.DCert,
+        Plutus.V1.Ledger.Decimal as Ledger.Decimal,
         Plutus.V1.Ledger.Crypto as Ledger.Crypto,
         Plutus.V1.Ledger.Interval as Ledger.Interval,
         -- We manually re-export that module so we can include some extra

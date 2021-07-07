@@ -56,6 +56,7 @@
           (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           ];
         buildable = true;
         modules = [
@@ -70,6 +71,7 @@
           "Plutus/V1/Ledger/Credential"
           "Plutus/V1/Ledger/Crypto"
           "Plutus/V1/Ledger/DCert"
+          "Plutus/V1/Ledger/Decimal"
           "Plutus/V1/Ledger/Examples"
           "Plutus/V1/Ledger/Interval"
           "Plutus/V1/Ledger/Orphans"
