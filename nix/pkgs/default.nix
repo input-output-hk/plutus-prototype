@@ -14,6 +14,9 @@ let
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix sources;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
+
+    actus-tests = "${sources.actus-tests.outPath}";
+
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
     inherit (pkgs.evalPackages) writeShellScript;
