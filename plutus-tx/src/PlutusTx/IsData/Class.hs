@@ -22,7 +22,6 @@ import           Data.Void
 
 import           GHC.TypeLits         (ErrorMessage (..), TypeError)
 
-
 {- HLINT ignore -}
 
 -- | A typeclass for types that can be converted to and from 'Data'.

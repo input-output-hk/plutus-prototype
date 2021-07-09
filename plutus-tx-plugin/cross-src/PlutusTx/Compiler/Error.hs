@@ -1,0 +1,1 @@
+module PlutusTx.Compiler.Error where

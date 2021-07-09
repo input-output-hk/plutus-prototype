@@ -25,4 +25,7 @@ self: super: {
       });
     };
   };
+} // super.lib.optionalAttrs (super.stdenv.targetPlatform.isGhcjs) {
+  # Add config.sub and config.guess files that know about ghcjs
+  gnu-config = ./gnu-config;
 }

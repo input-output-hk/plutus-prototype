@@ -17,7 +17,7 @@ packages: doc
           plutus-errors
           plutus-ledger
           plutus-ledger-api
-          plutus-metatheory
+          -- plutus-metatheory
           plutus-pab
           plutus-playground-server
           plutus-tx
@@ -27,6 +27,8 @@ packages: doc
           quickcheck-dynamic
           web-ghc
           word-array
+          stubs/*
+          contrib/*
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
@@ -53,6 +55,14 @@ allow-newer:
            , beam-sqlite:aeson
            , beam-sqlite:dlist
            , beam-migrate:aeson
+
+           , stm:base
+
+           -- ghc-boot 8.10.4 is not in hackage, so haskell.nix needs consider 8.8.3
+           -- when cross compiling for windows or it will fail to find a solution including
+           -- a new Win32 version (ghc-boot depends on Win32 via directory)
+           , ghc-boot:base
+           , ghc-boot:ghc-boot-th
 
 constraints:
   -- big breaking change here, inline-r doens't have an upper bound
@@ -195,3 +205,32 @@ source-repository-package
   tag: cde90a2b27f79187ca8310b6549331e59595e7ba
 
 
+-- The following is needed because Nix is doing something crazy.
+package byron-spec-ledger
+  tests: False
+
+package marlowe
+  tests: False
+
+package plutus-doc
+  tests: False
+
+-- package plutus-metatheory
+--   tests: False
+
+package prettyprinter-configurable
+  tests: False
+
+package small-steps
+  tests: False
+
+package small-steps-test
+  tests: False
+
+-- GHCJS specific stuff...
+source-repository-package
+   type: git
+   location: https://github.com/hamishmack/foundation
+   tag: 421e8056fabf30ef2f5b01bb61c6880d0dfaa1c8
+   --sha256: 0cbsj3dyycykh0lcnsglrzzh898n2iydyw8f2nwyfvfnyx6ac2im
+   subdir: foundation

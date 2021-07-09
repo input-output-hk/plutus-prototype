@@ -1,7 +1,8 @@
 ############################################################################
 # Builds Haskell packages with Haskell.nix
 ############################################################################
-{ lib
+{ pkgs
+, lib
 , stdenv
 , rPackages
 , haskell-nix
@@ -16,11 +17,14 @@
   # Whether to set the `defer-plugin-errors` flag on those packages that need
   # it. If set to true, we will also build the haddocks for those packages.
 , deferPluginErrors
+, ghcjsPluginPkgs ? null
+, cabalProjectLocal ? null
 }:
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   project = haskell-nix.cabalProject' {
-    inherit compiler-nix-name;
+    inherit compiler-nix-name cabalProjectLocal;
+
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
       haskell-nix.haskellLib.cleanSourceWith {
@@ -35,10 +39,10 @@ let
     # Unfortuntely, they are *not* constant across all possible systems, so in some circumstances we need different sets of files
     # At the moment, we only need one but conceivably we might need one for darwin in future.
     # See https://github.com/input-output-hk/nix-tools/issues/97
-    materialized =
-      if stdenv.hostPlatform.isLinux then ./materialized-linux
-      else if stdenv.hostPlatform.isDarwin then ./materialized-darwin
-      else builtins.error "Don't have materialized files for this platform";
+    # materialized =
+    #   if stdenv.hostPlatform.isLinux then ./materialized-linux
+    #   else if stdenv.hostPlatform.isDarwin then ./materialized-darwin
+    #   else builtins.error "Don't have materialized files for this platform";
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
     sha256map = {
@@ -57,9 +61,73 @@ let
       "https://github.com/input-output-hk/hedgehog-extras"."8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187" = "12viwpahjdfvlqpnzdgjp40nw31rvyznnab1hml9afpaxd6ixh70";
     };
     modules = [
-      {
-        reinstallableLibGhc = false;
+      ({pkgs, ...}: {
+        reinstallableLibGhc = pkgs.stdenv.hostPlatform.isWindows;
+      } // lib.mkIf pkgs.stdenv.hostPlatform.isWindows {
+        packages.Win32.components.library.build-tools = lib.mkForce [];
+      })
+      ({pkgs, config, ...}: {
         packages = {
+
+          ghcjs.components.library.build-tools = let alex = pkgs.haskell-nix.tool compiler-nix-name "alex" {
+            index-state = pkgs.haskell-nix.internalHackageIndexState;
+            version = "3.2.5"; }; in [ alex ];
+          ghcjs.flags.use-host-template-haskell = true;
+
+          plutus-use-cases.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
+                                        then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
+          plutus-tx-plugin.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
+                                        then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+#                                              "-Werror"
+                                            ])
+                                        else __trace "nativePlutus is null" [];
+
+          plutus-tx-tests.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
+                                        then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+#                                              "-Werror"
+                                            ])
+                                        else __trace "nativePlutus is null" [];
+
+          plutus-errors.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
+                                        then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
+          plutus-benchmark.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
+                                        then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
+
+          plutus-ledger.components.library.build-tools = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs) then [ pkgs.pkgsCross.ghcjs.buildPackages.haskell-nix.compiler.${compiler-nix-name}.buildGHC ] else [];
+          plutus-ledger.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
+                                        then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
+          plutus-ledger-test.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
+                                        then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
+          Cabal.patches = [ ../../patches/cabal.patch ];
           # See https://github.com/input-output-hk/plutus/issues/1213 and
           # https://github.com/input-output-hk/plutus/pull/2865.
           marlowe.doHaddock = deferPluginErrors;
@@ -81,21 +149,19 @@ let
           marlowe.components.tests.marlowe-test.preCheck = ''
             PATH=${lib.makeBinPath [ z3 ]}:$PATH
           '';
-          # In this case we can just propagate the native dependencies for the build of the test executable,
-          # which are actually set up right (we have a build-tool-depends on the executable we need)
-          # I'm slightly surprised this works, hooray for laziness!
-          plutus-metatheory.components.tests.test1.preCheck = ''
-            PATH=${lib.makeBinPath project.hsPkgs.plutus-metatheory.components.tests.test1.executableToolDepends }:$PATH
-          '';
-          # FIXME: Somehow this is broken even with setting the path up as above
-          plutus-metatheory.components.tests.test2.doCheck = false;
-          # plutus-metatheory needs agda with the stdlib around for the custom setup
-          # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
-          plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test1.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test2.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
+          # # In this case we can just propagate the native dependencies for the build of the test executable,
+          # # which are actually set up right (we have a build-tool-depends on the executable we need)
+          # # I'm slightly surprised this works, hooray for laziness!
+          # plutus-metatheory.components.tests.test1.preCheck = ''
+          #   PATH=${lib.makeBinPath project.hsPkgs.plutus-metatheory.components.tests.test1.executableToolDepends }:$PATH
+          # '';
+          # # FIXME: Somehow this is broken even with setting the path up as above
+          # plutus-metatheory.components.tests.test2.doCheck = false;
+          # # plutus-metatheory needs agda with the stdlib around for the custom setup
+          # # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
+          # plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
+          # plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
+          # plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
 
           # Relies on cabal-doctest, just turn it off in the Nix build
           prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
@@ -133,14 +199,14 @@ let
           # FIXME: has warnings
           #plutus-metatheory.package.ghcOptions = "-Werror";
           plutus-contract.ghcOptions = [ "-Werror" ];
-          plutus-ledger.ghcOptions = [ "-Werror" ];
+          # plutus-ledger.ghcOptions = [ "-Werror" ];
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-playground-server.ghcOptions = [ "-Werror" ];
           plutus-pab.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
-          plutus-tx-plugin.ghcOptions = [ "-Werror" ];
+          # plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           plutus-doc.ghcOptions = [ "-Werror" ];
-          plutus-use-cases.ghcOptions = [ "-Werror" ];
+          # plutus-use-cases.ghcOptions = [ "-Werror" ];
 
           # External package settings
 
@@ -154,8 +220,21 @@ let
           # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
           # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
           ieee.components.library.libs = lib.mkForce [ ];
+
+          # By default haskell.nix chooses the `buildPackages` versions of these `build-tool-depeends`, but
+          # when cross compiling we want the cross compiled version.
+          plutus-pab.components.library.build-tools = lib.mkForce [
+            config.hsPkgs.cardano-node.components.exes.cardano-node
+            config.hsPkgs.cardano-cli.components.exes.cardano-cli
+          ];
+          # plutus-metatheory.components.tests.test1.build-tools = lib.mkForce [
+          #   config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
+          # ];
+          # plutus-metatheory.components.tests.test2.build-tools = lib.mkForce [
+          #   config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
+          # ];
         };
-      }
+      })
     ] ++ lib.optional enableHaskellProfiling {
       enableLibraryProfiling = true;
       enableExecutableProfiling = true;

@@ -1,0 +1,20 @@
+diff --git a/Distribution/Simple/GHCJS.hs b/Distribution/Simple/GHCJS.hs
+index 4ad5bb18c..5db4d27e7 100644
+--- a/Distribution/Simple/GHCJS.hs
++++ b/Distribution/Simple/GHCJS.hs
+@@ -317,13 +317,10 @@ checkPackageDbStack :: Verbosity -> PackageDBStack -> IO ()
+ checkPackageDbStack _ (GlobalPackageDB:rest)
+   | GlobalPackageDB `notElem` rest = return ()
+ checkPackageDbStack verbosity rest
+-  | GlobalPackageDB `notElem` rest =
+-  die' verbosity $ "With current ghc versions the global package db is always used "
+-     ++ "and must be listed first. This ghc limitation may be lifted in "
+-     ++ "future, see http://ghc.haskell.org/trac/ghc/ticket/5977"
+-checkPackageDbStack verbosity _ =
++  | GlobalPackageDB `elem` rest =
+   die' verbosity $ "If the global package db is specified, it must be "
+      ++ "specified first and cannot be specified multiple times"
++checkPackageDbStack _ _ = return ()
+
+ getInstalledPackages' :: Verbosity -> [PackageDB] -> ProgramDb
+                       -> IO [(PackageDB, [InstalledPackageInfo])]

@@ -1,6 +1,7 @@
-{ lib
+{ pkgs
+, lib
 , sources
-, agdaWithStdlib
+, agdaWithStdlib ? null
 , stdenv
 , haskell-nix
 , buildPackages
@@ -11,6 +12,8 @@
 , rPackages
 , z3
 , enableHaskellProfiling
+, ghcjsPluginPkgs ? null
+, cabalProjectLocal ? null
 }:
 let
   # The Hackage index-state from cabal.project
@@ -30,16 +33,17 @@ let
   # The compiler that we are using. We are using a patched version so we need to specify it explicitly.
   # This version has the experimental core interface files patch, and a fix for unboxed tuples in
   # GHCi, which helps with HLS.
-  compiler-nix-name = "ghc810420210212";
+  compiler-nix-name = "ghc8105"; #"ghc810420210212"; #"ghc8104"; #20210212";
 
   # The haskell project created by haskell-nix.stackProject'
   baseProject =
     { deferPluginErrors }:
     import ./haskell.nix {
-      inherit lib stdenv haskell-nix buildPackages R rPackages z3;
+      inherit pkgs lib stdenv haskell-nix buildPackages R rPackages z3;
       inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
       inherit enableHaskellProfiling;
       inherit deferPluginErrors;
+      inherit ghcjsPluginPkgs cabalProjectLocal;
     };
   project = baseProject { deferPluginErrors = false; };
   # The same as above, but this time with we defer plugin errors so that we

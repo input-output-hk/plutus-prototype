@@ -68,9 +68,9 @@ library
   build-depends:
       base >=4.7 && <5
     , plutus-tx -any
-    , plutus-tx-plugin -any
     , plutus-core -any
     , deepseq -any
+    , plutus-tx-plugin -any
   default-extensions:
     DataKinds
     NamedFieldPuns
@@ -89,7 +89,6 @@ executable nofib-exe
       base >=4.7 && <5
     , plutus-benchmark
     , plutus-tx -any
-    , plutus-tx-plugin -any
     , plutus-core -any
     , ansi-wl-pprint -any
     , bytestring -any
@@ -97,6 +96,7 @@ executable nofib-exe
     , optparse-applicative -any
     , serialise -any
     , transformers -any
+    , plutus-tx-plugin -any
 
 benchmark nofib
   import: lang
@@ -111,12 +111,12 @@ benchmark nofib
       base >=4.7 && <5
     , plutus-benchmark
     , plutus-tx -any
-    , plutus-tx-plugin -any
     , plutus-core -any
     , containers -any
     , criterion >= 1.5.9.0
     , filepath -any
     , mtl -any
+    , plutus-tx-plugin -any
 
 benchmark nofib-hs
   import: lang
@@ -131,11 +131,11 @@ benchmark nofib-hs
       base >=4.7 && <5
     , plutus-benchmark
     , plutus-tx -any
-    , plutus-tx-plugin -any
     , plutus-core -any
     , containers -any
     , criterion -any
     , filepath -any
+    , plutus-tx-plugin -any
 
 
 benchmark validation
@@ -171,13 +171,13 @@ test-suite plutus-benchmark-nofib-tests
         base >=4.7 && <5
       , plutus-benchmark -any
       , plutus-tx -any
-      , plutus-tx-plugin -any
       , plutus-core -any
       , containers -any
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any
       , mtl -any
+      , plutus-tx-plugin -any
 
 benchmark flat
   import: lang
@@ -208,10 +208,10 @@ benchmark flat
     , plutus-core -any
     , plutus-contract -any
     , plutus-tx -any
-    , plutus-tx-plugin -any
     , pure-zlib -any
     , filepath -any
     , serialise -any
     , text -any
     , transformers -any
     , zlib
+    , plutus-tx-plugin -any

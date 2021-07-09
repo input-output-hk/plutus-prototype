@@ -1,0 +1,51 @@
+name:            digest
+version:         0.0.1.2
+copyright:       (c) 2009 Eugene Kirpichov
+license:         BSD3
+license-file:    LICENSE
+author:          Eugene Kirpichov <ekirpichov@gmail.com>
+maintainer:      Eugene Kirpichov <ekirpichov@gmail.com>
+category:        Cryptography
+synopsis:        Various cryptographic hashes for bytestrings; CRC32 and Adler32 for now.
+description:     This package provides efficient cryptographic hash implementations for
+                 strict and lazy bytestrings. For now, CRC32 and Adler32 are supported;
+                 they are implemented as FFI bindings to efficient code from zlib.
+stability:       provisional
+build-type:      Simple
+cabal-version:   >= 1.6
+
+extra-source-files:
+  testing/trivial-reference.c
+  testing/trivial.expected
+  testing/trivial.hs
+
+flag bytestring-in-base
+  description: In the ghc-6.6 era the bytestring modules were
+               included in the base package.
+  default: False
+
+source-repository head
+  type: git
+  location: git://github.com/jkff/digest
+
+library
+  exposed-modules: Data.Digest.CRC32,
+                   Data.Digest.Adler32
+  extensions:      CPP, ForeignFunctionInterface
+  build-depends: base < 5
+  if flag(bytestring-in-base)
+    -- bytestring was in base-2.0 and 2.1.1
+    build-depends: base >= 2.0 && < 2.2
+    cpp-options: -DBYTESTRING_IN_BASE
+  else
+    build-depends: base < 2.0 || >= 2.2, bytestring >= 0.9
+  ghc-options:     -Wall
+
+  if os(ghcjs)
+    hs-source-dirs: ghcjs-src
+  else
+    includes:        zlib.h
+    if !os(windows)
+      extra-libraries: z
+    else
+      build-depends: zlib

@@ -31,8 +31,18 @@ common lang
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
+flag ghcjs-plugin
+  description: build the plugin for GHCJS instead of GHC
+  default:     False
+  manual:      True
+
 library
     import: lang
+    -- For ghcjs (where we have some hope of this to work), we use a rather
+    -- peculiar hack.  We pretend this package exists.  So most of ghcjs is
+    -- trivially happy, but then when it's loaded, we'll swap it out for the
+    -- natively (e.g. not cross compiled like ghcjs results) package, such that
+    -- ghcjs can load the plugin and execute it natively.
     hs-source-dirs: src
     exposed-modules:
         PlutusTx.Plugin
@@ -56,7 +66,6 @@ library
         containers -any,
         extra -any,
         flat -any,
-        ghc >=8.10 && <9,
         ghc-prim -any,
         plutus-core -any,
         lens -any,
@@ -66,8 +75,18 @@ library
         text -any,
         transformers -any,
         plutus-tx -any
+    if(impl(ghcjs) || os(windows))
+        build-depends: plutus-ghc-stub
+    else
+        if(flag(ghcjs-plugin))
+            build-depends: ghcjs >=8.10 && <9
+        else
+            build-depends: ghc >=8.10 && <9
+
 
 test-suite plutus-tx-tests
+    if os(windows)
+        buildable: False
     type: exitcode-stdio-1.0
     hs-source-dirs: test
     main-is: Spec.hs
