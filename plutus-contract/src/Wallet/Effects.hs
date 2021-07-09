@@ -14,7 +14,6 @@ module Wallet.Effects(
     WalletEffects
     -- * Wallet effect
     , WalletEffect(..)
-    , Payment(..)
     , submitTxn
     , ownPubKey
     , balanceTx
@@ -44,7 +43,7 @@ import           Ledger.AddressMap           (AddressMap)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Wallet.Emulator.Error       (WalletAPIError)
 import           Wallet.Types                (AddressChangeRequest (..), AddressChangeResponse (..), Notification,
-                                              NotificationError, Payment (..))
+                                              NotificationError)
 
 data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()

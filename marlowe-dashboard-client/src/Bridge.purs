@@ -26,7 +26,6 @@ import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
-import Wallet.Types (Payment)
 import WalletData.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
 
 {-
@@ -129,8 +128,3 @@ instance pubKeyHashBridge :: Bridge Back.PubKeyHash Front.PubKeyHash where
 instance contractInstanceIdBridge :: Bridge Back.ContractInstanceId Front.PlutusAppId where
   toFront (Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }) = Front.PlutusAppId uuid
   toBack (Front.PlutusAppId uuid) = Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }
-
--- NOTE: the `Payment` type defined in `Marlowe.Semantics` is for something different
-instance paymentBridge :: Bridge Payment Payment where
-  toFront = identity
-  toBack = identity

@@ -12,7 +12,6 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _CurrentTimeReq,
     _AwaitTxConfirmedReq,
     _OwnContractInstanceIdReq,
-    _SendNotificationReq,
     _OwnPublicKeyReq,
     _UtxoAtReq,
     _AddressChangeReq,
@@ -26,7 +25,6 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _CurrentTimeResp,
     _AwaitTxConfirmedResp,
     _OwnContractInstanceIdResp,
-    _SendNotificationResp,
     _OwnPublicKeyResp,
     _UtxoAtResp,
     _AddressChangeResp,
@@ -58,7 +56,7 @@ import           Ledger.Slot                 (Slot (..))
 import           Ledger.Time                 (POSIXTime (..))
 import           Wallet.API                  (WalletAPIError)
 import           Wallet.Types                (AddressChangeRequest, AddressChangeResponse, ContractInstanceId,
-                                              EndpointDescription, EndpointValue, Notification, NotificationError)
+                                              EndpointDescription, EndpointValue)
 
 -- | Requests that 'Contract's can make
 data PABReq =
@@ -68,7 +66,6 @@ data PABReq =
     | CurrentTimeReq
     | AwaitTxConfirmedReq TxId
     | OwnContractInstanceIdReq
-    | SendNotificationReq Notification -- TODO: Delete
     | OwnPublicKeyReq
     | UtxoAtReq Address
     | AddressChangeReq AddressChangeRequest
@@ -86,7 +83,6 @@ instance Pretty PABReq where
     CurrentTimeReq           -> "Current time"
     AwaitTxConfirmedReq txid -> "Await tx confirmed:" <+> pretty txid
     OwnContractInstanceIdReq -> "Own contract instance ID"
-    SendNotificationReq noti -> "Send notification:" <+> pretty noti
     OwnPublicKeyReq          -> "Own public key"
     UtxoAtReq addr           -> "Utxo at:" <+> pretty addr
     AddressChangeReq req     -> "Address change:" <+> pretty req
@@ -102,7 +98,6 @@ data PABResp =
     | CurrentTimeResp POSIXTime
     | AwaitTxConfirmedResp TxId
     | OwnContractInstanceIdResp ContractInstanceId
-    | SendNotificationResp (Maybe NotificationError)
     | OwnPublicKeyResp PubKey
     | UtxoAtResp UtxoAtAddress
     | AddressChangeResp AddressChangeResponse
@@ -121,7 +116,6 @@ instance Pretty PABResp where
     CurrentTimeResp s           -> "Current time:" <+> pretty s
     AwaitTxConfirmedResp txid   -> "Tx confirmed:" <+> pretty txid
     OwnContractInstanceIdResp i -> "Own contract instance ID:" <+> pretty i
-    SendNotificationResp e      -> "Send notification:" <+> pretty e
     OwnPublicKeyResp k          -> "Own public key:" <+> pretty k
     UtxoAtResp rsp              -> "Utxo at:" <+> pretty rsp
     AddressChangeResp rsp       -> "Address change:" <+> pretty rsp
@@ -137,7 +131,6 @@ matches a b = case (a, b) of
   (CurrentTimeReq, CurrentTimeResp{})                     -> True
   (AwaitTxConfirmedReq{}, AwaitTxConfirmedResp{})         -> True
   (OwnContractInstanceIdReq, OwnContractInstanceIdResp{}) -> True
-  (SendNotificationReq{}, SendNotificationResp{})         -> True
   (OwnPublicKeyReq, OwnPublicKeyResp{})                   -> True
   (UtxoAtReq{}, UtxoAtResp{})                             -> True
   (AddressChangeReq{}, AddressChangeResp{})               -> True

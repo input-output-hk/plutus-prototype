@@ -32,8 +32,6 @@ module Wallet.API(
     startWatching,
     watchedAddresses,
     PubKey(..),
-    Payment(..),
-    emptyPayment,
     signTxAndSubmit,
     signTxAndSubmit_,
     payToPublicKey,
@@ -65,7 +63,6 @@ import           Ledger                      hiding (inputs, out, value)
 import           Ledger.Constraints.OffChain (UnbalancedTx (..), emptyUnbalancedTx)
 import           Wallet.Effects
 import           Wallet.Emulator.Error
-import           Wallet.Types                (emptyPayment)
 
 import           Prelude                     hiding (Ordering (..))
 

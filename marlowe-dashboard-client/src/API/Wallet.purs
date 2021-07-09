@@ -19,7 +19,6 @@ import Plutus.V1.Ledger.Tx (Tx, TxOutRef, TxOutTx)
 import Plutus.V1.Ledger.Value (Value)
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet)
-import Wallet.Types (Payment)
 
 createWallet ::
   forall m.
