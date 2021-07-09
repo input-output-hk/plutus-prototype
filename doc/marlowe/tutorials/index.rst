@@ -23,9 +23,9 @@ This document gives an overview the Marlowe tutorials.
     standard terminology that we will use in describing Marlowe.
 
 4.  :ref:`marlowe-step-by-step`
-    This tutorial explains the five ways of building contracts in
-    Marlowe. Four of these – ``Pay``, ``Let``, ``If`` and ``When`` –
-    build a complex contract from simpler contracts, and the fifth,
+    This tutorial explains the six ways of building contracts in
+    Marlowe. Five of these – ``Pay``, ``Let``, ``If``, ``When`` and ``Assert`` –
+    build a complex contract from simpler contracts, and the sixth,
     ``Close``, is a simple contract. In explaining these contracts we
     will also explain Marlowe *values*, *observations* and *actions*,
     which are used to supply external information and inputs to a
