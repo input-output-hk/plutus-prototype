@@ -170,6 +170,7 @@ nix = {
 };
 ----
 
+Note: after changing /etc/nix/nix.conf you must restart the nix-daemon on non-NixOS for the changes to take effect!
 
 === Nix on macOS
 
