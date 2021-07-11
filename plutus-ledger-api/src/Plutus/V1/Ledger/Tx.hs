@@ -454,8 +454,7 @@ pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v Nothing
 
 -- | The unspent outputs of a transaction.
 unspentOutputsTx :: Tx -> Map TxOutRef TxOut
-unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
-    f (idx, o) = (TxOutRef (txId t) idx, o)
+unspentOutputsTx t = Map.fromList [(r, o) | (o, r) <- txOutRefs t]
 
 -- | The transaction output references consumed by a transaction.
 spentOutputs :: Tx -> Set.Set TxOutRef
