@@ -31,6 +31,7 @@ import           Data.Coerce                      (coerce)
 import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
+import           Ledger                           (Block)
 import           Ledger.Crypto                    (pubKeyHash)
 import           Ledger.TimeSlot                  (SlotConfig)
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
@@ -44,7 +45,7 @@ import           Wallet.Effects                   (balanceTx, ownPubKey, startWa
 import           Wallet.Emulator.Wallet           (Wallet (..), emptyWalletState)
 import qualified Wallet.Emulator.Wallet           as Wallet
 
-app :: Trace IO WalletMsg -> Client.TxSendHandle -> Client.ChainSyncHandle -> ClientEnv -> MVar Wallets -> Application
+app :: Trace IO WalletMsg -> Client.TxSendHandle -> (Client.ChainSyncHandle Block) -> ClientEnv -> MVar Wallets -> Application
 app trace txSendHandle chainSyncHandle chainIndexEnv mVarState =
     serve (Proxy @(API Integer)) $
     hoistServer

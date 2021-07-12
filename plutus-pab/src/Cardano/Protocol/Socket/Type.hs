@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE PartialTypeSignatures #-}
@@ -107,9 +108,14 @@ doNothingResponderProtocol =
 type Offset = Integer
 
 -- | Boilerplate codecs used for protocol serialisation.
-codecChainSync :: Codec (ChainSync.ChainSync Block (Point Block) Tip)
-                        DeserialiseFailure
-                        IO BSL.ByteString
+codecChainSync
+  :: forall block.
+     ( Serialise block
+     , Serialise (HeaderHash block)
+     )
+  => Codec (ChainSync.ChainSync block (Point block) Tip)
+           DeserialiseFailure
+           IO BSL.ByteString
 codecChainSync =
     ChainSync.codecChainSync
       CBOR.encode             CBOR.decode

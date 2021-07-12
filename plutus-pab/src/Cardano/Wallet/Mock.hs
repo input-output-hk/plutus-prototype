@@ -48,6 +48,7 @@ import           Data.Function                    ((&))
 import qualified Data.Map                         as Map
 import           Data.Text.Encoding               (encodeUtf8)
 import           Data.Text.Prettyprint.Doc        (pretty)
+import           Ledger                           (Block)
 import qualified Ledger.Ada                       as Ada
 import           Ledger.Address                   (pubKeyAddress)
 import           Ledger.Crypto                    (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
@@ -160,7 +161,7 @@ processWalletEffects ::
     (MonadIO m, MonadError ServerError m)
     => Trace IO WalletMsg -- ^ trace for logging
     -> Client.TxSendHandle -- ^ node client
-    -> Client.ChainSyncHandle -- ^ node client
+    -> (Client.ChainSyncHandle Block) -- ^ node client
     -> ClientEnv          -- ^ chain index client
     -> MVar Wallets   -- ^ wallets state
     -> Eff (WalletEffects IO) a -- ^ wallet effect
@@ -180,7 +181,7 @@ processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState 
 runWalletEffects ::
     Trace IO WalletMsg -- ^ trace for logging
     -> Client.TxSendHandle -- ^ node client
-    -> Client.ChainSyncHandle -- ^ node client
+    -> (Client.ChainSyncHandle Block) -- ^ node client
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
     -> Eff (WalletEffects IO) a -- ^ wallet effect
