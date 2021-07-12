@@ -32,7 +32,11 @@ module Ledger.Index(
     validateTransactionOffChain,
     -- * Script validation events
     ScriptType(..),
-    ScriptValidationEvent(..)
+    ScriptValidationEvent(..),
+    Api.ExBudget(..),
+    Api.ExCPU(..),
+    Api.ExMemory(..),
+    Api.SatInt
     ) where
 
 import           Prelude                          hiding (lookup)
@@ -58,6 +62,7 @@ import           Ledger.Blockchain
 import qualified Ledger.TimeSlot                  as TimeSlot
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
+import qualified Plutus.V1.Ledger.Api             as Api
 import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), ScriptPurpose (..), TxInfo (..))
 import qualified Plutus.V1.Ledger.Contexts        as Validation
 import           Plutus.V1.Ledger.Credential      (Credential (..))
@@ -401,13 +406,19 @@ data ScriptType = ValidatorScript | MintingPolicyScript
 data ScriptValidationEvent =
     ScriptValidationEvent
         { sveScript :: Script -- ^ The script applied to all arguments
-        , sveResult :: Either ScriptError [String] -- ^ Result of running the script: an error or the trace logs
+        , sveResult :: Either ScriptError (Api.ExBudget, [String]) -- ^ Result of running the script: an error or the 'ExBudget' and trace logs
         , sveType   :: ScriptType -- ^ What type of script it was
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-validatorScriptValidationEvent :: Context -> Validator -> Datum -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+validatorScriptValidationEvent
+    :: Context
+    -> Validator
+    -> Datum
+    -> Redeemer
+    -> Either ScriptError (Api.ExBudget, [String])
+    -> ScriptValidationEvent
 validatorScriptValidationEvent ctx validator datum redeemer result =
     ScriptValidationEvent
         { sveScript = applyValidator ctx validator datum redeemer
@@ -415,7 +426,12 @@ validatorScriptValidationEvent ctx validator datum redeemer result =
         , sveType = ValidatorScript
         }
 
-mpsValidationEvent :: Context -> MintingPolicy -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+mpsValidationEvent
+    :: Context
+    -> MintingPolicy
+    -> Redeemer
+    -> Either ScriptError (Api.ExBudget, [String])
+    -> ScriptValidationEvent
 mpsValidationEvent ctx mps red result =
     ScriptValidationEvent
         { sveScript = applyMintingPolicyScript ctx mps red

@@ -16,13 +16,14 @@ import           Data.Bits
 import           Data.Csv
 import           Data.Primitive             (Prim)
 import           GHC.Base
+import           GHC.Generics
 import           GHC.Num
 import           GHC.Real
 import           Language.Haskell.TH.Syntax (Lift)
 
 newtype SatInt = SI { unSatInt :: Int }
     deriving newtype (NFData, Bits, FiniteBits, Prim)
-    deriving Lift
+    deriving stock (Lift, Generic)
     deriving (FromJSON, ToJSON) via Int
     deriving FromField via Int  -- For reading cost model data from CSV input
 

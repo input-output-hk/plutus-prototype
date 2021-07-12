@@ -54,7 +54,7 @@ runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeE
 runPlcCekTrace values = do
      ps <- Haskell.traverse toUPlc values
      let p = Haskell.foldl1 UPLC.applyProgram ps
-     let (logOut, tally, result) = evaluateCekTrace p
+     let (logOut, TallyingSt tally _, result) = evaluateCekTrace p
      res <- either (throwError . SomeException) Haskell.pure result
      Haskell.pure (logOut, tally, res)
 

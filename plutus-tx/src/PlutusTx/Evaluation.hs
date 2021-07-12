@@ -10,6 +10,7 @@ module PlutusTx.Evaluation
     , ErrorWithCause(..)
     , EvaluationError(..)
     , CekExTally
+    , TallyingSt(..)
     , CekEvaluationException
     )
 where
@@ -39,7 +40,7 @@ unsafeEvaluateCek (Program _ _ t) = Cek.unsafeEvaluateCekNoEmit PLC.defaultCekPa
 evaluateCekTrace
     :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun ()
-    -> ([String], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
+    -> ([String], TallyingSt fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
     case runCek PLC.defaultCekParameters Cek.tallying True t of
-        (errOrRes, TallyingSt st _, logs) -> (logs, st, errOrRes)
+        (errOrRes, st, logs) -> (logs, st, errOrRes)

@@ -251,7 +251,7 @@ verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
 verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BA.convert m) s
 
 runScript' :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
-runScript' (vd, v, d, r) = runScript vd v d r
+runScript' (vd, v, d, r) = snd <$> runScript vd v d r
 
 privk1 :: PrivateKey
 privk1 = Crypto.knownPrivateKeys !! 0

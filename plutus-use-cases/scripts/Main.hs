@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 module Main(main) where
 
 import qualified Control.Foldl                  as L
@@ -6,9 +7,10 @@ import qualified Data.ByteString.Lazy           as BSL
 import           Data.Default                   (Default (..))
 import           Data.Foldable                  (traverse_)
 import           Flat                           (flat)
-import           Ledger.Index                   (ScriptValidationEvent (sveScript))
+import           Ledger.Index                   (ScriptValidationEvent (..))
 import           Plutus.Trace.Emulator          (EmulatorConfig, EmulatorTrace)
 import qualified Plutus.Trace.Emulator          as Trace
+import           Plutus.V1.Ledger.Api           (ExBudget (..))
 import           Plutus.V1.Ledger.Scripts       (Script (..))
 import qualified Streaming.Prelude              as S
 import           System.Directory               (createDirectoryIfMissing)
@@ -46,7 +48,7 @@ main = do
 writeScripts :: FilePath -> IO ()
 writeScripts fp = do
     putStrLn $ "Writing scripts to: " <> fp
-    traverse_ (uncurry3 (writeScriptsTo fp))
+    traverse_ (writeScriptsTo fp)
         [ ("auction_1", Auction.auctionTrace1, Auction.auctionEmulatorCfg)
         , ("auction_2", Auction.auctionTrace2, Auction.auctionEmulatorCfg)
         , ("crowdfunding-success", Crowdfunding.successfulCampaign, def)
@@ -82,23 +84,18 @@ writeScripts fp = do
 -}
 writeScriptsTo
     :: FilePath
-    -> String
-    -> EmulatorTrace a
-    -> EmulatorConfig
+    -> (String, EmulatorTrace a, EmulatorConfig)
     -> IO ()
-writeScriptsTo fp prefix trace emulatorCfg = do
+writeScriptsTo fp (prefix, trace, emulatorCfg) = do
     let events =
             S.fst'
             $ run
             $ foldEmulatorStreamM (L.generalize Folds.scriptEvents)
             $ Trace.runEmulatorStream emulatorCfg trace
-        writeScript idx script = do
+        showBudget (ExBudget exCPU exMemory) = show exCPU <> ", " <> show exMemory
+        writeScript (idx, ScriptValidationEvent{sveScript, sveResult}) = do
             let filename = fp </> prefix <> "-" <> show idx <> ".flat"
-            putStrLn $ "Writing script: " <> filename
-            BSL.writeFile filename (BSL.fromStrict . flat . unScript $ script)
+            putStrLn $ "Writing script: " <> filename <> " (Cost: " <> either show (showBudget . fst) sveResult <> ")"
+            BSL.writeFile filename (BSL.fromStrict . flat . unScript $ sveScript)
     createDirectoryIfMissing True fp
-    traverse_ (uncurry writeScript) (zip [1::Int ..] (sveScript <$> events))
-
--- | `uncurry3` converts a curried function to a function on triples.
-uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
-uncurry3 f (a, b, c) = f a b c
+    traverse_ writeScript (zip [1::Int ..] events)

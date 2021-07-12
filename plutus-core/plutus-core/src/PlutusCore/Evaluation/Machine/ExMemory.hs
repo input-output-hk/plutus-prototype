@@ -100,7 +100,7 @@ type CostingInteger =
 
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
-  deriving (Eq, Ord, Show, Lift)
+  deriving (Eq, Ord, Show, Generic, Lift)
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
@@ -112,7 +112,7 @@ instance PrettyBy config ExMemory where
 -- | Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
 -- appproximately 106 days.
 newtype ExCPU = ExCPU CostingInteger
-  deriving (Eq, Ord, Show, Lift)
+  deriving (Eq, Ord, Show, Generic, Lift)
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger

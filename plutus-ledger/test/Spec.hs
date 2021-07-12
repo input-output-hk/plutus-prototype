@@ -231,7 +231,7 @@ pubkeyHashOnChainAndOffChain = property $ do
         onchainProg :: CompiledCode (PubKey -> PubKeyHash -> ())
         onchainProg = $$(PlutusTx.compile [|| \pk expected -> if expected PlutusTx.== Validation.pubKeyHash pk then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
         script = Scripts.fromCompiledCode $ onchainProg `applyCode` liftCode pk `applyCode` liftCode offChainHash
-        result = runExcept $ evaluateScript script
+        result = fmap snd . runExcept . evaluateScript $ script
     result Hedgehog.=== Right ["correct"]
 
 -- | Check that 'missingValueSpent' is the smallest value needed to
