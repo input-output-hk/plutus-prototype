@@ -223,7 +223,7 @@ marloweFollowContract = do
         let marloweTxInputs = filter (\(validator, _, _) -> validator == script) inputs
         case marloweTxInputs of
             []                          -> Nothing
-            [(_, Ledger.Redeemer d, _)] -> PlutusTx.fromData d
+            [(_, Ledger.Redeemer d, _)] -> PlutusTx.fromBuiltinData d
             _                           -> Nothing
 
 {-  This is a control contract.
@@ -265,7 +265,7 @@ marlowePlutusContract = do
         let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
         utxos <- utxoAt address
         let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
-                expectedDatumHash = datumHash (Datum $ PlutusTx.toData role)
+                expectedDatumHash = datumHash (Datum $ PlutusTx.toBuiltinData role)
                 amount = txOutValue txOutTxOut
                 in case txOutDatum txOutTxOut of
                     Just datumHash | datumHash == expectedDatumHash ->
@@ -596,7 +596,7 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
         payoutToTxOut (party, value) = case party of
             PK pk  -> mustPayToPubKey pk value
             Role role -> let
-                dataValue = Datum $ PlutusTx.toData role
+                dataValue = Datum $ PlutusTx.toBuiltinData role
                 in mustPayToOtherScript (rolePayoutValidatorHash params) dataValue value
 
         payoutByParty (Payment _ (Party party) money) = AssocMap.singleton party money
