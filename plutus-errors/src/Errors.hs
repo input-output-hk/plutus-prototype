@@ -10,7 +10,6 @@ import qualified PlutusCore.DeBruijn                      as PLC
 import qualified PlutusCore.Error                         as PLC
 import qualified PlutusCore.Evaluation.Machine.Exception  as PLC
 import qualified PlutusIR.Error                           as PIR
-import qualified PlutusIR.Parser                          as PIR
 import qualified PlutusTx.Code                            as PTX
 import qualified PlutusTx.Compiler.Error                  as PTX
 import qualified PlutusTx.Lift.Class                      as PTX
@@ -36,9 +35,6 @@ allErrors =
    , 'PIR.MalformedDataConstrResType
    , 'PIR.CompilationError
    , 'PIR.UnsupportedError
-   , 'PIR.UnknownBuiltinType
-   , 'PIR.BuiltinTypeNotAStar
-   , 'PIR.InvalidConstant
    , 'PLC.LexErr
    , 'PLC.Unexpected
    , 'PLC.UnknownBuiltinType

@@ -17,7 +17,7 @@ import           TransformSpec
 import           TypeSpec
 
 import           PlutusIR
-import           PlutusIR.Parser hiding (Error)
+import           PlutusIR.Parser
 
 import qualified PlutusCore      as PLC
 

@@ -7,6 +7,8 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
@@ -34,14 +36,15 @@ import           PlutusCore.Lexer.Type
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 
-import           Control.Lens                       hiding (use)
+import           Control.Lens                 hiding (use)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
-import qualified Data.Text                          as T
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import qualified Data.Text                    as T
 import           ErrorCode
-import           Universe
+import           Prettyprinter                (hardline, indent, squotes, (<+>))
+import           Prettyprinter.Internal       (Doc (Text))
+import           Text.Megaparsec.Pos          (SourcePos, sourcePosPretty)
+import           Universe                     (Closed (Everywhere), GEq, GShow)
 
 {- Note [Annotations and equality]
 Equality of two errors DOES DEPEND on their annotations.
@@ -65,7 +68,7 @@ data ParseError ann
     | BuiltinTypeNotAStar ann T.Text
     | UnknownBuiltinFunction ann T.Text
     | InvalidBuiltinConstant ann T.Text T.Text
-    deriving (Eq, Generic, NFData, Functor)
+    deriving (Eq, Ord, Generic, NFData, Functor)
 
 makeClassyPrisms ''ParseError
 
@@ -127,6 +130,9 @@ instance (tyname ~ TyName, name ~ Name) =>
 
 instance AsFreeVariableError (Error uni fun ann) where
     _FreeVariableError = _FreeVariableErrorE
+
+instance Pretty SourcePos where
+    pretty = pretty . sourcePosPretty
 
 instance Pretty ann => Pretty (ParseError ann) where
     pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)

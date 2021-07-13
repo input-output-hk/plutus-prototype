@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -7,6 +6,9 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module TestLib where
 
 import           Common
@@ -28,7 +30,6 @@ import           PlutusIR.Compiler    as PIR
 import           PlutusIR.Parser      as Parser
 import           PlutusIR.TypeCheck
 import           System.FilePath      (joinPath, (</>))
-import           Text.Megaparsec.Pos
 import qualified UntypedPlutusCore    as UPLC
 
 import qualified Data.Text            as T
@@ -83,10 +84,10 @@ withGoldenFileM name op = do
     return $ goldenVsTextM name goldenFile (op =<< T.readFile testFile)
     where currentDir = joinPath <$> ask
 
-goldenPir :: Pretty b => (a -> b) -> Parser a -> String -> TestNested
+goldenPir :: Pretty b => (a -> b) -> Parser SourcePos a -> String -> TestNested
 goldenPir op = goldenPirM (return . op)
 
-goldenPirM :: Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
+goldenPirM :: Pretty b => (a -> IO b) -> Parser SourcePos a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
     where parseOrError = either (return . T.pack . show) (fmap display . op)
                          . parse parser name
@@ -97,21 +98,31 @@ ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
 
-goldenPlcFromPir :: ToTPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
+goldenPlcFromPir ::
+    ToTPlc a PLC.DefaultUni PLC.DefaultFun =>
+    Parser SourcePos a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
                                 withExceptT @_ @PLC.FreeVariableError toException $ PLC.deBruijnProgram p)
 
-goldenPlcFromPirCatch :: ToTPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
+goldenPlcFromPirCatch ::
+    ToTPlc a PLC.DefaultUni PLC.DefaultFun =>
+    Parser SourcePos a -> String -> TestNested
 goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
                                            p <- toTPlc ast
                                            withExceptT @_ @PLC.FreeVariableError toException $ PLC.deBruijnProgram p)
 
-goldenEvalPir :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
+goldenEvalPir ::
+    ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
+    Parser SourcePos a -> String -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppThrow $ runUPlc [ast])
 
-goldenTypeFromPir :: forall a. (Pretty a, Typeable a)
-                  => a -> Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) -> String -> TestNested
+goldenTypeFromPir ::
+    forall a. (Pretty a, Typeable a) =>
+    a ->
+    Parser SourcePos (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) ->
+    String ->
+    TestNested
 goldenTypeFromPir x =
     goldenPirM $ \ast -> ppThrow $
         withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a -> SomeException) $
@@ -119,15 +130,15 @@ goldenTypeFromPir x =
                 tcConfig <- getDefTypeCheckConfig x
                 inferType tcConfig ast
 
-goldenTypeFromPirCatch :: forall a. (Pretty a, Typeable a)
-                  => a -> Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) -> String -> TestNested
+goldenTypeFromPirCatch ::
+    forall a. (Pretty a, Typeable a) =>
+    a ->
+    Parser SourcePos (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) ->
+    String ->
+    TestNested
 goldenTypeFromPirCatch x =
     goldenPirM $ \ast -> ppCatch $
         withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a -> SomeException) $
             runQuoteT $ do
                 tcConfig <- getDefTypeCheckConfig x
                 inferType tcConfig ast
-
--- TODO: perhaps move to Common.hs
-instance Pretty SourcePos where
-    pretty = pretty . sourcePosPretty
