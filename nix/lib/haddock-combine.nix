@@ -63,6 +63,12 @@ runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
     ${lib.optionalString (prologue != null) "--prologue ${prologue}"} \
     "''${interfaceOpts[@]}"
 
+  # TODO: remove patch when haddock > 2.24.0
+  # patch quick-jump.css to fix scrolling in search for chromium
+  for f in $(find $out -name "quick-jump.css"); do
+    sed -i -r "s,^\#search-results \{,\#search-results \{ max-height:80%;overflow-y:scroll;," "$f"
+  done
+
   # Following: https://github.com/input-output-hk/ouroboros-network/blob/2068d091bc7dcd3f4538fb76f1b598f219d1e0c8/scripts/haddocs.sh#L87
   # Assemble a toplevel `doc-index.json` from package level ones.
   shopt -s globstar
