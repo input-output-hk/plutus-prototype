@@ -69,7 +69,7 @@ import qualified Plutus.V1.Ledger.Slot            as Slot
 import           Plutus.V1.Ledger.Tx
 import           Plutus.V1.Ledger.TxId
 import qualified Plutus.V1.Ledger.Value           as V
-import           PlutusTx                         (toData)
+import           PlutusTx                         (toBuiltinData)
 import qualified PlutusTx.Numeric                 as P
 
 -- | Context for validating transactions. We need access to the unspent
@@ -265,7 +265,7 @@ checkMintingScripts tx = do
         let cs :: V.CurrencySymbol
             cs = V.mpsSymbol $ mintingPolicyHash vl
             ctx :: Context
-            ctx = Context $ toData $ ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
+            ctx = Context $ toBuiltinData $ ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
             ptr :: RedeemerPtr
             ptr = RedeemerPtr Mint (fromIntegral i)
         red <- case lookupRedeemer tx ptr of
@@ -326,7 +326,7 @@ checkMatch txinfo = \case
     ScriptMatch txOutRef vl r d -> do
         let
             ptx' = ScriptContext { scriptContextTxInfo = txinfo, scriptContextPurpose = Spending txOutRef }
-            vd = Context (toData ptx')
+            vd = Context (toBuiltinData ptx')
         case runExcept $ runScript vd vl d r of
             Left e -> do
                 tell [validatorScriptValidationEvent vd vl d r (Left e)]

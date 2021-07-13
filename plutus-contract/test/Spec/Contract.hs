@@ -249,7 +249,7 @@ errorContract = do
 
 someAddress :: Address
 someAddress = Ledger.scriptAddress $
-    Ledger.mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
+    Ledger.mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.BuiltinData) (_ :: PlutusTx.BuiltinData) (_ :: PlutusTx.BuiltinData) -> () ||])
 
 type Schema =
     Endpoint "1" Int

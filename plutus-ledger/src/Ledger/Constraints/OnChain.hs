@@ -39,7 +39,7 @@ checkOwnOutputConstraint
     -> OutputConstraint o
     -> Bool
 checkOwnOutputConstraint ctx@ScriptContext{scriptContextTxInfo} OutputConstraint{ocDatum, ocValue} =
-    let hsh = V.findDatumHash (Datum $ toData ocDatum) scriptContextTxInfo
+    let hsh = V.findDatumHash (Datum $ toBuiltinData ocDatum) scriptContextTxInfo
         checkOutput TxOut{txOutValue, txOutDatumHash=Just svh} =
             txOutValue == ocValue && hsh == Just svh
         checkOutput _       = False

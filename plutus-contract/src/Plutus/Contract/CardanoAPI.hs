@@ -145,7 +145,7 @@ toCardanoTxInWitness
         <$> toCardanoPlutusScript validator
         <*> pure (C.ScriptDatumForTxIn $ toCardanoScriptData datum)
         <*> pure (toCardanoScriptData redeemer)
-        <*> toCardanoExecutionUnits validator [datum, redeemer] -- TODO: is [datum, redeemer] correct?
+        <*> toCardanoExecutionUnits validator [Api.builtinDataToData datum, Api.builtinDataToData redeemer] -- TODO: is [datum, redeemer] correct?
         )
 
 toCardanoMintWitness :: P.MintingPolicy -> Either ToCardanoError (C.ScriptWitness C.WitCtxMint C.AlonzoEra)
@@ -328,11 +328,11 @@ fromCardanoExtraScriptData (C.TxExtraScriptData _ scriptData) = fmap (P.Datum . 
 toCardanoExtraScriptData :: [P.Datum] -> C.TxExtraScriptData C.AlonzoEra
 toCardanoExtraScriptData = C.TxExtraScriptData C.ScriptDataInAlonzoEra . fmap (toCardanoScriptData . P.getDatum)
 
-fromCardanoScriptData :: C.ScriptData -> Data.Data
-fromCardanoScriptData = C.toPlutusData
+fromCardanoScriptData :: C.ScriptData -> Api.BuiltinData
+fromCardanoScriptData = Api.dataToBuiltinData . C.toPlutusData
 
-toCardanoScriptData :: Data.Data -> C.ScriptData
-toCardanoScriptData = C.fromPlutusData
+toCardanoScriptData :: Api.BuiltinData -> C.ScriptData
+toCardanoScriptData = C.fromPlutusData . Api.builtinDataToData
 
 fromCardanoScriptInEra :: C.ScriptInEra era -> Either FromCardanoError P.Script
 fromCardanoScriptInEra (C.ScriptInEra C.PlutusScriptV1InAlonzo (C.PlutusScript C.PlutusScriptV1 script)) =

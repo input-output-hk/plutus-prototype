@@ -35,7 +35,7 @@ oneAtATimePolicy _ ctx =
 -- We can use 'compile' to turn a minting policy into a compiled Plutus Core program,
 -- just as for validator scripts. We also provide a 'wrapMintingPolicy' function
 -- to handle the boilerplate.
-oneAtATimeCompiled :: CompiledCode (Data -> Data -> ())
+oneAtATimeCompiled :: CompiledCode (BuiltinData -> BuiltinData -> ())
 oneAtATimeCompiled = $$(compile [|| wrapMintingPolicy oneAtATimePolicy ||])
 -- BLOCK2
 singleSignerPolicy :: ScriptContext -> Bool

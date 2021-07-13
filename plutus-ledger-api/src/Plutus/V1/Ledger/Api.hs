@@ -91,8 +91,13 @@ module Plutus.V1.Ledger.Api (
     , DatumHash (..)
     , datumHash
     -- * Data
-    , Data (..)
+    , PLC.Data (..)
+    , BuiltinData (..)
     , IsData (..)
+    , toData
+    , fromData
+    , dataToBuiltinData
+    , builtinDataToData
     -- * Errors
     , EvaluationError (..)
 ) where
@@ -122,6 +127,7 @@ import           Plutus.V1.Ledger.Time
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value
 import           PlutusCore                                       as PLC
+import qualified PlutusCore.Data                                  as PLC
 import qualified PlutusCore.DeBruijn                              as PLC
 import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
 import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
@@ -130,8 +136,9 @@ import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), E
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import qualified PlutusCore.MkPlc                                 as PLC
 import           PlutusCore.Pretty
-import           PlutusTx                                         (Data (..), IsData (..))
-import qualified PlutusTx.Lift                                    as PlutusTx
+import           PlutusTx                                         (IsData (..), fromData, toData)
+import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
+                                                                   dataToBuiltinData)
 import qualified UntypedPlutusCore                                as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
 
@@ -197,13 +204,12 @@ instance Pretty EvaluationError where
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
 -- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, and un-deBruijn-ifies it.
-mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
+mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate bs args = do
     (Script (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
     let namedTerm = UPLC.termMapNames PLC.fakeNameDeBruijn t
-        -- This should go away when Data is a builtin
-        termArgs = fmap PlutusTx.lift args
+        termArgs = fmap (PLC.mkConstant ()) args
         applied = PLC.mkIterApp () namedTerm termArgs
     liftEither $ first DeBruijnError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm applied
 
@@ -217,7 +223,7 @@ evaluateScriptRestricting
     -> CostModelParams -- ^ The cost model to use
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerializedScript          -- ^ The script to evaluate
-    -> [Data]          -- ^ The arguments to the script
+    -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ())
 evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
@@ -241,7 +247,7 @@ evaluateScriptCounting
     :: VerboseMode     -- ^ Whether to produce log output
     -> CostModelParams -- ^ The cost model to use
     -> SerializedScript          -- ^ The script to evaluate
-    -> [Data]          -- ^ The arguments to the script
+    -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args

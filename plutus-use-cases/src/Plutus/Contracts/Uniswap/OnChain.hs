@@ -259,7 +259,7 @@ validateAdd c lp liquidity ctx =
 {-# INLINABLE findPoolDatum #-}
 findPoolDatum :: TxInfo -> DatumHash -> (LiquidityPool, Amount Liquidity)
 findPoolDatum info h = case findDatum h info of
-    Just (Datum d) -> case PlutusTx.fromData d of
+    Just (Datum d) -> case PlutusTx.fromBuiltinData d of
         Just (Pool lp a) -> (lp, a)
         _                -> traceError "error decoding data"
     _              -> traceError "pool input datum not found"

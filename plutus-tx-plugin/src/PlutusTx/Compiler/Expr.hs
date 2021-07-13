@@ -438,6 +438,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
 
         -- See note [GHC runtime errors]
+        -- <error func> <runtime rep> <overall type> <call stack> <message>
+        GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ `GHC.App` _ ->
+            PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
         -- <error func> <runtime rep> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
             PIR.TyInst () <$> errorFunc <*> compileTypeNorm t

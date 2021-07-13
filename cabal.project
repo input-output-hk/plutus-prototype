@@ -35,6 +35,9 @@ write-ghc-environment-files: never
 tests: true
 benchmarks: true
 
+-- The only sensible test display option
+test-show-details: streaming
+
 -- This is also needed so evenful-sql-common will build with a
 -- newer version of persistent. See stack.yaml for the mirrored
 -- configuration.
@@ -147,7 +150,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: b8f1ebb46a91f1c634e616feb89ae34de5937e17
+  tag: 53dffa3c0f65a9e62f38b0b90569544c90208443
   subdir:
     byron/chain/executable-spec
     byron/crypto
@@ -193,5 +196,3 @@ source-repository-package
   type: git
   location: https://github.com/input-output-hk/goblins
   tag: cde90a2b27f79187ca8310b6549331e59595e7ba
-
-

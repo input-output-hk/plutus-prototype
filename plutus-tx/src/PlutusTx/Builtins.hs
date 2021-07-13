@@ -46,6 +46,8 @@ module PlutusTx.Builtins (
                                 , unsafeDataAsList
                                 , unsafeDataAsI
                                 , unsafeDataAsB
+                                , BI.builtinDataToData
+                                , BI.dataToBuiltinData
                                 -- * Strings
                                 , BuiltinString
                                 , appendString
@@ -55,6 +57,7 @@ module PlutusTx.Builtins (
                                 , encodeUtf8
                                 -- * Tracing
                                 , trace
+                                -- * Data
                                 ) where
 
 import           Data.ByteString            as BS
@@ -214,54 +217,69 @@ encodeUtf8 :: BuiltinString -> ByteString
 encodeUtf8 s = fromBuiltin (BI.encodeUtf8 s)
 
 {-# INLINABLE chooseData #-}
+-- | Given five values for the five different constructors of 'BuiltinData', selects
+-- one depending on which corresponds to the actual constructor of the given value.
 chooseData :: forall a . a -> a -> a -> a -> a -> BuiltinData -> a
 chooseData = BI.chooseData
 
 {-# INLINABLE mkConstr #-}
+-- | Constructs a 'BuiltinData' value with the @Constr@ constructor.
 mkConstr :: Integer -> [BuiltinData] -> BuiltinData
 mkConstr i args = BI.mkConstr (toBuiltin i) (toBuiltin args)
 
 {-# INLINABLE mkMap #-}
+-- | Constructs a 'BuiltinData' value with the @Map@ constructor.
 mkMap :: [(BuiltinData, BuiltinData)] -> BuiltinData
 mkMap es = BI.mkMap (toBuiltin es)
 
 {-# INLINABLE mkList #-}
+-- | Constructs a 'BuiltinData' value with the @List@ constructor.
 mkList :: [BuiltinData] -> BuiltinData
 mkList l = BI.mkList (toBuiltin l)
 
 {-# INLINABLE mkI #-}
+-- | Constructs a 'BuiltinData' value with the @I@ constructor.
 mkI :: Integer -> BuiltinData
 mkI i = BI.mkI (toBuiltin i)
 
 {-# INLINABLE mkB #-}
+-- | Constructs a 'BuiltinData' value with the @B@ constructor.
 mkB :: ByteString -> BuiltinData
 mkB b = BI.mkB (toBuiltin b)
 
 {-# INLINABLE unsafeDataAsConstr #-}
+-- | Deconstructs a 'BuiltinData' as a @Constr@, or fails if it is not one.
 unsafeDataAsConstr :: BuiltinData -> (Integer, [BuiltinData])
 unsafeDataAsConstr d = fromBuiltin (BI.unsafeDataAsConstr d)
 
 {-# INLINABLE unsafeDataAsMap #-}
+-- | Deconstructs a 'BuiltinData' as a @Map@, or fails if it is not one.
 unsafeDataAsMap :: BuiltinData -> [(BuiltinData, BuiltinData)]
 unsafeDataAsMap d = fromBuiltin (BI.unsafeDataAsMap d)
 
 {-# INLINABLE unsafeDataAsList #-}
+-- | Deconstructs a 'BuiltinData' as a @List@, or fails if it is not one.
 unsafeDataAsList :: BuiltinData -> [BuiltinData]
 unsafeDataAsList d = fromBuiltin (BI.unsafeDataAsList d)
 
 {-# INLINABLE unsafeDataAsI #-}
+-- | Deconstructs a 'BuiltinData' as an @I@, or fails if it is not one.
 unsafeDataAsI :: BuiltinData -> Integer
 unsafeDataAsI d = fromBuiltin (BI.unsafeDataAsI d)
 
 {-# INLINABLE unsafeDataAsB #-}
+-- | Deconstructs a 'BuiltinData' as a @B@, or fails if it is not one.
 unsafeDataAsB :: BuiltinData -> ByteString
 unsafeDataAsB d = fromBuiltin (BI.unsafeDataAsB d)
 
 {-# INLINABLE equalsData #-}
+-- | Check if two 'BuiltinData's are equal.
 equalsData :: BuiltinData -> BuiltinData -> Bool
 equalsData d1 d2 = fromBuiltin (BI.equalsData d1 d2)
 
 {-# INLINABLE matchData #-}
+-- | Given a 'BuiltinData' value and matching functions for the five constructors,
+-- applies the appropriate matcher to the arguments of the constructor and returns the result.
 matchData
     :: BuiltinData
     -> (Integer -> [BuiltinData] -> r)

@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
 
 module Plugin.Data.Spec where
@@ -15,6 +16,7 @@ import           Plugin.Lib
 import qualified PlutusTx.Builtins  as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Plugin
+import qualified PlutusTx.Prelude   as P
 
 import qualified PlutusCore.Default as PLC
 
@@ -56,6 +58,13 @@ basicEnum = plc (Proxy @"basicEnum") Enum1
 data MyMonoData = Mono1 Integer Integer | Mono2 Integer | Mono3 Integer
     deriving (Show, Eq)
 
+instance P.Eq MyMonoData where
+    {-# INLINABLE (==) #-}
+    (Mono1 i1 j1) == (Mono1 i2 j2) = i1 P.== i2 && j1 P.== j2
+    (Mono2 i1) == (Mono2 i2)       = i1 P.== i2
+    (Mono3 i1) == (Mono3 i2)       = i1 P.== i2
+    _ == _                         = False
+
 monoDataType :: CompiledCode (MyMonoData -> MyMonoData)
 monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> x)
 
@@ -79,6 +88,10 @@ atPattern = plc (Proxy @"atPattern") (\t@(x::Integer, y::Integer) -> let fst (a,
 
 data MyMonoRecord = MyMonoRecord { mrA :: Integer , mrB :: Integer}
     deriving (Show, Eq)
+
+instance P.Eq MyMonoRecord where
+    {-# INLINABLE (==) #-}
+    (MyMonoRecord i1 j1) == (MyMonoRecord i2 j2) = i1 P.== i2 && j1 P.== j2
 
 monoRecord :: CompiledCode (MyMonoRecord -> MyMonoRecord)
 monoRecord = plc (Proxy @"monoRecord") (\(x :: MyMonoRecord) -> x)
@@ -110,6 +123,11 @@ polyData = testNested "polymorphic" [
   ]
 
 data MyPolyData a b = Poly1 a b | Poly2 a
+
+instance (P.Eq a, P.Eq b) => P.Eq (MyPolyData a b) where
+    {-# INLINABLE (==) #-}
+    (Poly1 a1 b1) == (Poly1 a2 b2) = a1 P.== a2 && b1 P.== b2
+    (Poly2 a1) == (Poly2 a2)       = a1 P.== a2
 
 polyDataType :: CompiledCode (MyPolyData Integer Integer -> MyPolyData Integer Integer)
 polyDataType = plc (Proxy @"polyDataType") (\(x:: MyPolyData Integer Integer) -> x)

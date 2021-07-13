@@ -223,35 +223,3 @@ executable plutus-use-cases-scripts
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
-
-benchmark plutus-use-cases-bench
-    type: exitcode-stdio-1.0
-    main-is: Bench.hs
-    hs-source-dirs: bench
-    other-modules:
-        Scott
-        Recursion
-        IFix
-        Opt
-    default-language: Haskell2010
-    ghc-options: -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
-                 -rtsopts
-    build-depends:
-        base -any,
-        criterion -any,
-        cryptonite -any,
-        data-default -any,
-        freer-extras -any,
-        plutus-core -any,
-        lens -any,
-        memory -any,
-        mtl -any,
-        plutus-tx -any,
-        plutus-use-cases -any,
-        plutus-ledger -any,
-        bytestring -any,
-        plutus-contract -any
-
-  if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin -any

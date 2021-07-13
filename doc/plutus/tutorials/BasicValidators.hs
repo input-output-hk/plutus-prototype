@@ -43,15 +43,15 @@ unstableMakeIsData ''Date
 unstableMakeIsData ''EndDate
 
 -- BLOCK2
-alwaysSucceeds :: Data -> Data -> Data -> ()
+alwaysSucceeds :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 alwaysSucceeds _ _ _ = ()
 
-alwaysFails :: Data -> Data -> Data -> ()
+alwaysFails :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 alwaysFails _ _ _ = error ()
 
 -- We can use 'compile' to turn a validator function into a compiled Plutus Core program.
 -- Here's a reminder of how to do it.
-alwaysSucceedsCompiled :: CompiledCode (Data -> Data -> Data -> ())
+alwaysSucceedsCompiled :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
 alwaysSucceedsCompiled = $$(compile [|| alwaysSucceeds ||])
 -- BLOCK3
 -- | Checks if a date is before the given end date.
@@ -60,18 +60,18 @@ beforeEnd (Date d) (Fixed e) = d <= e
 beforeEnd (Date _) Never     = True
 
 -- | Check that the date in the redeemer is before the limit in the datum.
-validateDate :: Data -> Data -> Data -> ()
+validateDate :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 -- The 'check' function takes a 'Bool' and fails if it is false.
 -- This is handy since it's more natural to talk about booleans.
-validateDate datum redeemer _ = check $ case (fromData datum, fromData redeemer) of
+validateDate datum redeemer _ = check $ case (fromBuiltinData datum, fromBuiltinData redeemer) of
     -- We can decode both the arguments at the same time: 'Just' means that
     -- decoding succeeded.
     (Just endDate, Just date) -> beforeEnd date endDate
     -- One or the other failed to decode.
     _                         -> False
 -- BLOCK4
-validatePayment :: Data -> Data -> Data -> ()
-validatePayment _ _ ctx = check $ case fromData ctx of
+validatePayment :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+validatePayment _ _ ctx = check $ case fromBuiltinData ctx of
     Just valCtx ->
         -- The 'TxInfo' in the validation context is the representation of the
         -- transaction being validated
@@ -92,7 +92,7 @@ instance ValidatorTypes DateValidator where
 validateDateTyped :: EndDate -> Date -> ScriptContext -> Bool
 validateDateTyped endDate date _ = beforeEnd date endDate
 
-validateDateWrapped :: Data -> Data -> Data -> ()
+validateDateWrapped :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 validateDateWrapped = wrapValidator validateDateTyped
 -- BLOCK7
 dateInstance :: TypedValidator DateValidator
@@ -123,11 +123,11 @@ envelopeDateValidator = serialiseToTextEnvelope Nothing (getValidator dateValida
 
 -- Envelope of the 'Datum' representing the 'Date' datatype.
 envelopeDate :: Date -> TextEnvelope
-envelopeDate d = serialiseToTextEnvelope Nothing (Datum $ toData d)
+envelopeDate d = serialiseToTextEnvelope Nothing (Datum $ toBuiltinData d)
 
 -- Envelope of the 'Redeemer' representing the 'EndDate' datatype.
 envelopeEndDate :: EndDate -> TextEnvelope
-envelopeEndDate d = serialiseToTextEnvelope Nothing (Redeemer $ toData d)
+envelopeEndDate d = serialiseToTextEnvelope Nothing (Redeemer $ toBuiltinData d)
 
 main :: IO ()
 main = do

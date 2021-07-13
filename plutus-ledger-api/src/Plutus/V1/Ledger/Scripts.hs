@@ -12,6 +12,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -73,10 +74,12 @@ import           GHC.Generics                     (Generic)
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (..))
 import           Plutus.V1.Ledger.Orphans         ()
 import qualified PlutusCore                       as PLC
-import           PlutusTx                         (CompiledCode, Data (..), IsData (..), getPlc, makeLift)
+import qualified PlutusCore.Data                  as PLC
+import qualified PlutusCore.MkPlc                 as PLC
+import           PlutusTx                         (CompiledCode, IsData (..), getPlc, makeLift)
 import           PlutusTx.Builtins                as Builtins
+import           PlutusTx.Builtins.Internal       as BI
 import           PlutusTx.Evaluation              (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
-import           PlutusTx.Lift                    (liftCode)
 import           PlutusTx.Prelude
 import qualified UntypedPlutusCore                as UPLC
 
@@ -159,6 +162,9 @@ fromPlc (UPLC.Program a v t) =
     let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t
     in Script $ UPLC.Program a v nameless
 
+constantScript :: (PLC.DefaultUni `PLC.Contains` a) => a -> Script
+constantScript a = Script $ UPLC.Program () (PLC.defaultVersion ()) $ PLC.mkConstant () a
+
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
 applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `UPLC.applyProgram` s2
@@ -195,19 +201,19 @@ instance ToJSON Script where
 instance FromJSON Script where
     parseJSON = JSON.decodeSerialise
 
-instance ToJSON Data where
+instance ToJSON PLC.Data where
     toJSON = JSON.String . JSON.encodeSerialise
 
-instance FromJSON Data where
+instance FromJSON PLC.Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> Validator
+mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMintingPolicyScript :: CompiledCode (Data -> Data -> ()) -> MintingPolicy
+mkMintingPolicyScript :: CompiledCode (BuiltinData -> BuiltinData -> ()) -> MintingPolicy
 mkMintingPolicyScript = MintingPolicy . fromCompiledCode
 
 unMintingPolicyScript :: MintingPolicy -> Script
@@ -230,11 +236,11 @@ instance BA.ByteArrayAccess Validator where
         BA.withByteArray . BSL.toStrict . serialise
 
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
-newtype Datum = Datum { getDatum :: Data  }
+newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving stock (Generic, Haskell.Show)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData, NFData)
-  deriving anyclass (ToJSON, FromJSON)
-  deriving Pretty via Data
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, IsData)
+  deriving (ToJSON, FromJSON, Serialise, NFData) via PLC.Data
+  deriving Pretty via PLC.Data
 
 instance BA.ByteArrayAccess Datum where
     length =
@@ -243,13 +249,10 @@ instance BA.ByteArrayAccess Datum where
         BA.withByteArray . BSL.toStrict . serialise
 
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
-newtype Redeemer = Redeemer { getRedeemer :: Data }
+newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving stock (Generic, Haskell.Show)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, NFData)
-  deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty Redeemer where
-    pretty (Redeemer dat) = "Redeemer:" <+> pretty dat
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq)
+  deriving (ToJSON, FromJSON, Serialise, NFData, Pretty) via PLC.Data
 
 instance BA.ByteArrayAccess Redeemer where
     length =
@@ -325,9 +328,8 @@ mintingPolicyHash vl = MintingPolicyHash $ BA.convert h' where
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
-newtype Context = Context Data
-    deriving stock (Generic, Haskell.Show)
-    deriving anyclass (ToJSON, FromJSON)
+newtype Context = Context BuiltinData
+    deriving (ToJSON, FromJSON) via PLC.Data
 
 -- | Apply a 'Validator' to its 'Context', 'Datum', and 'Redeemer'.
 applyValidator
@@ -336,8 +338,8 @@ applyValidator
     -> Datum
     -> Redeemer
     -> Script
-applyValidator (Context valData) (Validator validator) (Datum datum) (Redeemer redeemer) =
-    ((validator `applyScript` (fromCompiledCode $ liftCode datum)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
+applyValidator (Context (BuiltinData valData)) (Validator validator) (Datum (BuiltinData datum)) (Redeemer (BuiltinData redeemer)) =
+    ((validator `applyScript` constantScript datum) `applyScript` constantScript redeemer) `applyScript` constantScript valData
 
 -- | Evaluate a 'Validator' with its 'Context', 'Datum', and 'Redeemer', returning the log.
 runScript
@@ -356,8 +358,8 @@ applyMintingPolicyScript
     -> MintingPolicy
     -> Redeemer
     -> Script
-applyMintingPolicyScript (Context valData) (MintingPolicy validator) (Redeemer red) =
-    (validator `applyScript` (fromCompiledCode $ liftCode red)) `applyScript` (fromCompiledCode $ liftCode valData)
+applyMintingPolicyScript (Context (BuiltinData valData)) (MintingPolicy validator) (Redeemer (BuiltinData red)) =
+    (validator `applyScript` constantScript red) `applyScript` constantScript valData
 
 -- | Evaluate a 'MintingPolicy' with its 'Context' and 'Redeemer', returning the log.
 runMintingPolicyScript
@@ -371,11 +373,11 @@ runMintingPolicyScript context mps red = do
 
 -- | @()@ as a datum.
 unitDatum :: Datum
-unitDatum = Datum $ toData ()
+unitDatum = Datum $ toBuiltinData ()
 
 -- | @()@ as a redeemer.
 unitRedeemer :: Redeemer
-unitRedeemer = Redeemer $ toData ()
+unitRedeemer = Redeemer $ toBuiltinData ()
 
 makeLift ''ValidatorHash
 

@@ -72,6 +72,7 @@ test-suite plutus-tx-tests
     hs-source-dirs: test
     main-is: Spec.hs
     other-modules:
+        IsData.Spec
         Lift.Spec
         Plugin.Spec
         Plugin.Basic.Spec

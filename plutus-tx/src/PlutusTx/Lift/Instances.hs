@@ -15,6 +15,7 @@ module PlutusTx.Lift.Instances () where
 import qualified PlutusCore          as PLC
 
 import           PlutusCore.Data
+import           PlutusTx.Builtins
 import           PlutusTx.Lift.Class
 
 import           PlutusIR
@@ -90,6 +91,12 @@ instance uni `PLC.Includes` Char => Typeable uni Char where
 
 instance uni `PLC.Includes` Char => Lift uni Char where
     lift = liftBuiltin
+
+instance uni `PLC.Includes` Data => Typeable uni BuiltinData where
+    typeRep _ = typeRepBuiltin (Proxy @Data)
+
+instance uni `PLC.Includes` Data => Lift uni BuiltinData where
+    lift d = liftBuiltin (builtinDataToData d)
 
 -- Standard types
 -- These need to be in a separate file for TH staging reasons

@@ -131,6 +131,10 @@ instance Arbitrary PlutusTx.Data where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
+instance Arbitrary PlutusTx.BuiltinData where
+    arbitrary = PlutusTx.dataToBuiltinData <$> arbitrary
+    shrink d = PlutusTx.dataToBuiltinData <$> shrink (PlutusTx.builtinDataToData d)
+
 instance Arbitrary Ledger.Datum where
     arbitrary = genericArbitrary
     shrink = genericShrink

@@ -393,7 +393,7 @@ addOwnOutput OutputConstraint{ocDatum, ocValue} = do
     ScriptLookups{slTypedValidator} <- ask
     inst <- maybe (throwError TypedValidatorMissing) pure slTypedValidator
     let txOut = Typed.makeTypedScriptTxOut inst ocDatum ocValue
-        dsV   = Datum (toData ocDatum)
+        dsV   = Datum (toBuiltinData ocDatum)
     unbalancedTx . tx . Tx.outputs %= (Typed.tyTxOutTxOut txOut :)
     unbalancedTx . tx . Tx.datumWitnesses . at (datumHash dsV) .= Just dsV
     valueSpentOutputs <>= provided ocValue

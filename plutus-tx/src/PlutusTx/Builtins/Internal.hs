@@ -192,6 +192,7 @@ STRING
 
 type BuiltinChar = Char
 newtype BuiltinString = BuiltinString String
+    deriving newtype (Show, Eq, Ord)
 
 {-# NOINLINE appendString #-}
 appendString :: BuiltinString -> BuiltinString -> BuiltinString
@@ -222,6 +223,7 @@ PAIR
 -}
 
 newtype BuiltinPair a b = BuiltinPair (a, b)
+    deriving newtype (Show, Eq, Ord)
 
 {-# NOINLINE fst #-}
 fst :: BuiltinPair a b -> a
@@ -240,11 +242,12 @@ LIST
 -}
 
 newtype BuiltinList a = BuiltinList [a]
+    deriving newtype (Show, Eq, Ord)
 
 {-# NOINLINE null #-}
 null :: BuiltinList a -> BuiltinBool
-null (BuiltinList (_:_)) = coerce True
-null (BuiltinList [])    = coerce False
+null (BuiltinList (_:_)) = coerce False
+null (BuiltinList [])    = coerce True
 
 {-# NOINLINE head #-}
 head :: BuiltinList a -> a
@@ -272,8 +275,32 @@ mkCons a (BuiltinList as) = BuiltinList (a:as)
 DATA
 -}
 
-newtype BuiltinData = BuiltinData { unsafeGetData :: PLC.Data }
+{-|
+A type corresponding to the Plutus Core builtin equivalent of 'PLC.Data'.
+
+The point of this type is to be an opaque equivalent of 'PLC.Data', so as to
+ensure that it is only used in ways that the compiler can handle.
+
+As such, you should use this type in your on-chain code, and in any data structures
+that you want to be representable on-chain.
+
+For off-chain usage, there are conversion functions 'builtinDataToData' and
+'dataToBuiltinData', but note that these will not work on-chain.
+-}
+newtype BuiltinData = BuiltinData PLC.Data
     deriving newtype (Show, Eq, Ord)
+
+-- NOT a builtin, only safe off-chain, hence the NOINLINE
+{-# NOINLINE builtinDataToData #-}
+-- | Convert a 'BuiltinData' into a 'PLC.Data'. Only works off-chain.
+builtinDataToData :: BuiltinData -> PLC.Data
+builtinDataToData (BuiltinData d) = d
+
+-- NOT a builtin, only safe off-chain, hence the NOINLINE
+{-# NOINLINE dataToBuiltinData #-}
+-- | Convert a 'PLC.Data' into a 'BuiltinData'. Only works off-chain.
+dataToBuiltinData :: PLC.Data -> BuiltinData
+dataToBuiltinData = BuiltinData
 
 {-# NOINLINE chooseData #-}
 chooseData :: forall a . a -> a -> a -> a -> a -> BuiltinData -> a

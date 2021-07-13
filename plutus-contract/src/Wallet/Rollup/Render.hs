@@ -147,6 +147,9 @@ instance Render Builtins.ByteString where
 deriving via RenderPretty PlutusTx.Data instance
          Render PlutusTx.Data
 
+instance Render PlutusTx.BuiltinData where
+    render d = render $ PlutusTx.builtinDataToData d
+
 deriving newtype instance Render Value
 
 instance (Render k, Render v) => Render (AssocMap.Map k v) where

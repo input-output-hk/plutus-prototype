@@ -17,6 +17,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
@@ -598,7 +599,7 @@ escrowParams
 escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
     let
         address = Ledger.validatorHash $ Scripts.validatorScript $ SM.typedValidator $ SM.scInstance client
-        dataScript  = Ledger.Datum $ PlutusTx.toData $ initialState future
+        dataScript  = Ledger.Datum $ PlutusTx.toBuiltinData $ initialState future
         targets =
             [ Escrow.payToScriptTarget address
                 dataScript

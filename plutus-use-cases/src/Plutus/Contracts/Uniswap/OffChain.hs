@@ -211,7 +211,7 @@ create us CreateParams{..} = do
         tx       = Constraints.mustPayToTheScript usDat1 usVal                                     <>
                    Constraints.mustPayToTheScript usDat2 lpVal                                     <>
                    Constraints.mustMintValue (unitValue psC <> valueOf lC liquidity)              <>
-                   Constraints.mustSpendScriptOutput oref (Redeemer $ PlutusTx.toData $ Create lp)
+                   Constraints.mustSpendScriptOutput oref (Redeemer $ PlutusTx.toBuiltinData $ Create lp)
 
     ledgerTx <- submitTxConstraintsWith lookups tx
     void $ awaitTxConfirmed $ txId ledgerTx
@@ -232,7 +232,7 @@ close us CloseParams{..} = do
         usVal    = unitValue usC
         psVal    = unitValue psC
         lVal     = valueOf lC liquidity
-        redeemer = Redeemer $ PlutusTx.toData Close
+        redeemer = Redeemer $ PlutusTx.toBuiltinData Close
 
         lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
@@ -244,7 +244,7 @@ close us CloseParams{..} = do
                    Constraints.mustMintValue (negate $ psVal <> lVal) <>
                    Constraints.mustSpendScriptOutput oref1 redeemer    <>
                    Constraints.mustSpendScriptOutput oref2 redeemer    <>
-                   Constraints.mustIncludeDatum (Datum $ PlutusTx.toData $ Pool lp liquidity)
+                   Constraints.mustIncludeDatum (Datum $ PlutusTx.toBuiltinData $ Pool lp liquidity)
 
     ledgerTx <- submitTxConstraintsWith lookups tx
     void $ awaitTxConfirmed $ txId ledgerTx
@@ -269,7 +269,7 @@ remove us RemoveParams{..} = do
         inB          = amountOf inVal rpCoinB
         (outA, outB) = calculateRemoval inA inB liquidity rpDiff
         val          = psVal <> valueOf rpCoinA outA <> valueOf rpCoinB outB
-        redeemer     = Redeemer $ PlutusTx.toData Remove
+        redeemer     = Redeemer $ PlutusTx.toBuiltinData Remove
 
         lookups  = Constraints.typedValidatorLookups usInst          <>
                    Constraints.otherScript usScript                  <>
@@ -310,7 +310,7 @@ add us AddParams{..} = do
         psVal        = unitValue psC
         lVal         = valueOf lC delL
         val          = psVal <> valueOf apCoinA newA <> valueOf apCoinB newB
-        redeemer     = Redeemer $ PlutusTx.toData Add
+        redeemer     = Redeemer $ PlutusTx.toBuiltinData Add
 
         lookups  = Constraints.typedValidatorLookups usInst             <>
                    Constraints.otherScript usScript                     <>
@@ -359,7 +359,7 @@ swap us SwapParams{..} = do
                   Constraints.unspentOutputs (Map.singleton oref o)      <>
                   Constraints.ownPubKeyHash pkh
 
-        tx      = mustSpendScriptOutput oref (Redeemer $ PlutusTx.toData Swap) <>
+        tx      = mustSpendScriptOutput oref (Redeemer $ PlutusTx.toBuiltinData Swap) <>
                   Constraints.mustPayToTheScript (Pool lp liquidity) val
 
     logInfo $ show tx
@@ -410,7 +410,7 @@ getUniswapDatum o = case txOutDatumHash $ txOutTxOut o of
         Nothing -> throwError "datumHash not found"
         Just h -> case Map.lookup h $ txData $ txOutTxTx o of
             Nothing -> throwError "datum not found"
-            Just (Datum e) -> case PlutusTx.fromData e of
+            Just (Datum e) -> case PlutusTx.fromBuiltinData e of
                 Nothing -> throwError "datum has wrong type"
                 Just d  -> return d
 

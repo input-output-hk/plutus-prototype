@@ -19,6 +19,7 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE ViewPatterns              #-}
+{-# OPTIONS_GHC -Wno-orphans           #-}
 -- | Typed transaction inputs and outputs. This module defines typed versions
 --   of various ledger types. The ultimate goal is to make sure that the script
 --   types attached to inputs and outputs line up, to avoid type errors at
@@ -34,6 +35,9 @@ import           Plutus.V1.Ledger.TxId
 import qualified Plutus.V1.Ledger.Value    as Value
 
 import           PlutusTx
+
+import           Codec.Serialise           (deserialise, serialise)
+import qualified Data.ByteString.Lazy      as BSL
 
 import           Data.Aeson                (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import           Data.Aeson.Types          (typeMismatch)
@@ -69,8 +73,8 @@ makeTypedScriptTxIn
     -> TypedScriptTxIn inn
 makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOutData=d}) =
     let vs = validatorScript si
-        rs = Redeemer (toData r)
-        ds = Datum (toData d)
+        rs = Redeemer (toBuiltinData r)
+        ds = Datum (toBuiltinData d)
         txInType = ConsumeScriptAddress vs rs ds
     in TypedScriptTxIn @inn (TxIn ref (Just txInType)) tyRef
 
@@ -112,7 +116,7 @@ makeTypedScriptTxOut
     -> Value.Value
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
-    let outTy = datumHash $ Datum $ toData d
+    let outTy = datumHash $ Datum $ toBuiltinData d
     in TypedScriptTxOut @out TxOut{txOutAddress = validatorAddress ct, txOutValue=value, txOutDatumHash = Just outTy} d
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
@@ -154,12 +158,18 @@ data ConnectionError =
     | WrongInType TxInType
     | MissingInType
     | WrongValidatorType String
-    | WrongRedeemerType
-    | WrongDatumType
+    | WrongRedeemerType BuiltinData
+    | WrongDatumType BuiltinData
     | NoDatum TxId DatumHash
     | UnknownRef
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+-- TODO: these should probably live somewhere else
+instance ToJSON BuiltinData where
+    toJSON d = toJSON (BSL.toStrict (serialise (builtinDataToData d)))
+instance FromJSON BuiltinData where
+    parseJSON v = dataToBuiltinData . deserialise . BSL.fromStrict <$> parseJSON v
 
 instance Pretty ConnectionError where
     pretty = \case
@@ -168,8 +178,8 @@ instance Pretty ConnectionError where
         WrongInType t               -> "Wrong in type:" <+> viaShow t
         MissingInType               -> "Missing in type"
         WrongValidatorType t        -> "Wrong validator type:" <+> pretty t
-        WrongRedeemerType           -> "Wrong redeemer type"
-        WrongDatumType              -> "Wrong datum type"
+        WrongRedeemerType d         -> "Wrong redeemer type" <+> pretty (builtinDataToData d)
+        WrongDatumType d            -> "Wrong datum type" <+> pretty (builtinDataToData d)
         NoDatum t d                 -> "No datum with hash " <+> pretty d <+> "for tx" <+> pretty t
         UnknownRef                  -> "Unknown reference"
 
@@ -187,9 +197,9 @@ checkRedeemer
     -> Redeemer
     -> m (RedeemerType inn)
 checkRedeemer _ (Redeemer d) =
-    case fromData d of
+    case fromBuiltinData d of
         Just v  -> pure v
-        Nothing -> throwError WrongRedeemerType
+        Nothing -> throwError $ WrongRedeemerType d
 
 -- | Checks that the given datum has the right type.
 checkDatum
@@ -198,9 +208,9 @@ checkDatum
     -> Datum
     -> m (DatumType a)
 checkDatum _ (Datum d) =
-    case fromData d of
+    case fromBuiltinData d of
         Just v  -> pure v
-        Nothing -> throwError WrongDatumType
+        Nothing -> throwError $ WrongDatumType d
 
 -- | Create a 'TypedScriptTxIn' from an existing 'TxIn' by checking the types of its parts.
 typeScriptTxIn
