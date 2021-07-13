@@ -42,6 +42,7 @@ import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
 import qualified Ledger.Constraints.OffChain    as U
 import           Ledger.Credential              (Credential (..))
 import qualified Ledger.Crypto                  as Crypto
+import           Ledger.Fee                     (FeeConfig (..), calcFees)
 import qualified Ledger.Tx                      as Tx
 import qualified Ledger.Value                   as Value
 import           Plutus.Contract.Checkpoint     (CheckpointLogMsg)
@@ -157,8 +158,9 @@ handleWallet ::
     , Member (State WalletState) effs
     , Member (LogMsg TxBalanceMsg) effs
     )
-    => WalletEffect ~> Eff effs
-handleWallet = \case
+    => FeeConfig
+    -> WalletEffect ~> Eff effs
+handleWallet feeCfg = \case
     SubmitTxn tx -> do
         logInfo $ SubmittingTx tx
         W.publishTx tx
@@ -166,7 +168,7 @@ handleWallet = \case
     BalanceTx utx -> runError $ do
         logInfo $ BalancingUnbalancedTx utx
         utxo <- get >>= ownOutputs
-        utxWithFees <- validateTxAndAddFees utxo utx
+        utxWithFees <- validateTxAndAddFees feeCfg utxo utx
         -- balance to add fees
         tx' <- handleBalanceTx utxo (utx & U.tx . fee .~ (utxWithFees ^. U.tx . fee))
         tx'' <- handleAddSignature tx'
@@ -194,20 +196,21 @@ validateTxAndAddFees ::
     , Member (LogMsg TxBalanceMsg) effs
     , Member (State WalletState) effs
     )
-    => Map.Map TxOutRef TxOutTx
+    => FeeConfig
+    -> Map.Map TxOutRef TxOutTx
     -> UnbalancedTx
     -> Eff effs UnbalancedTx
-validateTxAndAddFees ownTxOuts utx = do
+validateTxAndAddFees feeCfg ownTxOuts utx = do
     -- Balance and sign just for validation
     tx <- handleBalanceTx ownTxOuts utx
     signedTx <- handleAddSignature tx
-    let utxoIndex        = Ledger.UtxoIndex $ unBalancedTxUtxoIndex utx <> (fmap txOutTxOut ownTxOuts)
+    let utxoIndex        = Ledger.UtxoIndex $ unBalancedTxUtxoIndex utx <> fmap txOutTxOut ownTxOuts
         ((e, _), events) = Ledger.runValidation (Ledger.validateTransactionOffChain signedTx) utxoIndex
-    flip traverse_ e $ \(phase, ve) -> do
+    for_ e $ \(phase, ve) -> do
         logWarn $ ValidationFailed phase (txId tx) tx ve events
         throwError $ WAPI.ValidationError ve
     let scriptsSize = getSum $ foldMap (Sum . scriptSize . Ledger.sveScript) events
-        theFee = minFee tx <> Ada.lovelaceValueOf scriptsSize -- TODO: use protocol parameters
+        theFee = Ada.toValue $ calcFees feeCfg scriptsSize -- TODO: use protocol parameters
     pure $ utx{ unBalancedTxTx = (unBalancedTxTx utx){ txFee = theFee }}
 
 lookupValue ::
@@ -358,7 +361,7 @@ selectCoin fnds vl =
 -- | Removes transaction outputs with empty datum and empty value.
 removeEmptyOutputs :: Tx -> Tx
 removeEmptyOutputs tx = tx & over Tx.outputs (filter (not . isEmpty')) where
-    isEmpty' (Tx.TxOut{Tx.txOutValue, Tx.txOutDatumHash}) =
+    isEmpty' Tx.TxOut{Tx.txOutValue, Tx.txOutDatumHash} =
         null (Value.flattenValue txOutValue) && isNothing txOutDatumHash
 
 -- | Take elements from a list until the predicate is satisfied.
@@ -440,7 +443,7 @@ type WalletSet = Map.Map Wallet WalletState
 walletPubKeyHashes :: WalletSet -> Map.Map PubKeyHash Wallet
 walletPubKeyHashes = foldl' f Map.empty . Map.toList
   where
-    f m (w, ws) = Map.insert (pubKeyHash $ toPublicKey $ _ownPrivateKey $ ws) w m
+    f m (w, ws) = Map.insert (pubKeyHash $ toPublicKey $ _ownPrivateKey ws) w m
 
 -- | For a set of wallets, convert them into a map of value: entity,
 -- where entity is one of 'Entity'.

@@ -46,6 +46,7 @@ library
         cookie -any,
         cryptonite -any,
         containers -any,
+        data-default -any,
         deriving-compat -any,
         directory -any,
         exceptions -any,

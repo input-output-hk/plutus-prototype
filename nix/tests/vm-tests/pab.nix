@@ -25,6 +25,7 @@ makeTest {
     # fmt: off
     machine.start()
     machine.wait_for_unit("pab.service")
+
     machine.wait_for_open_port(8080)
     machine.wait_for_open_port(8083)
     machine.wait_for_open_port(8081)

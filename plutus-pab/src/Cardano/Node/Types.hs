@@ -73,6 +73,7 @@ import qualified Wallet.Emulator                as EM
 import           Wallet.Emulator.Chain          (ChainControlEffect, ChainEffect, ChainEvent)
 import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 
+import           Ledger.Fee                     (FeeConfig)
 import           Plutus.PAB.Arbitrary           ()
 
 -- Configuration ------------------------------------------------------------------------------------------------------
@@ -123,6 +124,9 @@ data MockServerConfig =
         -- ^ The number of blocks to keep for replaying to a newly connected clients
         , mscSlotConfig       :: SlotConfig
         -- ^ Beginning of slot 0.
+        , mscFeeConfig        :: FeeConfig
+        -- ^ Configure constant fee per transaction and ratio by which to
+        -- multiply size-dependent scripts fee.
         }
     deriving (Show, Eq, Generic, FromJSON)
 

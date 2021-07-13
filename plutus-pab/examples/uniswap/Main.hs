@@ -19,6 +19,7 @@ import           Control.Monad.Freer.Error           (Error)
 import           Control.Monad.Freer.Extras.Log      (LogMsg)
 import           Control.Monad.IO.Class              (MonadIO (..))
 import           Data.Aeson                          (FromJSON, Result (..), ToJSON, encode, fromJSON)
+import           Data.Default                        (Default (def))
 import qualified Data.Map.Strict                     as Map
 import qualified Data.Monoid                         as Monoid
 import qualified Data.Semigroup                      as Semigroup
@@ -115,5 +116,5 @@ handleUniswapContract = Builtin.handleBuiltin getSchema getContract where
 
 handlers :: SimulatorEffectHandlers (Builtin UniswapContracts)
 handlers =
-    Simulator.mkSimulatorHandlers @(Builtin UniswapContracts) [] -- [Init, UniswapStart, UniswapUser ???]
+    Simulator.mkSimulatorHandlers @(Builtin UniswapContracts) def [] -- [Init, UniswapStart, UniswapUser ???]
     $ interpret handleUniswapContract

@@ -152,7 +152,7 @@ threadToken =
         $ Freer.runError @Folds.EmulatorFoldErr
         $ Stream.foldEmulatorStreamM fld
         $ Stream.takeUntilSlot 10
-        $ Trace.runEmulatorStream (options ^. emulatorConfig)
+        $ Trace.runEmulatorStream (options ^. emulatorConfig) (options ^. feeConfig)
         $ do
             void $ Trace.activateContractWallet w1 (void con)
             Trace.waitNSlots 3

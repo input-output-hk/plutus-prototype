@@ -96,6 +96,7 @@ import           Wallet.Emulator.Stream                  (EmulatorConfig (..), E
 import           Wallet.Emulator.Wallet                  (Entity, balances)
 import qualified Wallet.Emulator.Wallet                  as Wallet
 
+import           Ledger.Fee                              (FeeConfig)
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, handleDeterministicIds)
 import           Plutus.Trace.Effects.EmulatedWalletAPI  (EmulatedWalletAPI, handleEmulatedWalletAPI)
 import qualified Plutus.Trace.Effects.EmulatedWalletAPI  as EmulatedWalletAPI
@@ -164,9 +165,10 @@ handleEmulatorTrace action = do
 -- | Run a 'Trace Emulator', streaming the log messages as they arrive
 runEmulatorStream :: forall effs a.
     EmulatorConfig
+    -> FeeConfig
     -> EmulatorTrace a
     -> Stream (Of (LogMessage EmulatorEvent)) (Eff effs) (Maybe EmulatorErr, EmulatorState)
-runEmulatorStream conf = runTraceStream conf . interpretEmulatorTrace conf
+runEmulatorStream conf feeCfg = runTraceStream conf feeCfg . interpretEmulatorTrace conf
 
 -- | Interpret a 'Trace Emulator' action in the multi agent and emulated
 --   blockchain effects.
@@ -228,14 +230,15 @@ defaultShowEvent = \case
 -- of the emulator, the events, and any error, if any.
 runEmulatorTrace
     :: EmulatorConfig
+    -> FeeConfig
     -> EmulatorTrace ()
     -> ([EmulatorEvent], Maybe EmulatorErr, EmulatorState)
-runEmulatorTrace cfg trace =
+runEmulatorTrace cfg feeCfg trace =
     (\(xs :> (y, z)) -> (xs, y, z))
     $ run
     $ runReader ((initialDist . _initialChainState) cfg)
     $ foldEmulatorStreamM (generalize list)
-    $ runEmulatorStream cfg trace
+    $ runEmulatorStream cfg feeCfg trace
 
 
 -- | Run the emulator trace returning an effect that can be evaluated by
@@ -243,10 +246,11 @@ runEmulatorTrace cfg trace =
 runEmulatorTraceEff :: forall effs. Member PrintEffect effs
     => TraceConfig
     -> EmulatorConfig
+    -> FeeConfig
     -> EmulatorTrace ()
     -> Eff effs ()
-runEmulatorTraceEff tcfg cfg trace =
-  let (xs, me, e) = runEmulatorTrace cfg trace
+runEmulatorTraceEff tcfg cfg feeCfg trace =
+  let (xs, me, e) = runEmulatorTrace cfg feeCfg trace
       balances' = balances (_chainState e) (_walletStates e)
    in do
       case me of
@@ -254,13 +258,13 @@ runEmulatorTraceEff tcfg cfg trace =
         Just err -> printLn $ "ERROR: " <> show err
 
       forM_ xs $ \ete -> do
-        case (showEvent tcfg) (_eteEvent ete) of
+        case showEvent tcfg (_eteEvent ete) of
           Nothing -> return ()
           Just s  ->
             let slot = pad 5 (getSlot $ _eteEmulatorTime ete)
              in printLn $ "Slot " <> slot <> ": " <> s
 
-      printLn $ "Final balances"
+      printLn "Final balances"
       printBalances balances'
 
 -- | Runs the trace with 'runEmulatorTrace', with default configuration that
@@ -272,7 +276,7 @@ runEmulatorTraceEff tcfg cfg trace =
 runEmulatorTraceIO
     :: EmulatorTrace ()
     -> IO ()
-runEmulatorTraceIO = runEmulatorTraceIO' def def
+runEmulatorTraceIO = runEmulatorTraceIO' def def def
 
 --- | Runs the trace with a given configuration for the trace and the config.
 --
@@ -282,10 +286,11 @@ runEmulatorTraceIO = runEmulatorTraceIO' def def
 runEmulatorTraceIO'
     :: TraceConfig
     -> EmulatorConfig
+    -> FeeConfig
     -> EmulatorTrace ()
     -> IO ()
-runEmulatorTraceIO' tcfg cfg trace
-  = runPrintEffect (outputHandle tcfg) $ runEmulatorTraceEff tcfg cfg trace
+runEmulatorTraceIO' tcfg cfg feeCfg trace
+  = runPrintEffect (outputHandle tcfg) $ runEmulatorTraceEff tcfg cfg feeCfg trace
 
 runPrintEffect :: Handle
          -> Eff '[PrintEffect, IO] r

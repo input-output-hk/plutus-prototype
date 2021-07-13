@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 {-
@@ -102,6 +103,7 @@ import           Ledger                                         (Address (..), B
                                                                  eitherTx, txFee, txId)
 import qualified Ledger.Ada                                     as Ada
 import           Ledger.Crypto                                  (PubKey, pubKeyHash)
+import           Ledger.Fee                                     (FeeConfig)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
 import           Plutus.Contract.Effects                        (TxConfirmed)
@@ -171,7 +173,7 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
     let wallets = Wallet <$> [1..10]
-        initialDistribution = Map.fromList $ fmap (\w -> (w, Ada.adaValueOf 100_000)) wallets
+        initialDistribution = Map.fromList $ fmap (, Ada.adaValueOf 100_000) wallets
         Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState (def & Emulator.initialChainState .~ Left initialDistribution)
         initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) wallets
     STM.atomically $
@@ -198,10 +200,11 @@ type SimulatorEffectHandlers t = EffectHandlers t (SimulatorState t)
 mkSimulatorHandlers ::
     forall t.
     Pretty (Contract.ContractDef t)
-    => [Contract.ContractDef t] -- ^ Available contract definitions
+    => FeeConfig
+    -> [Contract.ContractDef t] -- ^ Available contract definitions
     -> SimulatorContractHandler t -- ^ Making calls to the contract (see 'Plutus.PAB.Effects.Contract.ContractTest.handleContractTest' for an example)
     -> SimulatorEffectHandlers t
-mkSimulatorHandlers definitions handleContractEffect =
+mkSimulatorHandlers feeCfg definitions handleContractEffect =
     EffectHandlers
         { initialiseEnvironment =
             (,,)
@@ -212,7 +215,7 @@ mkSimulatorHandlers definitions handleContractEffect =
             interpret handleContractStore
         , handleContractEffect
         , handleLogMessages = handleLogSimulator @t
-        , handleServicesEffects = handleServicesSimulator @t
+        , handleServicesEffects = handleServicesSimulator @t feeCfg
         , handleContractDefinitionStoreEffect =
             interpret $ \case
                 Contract.AddDefinition _ -> pure () -- not supported
@@ -253,10 +256,11 @@ handleServicesSimulator ::
     , LastMember IO effs
     , Member (Error PABError) effs
     )
-    => Wallet
+    => FeeConfig
+    -> Wallet
     -> Eff (WalletEffect ': ChainIndexEffect ': NodeClientEffect ': effs)
     ~> Eff effs
-handleServicesSimulator wallet =
+handleServicesSimulator feeCfg wallet =
     let makeTimedChainIndexEvent wllt =
             interpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent')
@@ -283,7 +287,7 @@ handleServicesSimulator wallet =
         . flip (handleError @WAPI.WalletAPIError) (throwError @PABError . WalletError)
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpret (runWalletState @t wallet)
-        . reinterpretN @'[State Wallet.WalletState, Error WAPI.WalletAPIError, LogMsg TxBalanceMsg] Wallet.handleWallet
+        . reinterpretN @'[State Wallet.WalletState, Error WAPI.WalletAPIError, LogMsg TxBalanceMsg] (Wallet.handleWallet feeCfg)
 
 -- | Convenience for wrapping 'ContractEffectMsg' in 'PABMultiAgentMsg t'
 handleContractEffectMsg :: forall t x effs. Member (LogMsg (PABMultiAgentMsg t)) effs => Eff (LogMsg ContractEffectMsg ': effs) x -> Eff effs x
@@ -462,8 +466,7 @@ runChainEffects action = do
                                 $ reinterpret @(LogMsg Chain.ChainEvent) @(Writer [LogMessage Chain.ChainEvent]) (handleLogWriter _singleton)
                                 $ runState oldState
                                 $ interpret Chain.handleControlChain
-                                $ interpret Chain.handleChain
-                                $ action
+                                $ interpret Chain.handleChain action
                         STM.writeTVar _chainState newState
                         pure (a, logs)
     traverse_ (send . LMessage) logs
@@ -488,8 +491,7 @@ runChainIndexEffects action = do
                             $ reinterpret @(LogMsg ChainIndex.ChainIndexEvent) @(Writer [LogMessage ChainIndex.ChainIndexEvent]) (handleLogWriter _singleton)
                             $ runState oldState
                             $ ChainIndex.handleChainIndexControl
-                            $ ChainIndex.handleChainIndex
-                            $ action
+                            $ ChainIndex.handleChainIndex action
                     STM.writeTVar _chainIndex newState
                     pure (a, logs)
     traverse_ (send . LMessage) logs

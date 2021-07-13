@@ -48,7 +48,7 @@ render trace = do
                $ run
                $ foldEmulatorStreamM (L.generalize (showBlockchainFold allWallets'))
                $ takeUntilSlot 21
-               $ runEmulatorStream def trace
+               $ runEmulatorStream def def trace
         allWallets' = fmap (\w -> (pubKeyHash (walletPubKey w), w)) (Wallet <$> [1..10])
     case result of
         Left err       -> assertFailure $ show err

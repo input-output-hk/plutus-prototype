@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE MonoLocalBinds   #-}
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TemplateHaskell  #-}
@@ -44,6 +43,7 @@ import           Data.Maybe                             (fromMaybe)
 import qualified Data.Set                               as Set
 import qualified Ledger.AddressMap                      as AM
 import           Ledger.Blockchain                      (Block, OnChainTx (..))
+import           Ledger.Fee                             (FeeConfig)
 import           Ledger.Slot                            (Slot)
 import           Ledger.Value                           (Value)
 import           Streaming                              (Stream)
@@ -107,6 +107,7 @@ foldEmulatorStreamM theFold =
 --   the final state of the emulator.
 runTraceStream :: forall effs.
     EmulatorConfig
+    -> FeeConfig
     -> Eff '[ State EmulatorState
             , LogMsg EmulatorEvent'
             , MultiAgentEffect
@@ -116,7 +117,7 @@ runTraceStream :: forall effs.
             , Error EmulatorRuntimeError
             ] ()
     -> Stream (Of (LogMessage EmulatorEvent)) (Eff effs) (Maybe EmulatorErr, EmulatorState)
-runTraceStream conf =
+runTraceStream conf feeCfg =
     fmap (first (either Just (const Nothing)))
     . S.hoist (pure . run)
     . runStream @(LogMessage EmulatorEvent) @_ @'[]
@@ -127,12 +128,12 @@ runTraceStream conf =
     . wrapError WalletErr
     . wrapError AssertionErr
     . wrapError InstanceErr
-    . EM.processEmulated
+    . EM.processEmulated feeCfg
     . subsume
     . subsume @(State EmulatorState)
     . raiseEnd
 
-data EmulatorConfig =
+newtype EmulatorConfig =
     EmulatorConfig
         { _initialChainState      :: InitialChainState -- ^ State of the blockchain at the beginning of the simulation. Can be given as a map of funds to wallets, or as a block of transactions.
         } deriving (Eq, Show)

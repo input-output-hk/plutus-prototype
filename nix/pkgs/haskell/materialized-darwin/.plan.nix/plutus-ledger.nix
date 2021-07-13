@@ -83,6 +83,7 @@
           "Ledger/Constraints/OffChain"
           "Ledger/Constraints/OnChain"
           "Ledger/Constraints/TxConstraints"
+          "Ledger/Fee"
           "Ledger/Generators"
           "Ledger/Oracle"
           "Ledger/Orphans"
