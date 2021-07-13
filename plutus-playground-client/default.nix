@@ -49,7 +49,7 @@ let
     export WEBGHC_URL=http://localhost:8080
     export GITHUB_CALLBACK_PATH=https://localhost:8009/api/oauth/github/callback
 
-    ${build-playground-exe}/bin/plutus-playground-server webserver
+    ${build-playground-exe}/bin/plutus-playground-server webserver "$@"
   '';
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
