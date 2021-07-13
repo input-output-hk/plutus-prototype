@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-orphans -Wno-missing-signatures #-}
 import qualified Data.RandomAccessList.SkewBinary as B
 import           Data.Semigroup
 import           GHC.Exts
@@ -39,7 +40,7 @@ applyN :: (a->a) -> Word -> a -> a
 applyN f n = appEndo $ stimes n $ Endo f
 
 unit_ix1 = B.index hundred 0 == B.head hundred @? "index error"
-unit_ix2 = B.index (B.Cons 1 (B.Cons 2 B.Nil)) 1 @?= 2
+unit_ix2 = B.index (B.Cons 1 (B.Cons 2 B.Nil)) 1 @?= (2 :: Int)
 unit_ix3 = all (\x -> B.index hundred (x-1) == x) [1..100] @? "index wrong"
 prop_ix1 x y = B.index (B.Cons x (B.Cons y B.Nil)) 0 == x
 prop_ix2 x y = B.index (B.Cons x (B.Cons y B.Nil)) 1 == y
@@ -48,7 +49,7 @@ prop_ix3 xs =
     B.index xs 0 == B.head xs
 
 unit_ixzero1 = B.index hundred 0 == B.head hundred @? "index error"
-unit_ixzero2 = B.index (B.Cons 1 (B.Cons 2 B.Nil)) 1 @?= 2
+unit_ixzero2 = B.index (B.Cons 1 (B.Cons 2 B.Nil)) 1 @?= (2 :: Int)
 unit_ixzero3 = all (\x -> B.index hundred (x-1) == x) [1..100] @? "index wrong"
 prop_ixzero1 x y = B.index (B.Cons x (B.Cons y B.Nil)) 0 == x
 prop_ixzero2 x y = B.index (B.Cons x (B.Cons y B.Nil)) 1 == y

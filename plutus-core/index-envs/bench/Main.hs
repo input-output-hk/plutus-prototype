@@ -4,14 +4,11 @@
 module Main where
 
 import           Criterion.Main
-import           Data.Function
 import           Data.Semigroup
 import           System.Random
-import           Unsafe.Coerce
 
 import           Data.DeBruijnEnv
 import qualified Data.DeBruijnEnv                 as DBE
-import qualified Data.IntMap.Strict               as I
 import qualified Data.RAList                      as R
 import qualified Data.RandomAccessList.SkewBinary as B
 
@@ -60,13 +57,11 @@ main = defaultMain
         -- if the range is the same, they should produce the same numbers for word and int
         randWord :: Word -> [Word]
         randWord sz = take (fromIntegral sz) $ randomRs (0,sz-1) g
-        randInt :: Word -> [Int]
-        randInt sz = take (fromIntegral sz) $ randomRs (0,fromIntegral sz-1) g
         -- note: fixed rand-seed to make benchmarks deterministic
         g = mkStdGen 59950
 
 applyN :: Integral b => (a -> a) -> a -> b -> a
-applyN f init n = appEndo (stimes n $ Endo f) init
+applyN f start n = appEndo (stimes n $ Endo f) start
 
 extend :: (DeBruijnEnv e, Element e ~ ()) => e -> Word -> e
 extend = applyN $ cons ()

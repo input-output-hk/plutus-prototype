@@ -473,6 +473,7 @@ benchmark cost-model-budgeting-bench
 -- using R, and saces them in cost-model/data/costModel.json
 -- Benchmark sets the correct PWD and doesn't get run by `stack test`
 benchmark update-cost-model
+    import: lang
     type: exitcode-stdio-1.0
     main-is: UpdateCostModel.hs
     -- cost-model-creation should be its own library, but stack + HIE really don't like sub-libraries.
@@ -482,22 +483,15 @@ benchmark update-cost-model
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         plutus-core -any,
-        aeson -any,
         aeson-pretty -any,
         barbies -any,
         base -any,
         bytestring -any,
         cassava -any,
-        containers -any,
         data-default -any,
-        deepseq -any,
-        deriving-aeson >= 0.2.3,
-        directory -any,
         exceptions -any,
         extra -any,
-        hedgehog -any,
         inline-r -any,
-        lens -any,
         text -any,
         vector -any
     other-modules:
@@ -509,6 +503,7 @@ benchmark update-cost-model
 -- This test is problematic in CI: pretending that it's a benchmark will prevent
 -- it from being run automatically but will still allow us to run it manually.
 benchmark cost-model-test
+    import: lang
     type: exitcode-stdio-1.0
     main-is: TestCostModels.hs
     hs-source-dirs: cost-model/test, cost-model/create-cost-model
@@ -518,23 +513,14 @@ benchmark cost-model-test
     build-depends:
         base -any,
         plutus-core -any,
-        aeson -any,
         barbies -any,
         bytestring -any,
-        bytestring -any,
         cassava -any,
-        containers -any,
-        containers -any,
         data-default -any,
-        deepseq -any,
-        deriving-aeson >= 0.2.3,
-        directory -any,
         exceptions -any,
         extra -any,
         hedgehog -any,
-        hedgehog -any,
         inline-r -any,
-        lens -any,
         mmorph -any,
         text -any,
         vector -any
@@ -542,6 +528,7 @@ benchmark cost-model-test
         CostModelCreation
 
 library index-envs
+    import: lang
     hs-source-dirs: index-envs/src
     default-language: Haskell2010
     exposed-modules:
@@ -554,6 +541,7 @@ library index-envs
         ral == 0.1
 
 benchmark index-envs-bench
+    import: lang
     type: exitcode-stdio-1.0
     hs-source-dirs: index-envs/bench
     default-language: Haskell2010
@@ -563,11 +551,11 @@ benchmark index-envs-bench
         index-envs -any,
         criterion >= 1.5.9.0,
         random >= 1.2.0,
-        containers -any,
         -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
         ral == 0.1
 
 test-suite index-envs-test
+    import: lang
     type: exitcode-stdio-1.0
     hs-source-dirs: index-envs/test
     default-language: Haskell2010
