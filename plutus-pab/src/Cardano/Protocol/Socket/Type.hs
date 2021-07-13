@@ -25,9 +25,15 @@ import           Data.Void                                          (Void)
 import           GHC.Generics
 import           NoThunks.Class                                     (NoThunks)
 
+import           Cardano.Chain.Slotting                             (EpochSlots (..))
 import           Codec.Serialise                                    (DeserialiseFailure)
 import qualified Codec.Serialise                                    as CBOR
 import           Network.TypedProtocol.Codec
+import qualified Ouroboros.Consensus.Byron.Ledger                   as Byron
+import           Ouroboros.Consensus.Cardano.Block                  (CardanoBlock, CodecConfig (..))
+import           Ouroboros.Consensus.Node.NetworkProtocolVersion    (BlockNodeToClientVersion)
+import qualified Ouroboros.Consensus.Shelley.Ledger                 as Shelley
+import           Ouroboros.Consensus.Shelley.Protocol               (StandardCrypto)
 import           Ouroboros.Network.Block                            (HeaderHash, Point, StandardHash)
 import           Ouroboros.Network.Magic                            (NetworkMagic (..))
 import           Ouroboros.Network.Mux
@@ -108,6 +114,21 @@ doNothingResponderProtocol =
 type Offset = Integer
 
 -- | Boilerplate codecs used for protocol serialisation.
+epochSlots :: EpochSlots
+epochSlots = EpochSlots 432000
+
+codecVersion :: BlockNodeToClientVersion (CardanoBlock StandardCrypto)
+codecVersion = undefined
+
+codecConfig :: CodecConfig (CardanoBlock StandardCrypto)
+codecConfig =
+  CardanoCodecConfig
+    (Byron.ByronCodecConfig epochSlots)
+    Shelley.ShelleyCodecConfig
+    Shelley.ShelleyCodecConfig
+    Shelley.ShelleyCodecConfig
+    Shelley.ShelleyCodecConfig
+
 codecChainSync
   :: forall block.
      ( Serialise block
