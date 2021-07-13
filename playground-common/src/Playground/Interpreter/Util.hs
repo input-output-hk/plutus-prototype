@@ -30,6 +30,7 @@ import qualified Data.Map                              as Map
 import           Data.Maybe                            (isJust)
 import           Data.Text                             (Text)
 
+import           Data.Default                          (Default (def))
 import qualified Data.Text.Encoding                    as Text
 import           Data.Text.Prettyprint.Doc             (defaultLayoutOptions, layoutPretty, pretty, vsep)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
@@ -84,8 +85,7 @@ renderInstanceTrace :: [ContractInstanceTag] -> EmulatorEventFoldM effs Text
 renderInstanceTrace =
     L.generalize
     . fmap (renderStrict . layoutPretty defaultLayoutOptions . vsep . fmap pretty)
-    . sequenceA
-    . fmap Folds.instanceLog
+    . traverse Folds.instanceLog
 
 -- Events that are of interest to users of the Playground
 isInteresting :: EmulatorEvent -> Bool
@@ -129,7 +129,7 @@ stage contract programJson simulatorWalletsJson = do
         final = run
             $ runError
             $ foldEmulatorStreamM @'[Error PlaygroundError] (evaluationResultFold allWallets)
-            $ runPlaygroundStream config (void contract) (traverse_ expressionToTrace simulation)
+            $ runPlaygroundStream config def (void contract) (traverse_ expressionToTrace simulation)
 
     case final of
         Left err     -> Left . OtherError . show $ err

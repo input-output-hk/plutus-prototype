@@ -20,12 +20,15 @@ walletServerConfig:
 nodeServerConfig:
   mscBaseUrl: http://localhost:8082
   mscSocketPath: ./node-server.sock
-  mscSlotLength: 1
   mscKeptBlocks: 100
   # mscRandomTxInterval: 20 -- this creates random transactions on the blockchain
   mscSlotConfig:
-    scZeroSlotTime: 1591566291000 # see note [Datetime to slot] in Marlowe.Slot
-    scSlotLength: 1
+    scZeroSlotTime: 1591566291000 # In milliseconds. See note [Datetime to slot] in Marlowe.Slot
+    scSlotLength: 1000 # In milliseconds
+  mscFeeConfig:
+    fcConstantFee:
+      getLovelace: 10 # Constant fee per transaction in lovelace
+    fcScriptsFeeFactor: 1.0 # Factor by which to multiply size-dependent scripts fee in lovelace
   mscInitialTxWallets:
     - getWallet: 1
     - getWallet: 2
@@ -47,7 +50,7 @@ metadataServerConfig:
   mdBaseUrl: http://localhost:8085
 
 # Optional timeout (in seconds) for calls to endpoints that are not currently
-# available. If this is not set, calls to unavailable endpoints fail 
+# available. If this is not set, calls to unavailable endpoints fail
 # immediately.
 # The endpoints on Marlowe contracts are always available, so in principle
 # this isn't an issue here. However, there is a split second between creating

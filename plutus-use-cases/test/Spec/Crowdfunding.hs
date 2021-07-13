@@ -132,7 +132,7 @@ renderWalletLog trace =
             run
             $ foldEmulatorStreamM (L.generalize $ Folds.instanceLog (Trace.walletInstanceTag w1))
             $ filterLogLevel Info
-            $ Trace.runEmulatorStream def trace
+            $ Trace.runEmulatorStream def def trace
     in BSL.fromStrict $ T.encodeUtf8 $ renderStrict $ layoutPretty defaultLayoutOptions $ vsep $ fmap pretty $ S.fst' result
 
 renderEmulatorLog :: EmulatorTrace () -> ByteString
@@ -141,5 +141,5 @@ renderEmulatorLog trace =
             run
             $ foldEmulatorStreamM (L.generalize Folds.emulatorLog)
             $ filterLogLevel Info
-            $ Trace.runEmulatorStream def trace
+            $ Trace.runEmulatorStream def def trace
     in BSL.fromStrict $ T.encodeUtf8 $ renderStrict $ layoutPretty defaultLayoutOptions $ vsep $ fmap pretty $ S.fst' result

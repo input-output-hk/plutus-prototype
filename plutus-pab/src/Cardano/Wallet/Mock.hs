@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
@@ -52,6 +53,7 @@ import qualified Ledger.Ada                       as Ada
 import           Ledger.Address                   (pubKeyAddress)
 import           Ledger.Crypto                    (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
                                                    toPublicKey)
+import           Ledger.Fee                       (FeeConfig)
 import           Ledger.Tx                        (Tx)
 import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
@@ -122,8 +124,10 @@ handleMultiWallet :: forall m effs.
     , Member (LogMsg WalletMsg) effs
     , LastMember m effs
     , MonadIO m
-    ) => MultiWalletEffect ~> Eff effs
-handleMultiWallet = \case
+    )
+    => FeeConfig
+    -> MultiWalletEffect ~> Eff effs
+handleMultiWallet feeCfg = \case
     MultiWallet wallet action -> do
         wallets <- get @Wallets
         case Map.lookup wallet wallets of
@@ -131,7 +135,7 @@ handleMultiWallet = \case
                 (x, newState) <- runState walletState
                     $ action
                         & raiseEnd
-                        & interpret Wallet.handleWallet
+                        & interpret (Wallet.handleWallet feeCfg)
                         & interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
                 put @Wallets (wallets & at wallet .~ Just newState)
                 pure x
@@ -149,7 +153,7 @@ handleMultiWallet = \case
         let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
         _ <- evalState walletState $
             interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
-            $ interpret Wallet.handleWallet
+            $ interpret (Wallet.handleWallet feeCfg)
             $ distributeNewWalletFunds pubKey
         WalletEffects.startWatching (pubKeyAddress pubKey)
         return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
@@ -163,11 +167,18 @@ processWalletEffects ::
     -> Client.ChainSyncHandle -- ^ node client
     -> ClientEnv          -- ^ chain index client
     -> MVar Wallets   -- ^ wallets state
+    -> FeeConfig
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> m a
-processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState action = do
+processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState feeCfg action = do
     oldState <- liftIO $ takeMVar mVarState
-    result <- liftIO $ runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv oldState action
+    result <- liftIO $ runWalletEffects trace
+                                        txSendHandle
+                                        chainSyncHandle
+                                        chainIndexEnv
+                                        oldState
+                                        feeCfg
+                                        action
     case result of
         Left e -> do
             liftIO $ putMVar mVarState oldState
@@ -183,10 +194,11 @@ runWalletEffects ::
     -> Client.ChainSyncHandle -- ^ node client
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
+    -> FeeConfig
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> IO (Either ServerError (a, Wallets))
-runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets action =
-    reinterpret handleMultiWallet action
+runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets feeCfg action =
+    reinterpret (handleMultiWallet feeCfg) action
     & interpret (LM.handleLogMsgTrace trace)
     & reinterpret2 NodeClient.handleNodeClientClient
     & runReader chainSyncHandle

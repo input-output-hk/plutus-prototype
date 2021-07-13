@@ -31,6 +31,7 @@ import           Ledger.Bytes                as Bytes
 import qualified Ledger.Constraints.OffChain as OC
 import qualified Ledger.Contexts             as Validation
 import qualified Ledger.Crypto               as Crypto
+import           Ledger.Fee                  (FeeConfig (..), calcFees)
 import qualified Ledger.Generators           as Gen
 import qualified Ledger.Index                as Index
 import qualified Ledger.Interval             as Interval
@@ -95,6 +96,9 @@ tests = testGroup "all tests" [
                 in byteStringJson vlJson vlValue)),
     testGroup "Constraints" [
         testProperty "missing value spent" missingValueSpentProp
+        ],
+    testGroup "Fee" [
+        testProperty "calcFees" calcFeesTest
         ],
     testGroup "TimeSlot" [
         testProperty "time range of starting slot" initialSlotToTimeProp,
@@ -281,6 +285,11 @@ nonNegativeValue =
         <$> Gen.element mpsHashes
         <*> Gen.element tokenNames
         <*> Gen.integral (Range.linear 0 10000)
+
+calcFeesTest :: Property
+calcFeesTest = property $ do
+  let feeCfg = FeeConfig 10 0.3
+  Hedgehog.assert $ calcFees feeCfg 11 == Ada.lovelaceOf 13
 
 -- | Asserting that time range of 'scZeroSlotTime' to 'scZeroSlotTime + scSlotLength'
 -- is 'Slot 0' and the time after that is 'Slot 1'.

@@ -41,6 +41,7 @@
           (hsPkgs."cookie" or (errorHandler.buildDepError "cookie"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."deriving-compat" or (errorHandler.buildDepError "deriving-compat"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))

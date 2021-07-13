@@ -91,7 +91,7 @@ writeScriptsTo fp prefix trace emulatorCfg = do
             S.fst'
             $ run
             $ foldEmulatorStreamM (L.generalize Folds.scriptEvents)
-            $ Trace.runEmulatorStream emulatorCfg trace
+            $ Trace.runEmulatorStream emulatorCfg def trace
         writeScript idx script = do
             let filename = fp </> prefix <> "-" <> show idx <> ".flat"
             putStrLn $ "Writing script: " <> filename

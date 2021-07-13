@@ -11,8 +11,6 @@ module Ledger.Generators(
     GeneratorModel(..),
     generatorModel,
     -- * Transactions
-    FeeEstimator(..),
-    constantFee,
     genValidTransaction,
     genValidTransaction',
     genValidTransactionSpending,
@@ -33,6 +31,7 @@ module Ledger.Generators(
     ) where
 
 import           Data.Bifunctor            (Bifunctor (..))
+import           Data.Default              (Default (def))
 import           Data.Foldable             (fold, foldl')
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
@@ -43,13 +42,13 @@ import           GHC.Stack                 (HasCallStack)
 import           Hedgehog
 import qualified Hedgehog.Gen              as Gen
 import qualified Hedgehog.Range            as Range
+import           Ledger
+import           Ledger.Fee                (FeeConfig (fcScriptsFeeFactor), calcFees)
 import qualified Ledger.Index              as Index
 import qualified Plutus.V1.Ledger.Ada      as Ada
 import qualified Plutus.V1.Ledger.Interval as Interval
 import qualified Plutus.V1.Ledger.Value    as Value
 import qualified PlutusTx.Prelude          as P
-
-import           Ledger
 
 -- | Attach signatures of all known private keys to a transaction.
 signAll :: Tx -> Tx
@@ -75,12 +74,12 @@ generatorModel =
     , gmPubKeys        = Set.fromList pubKeys
     }
 
--- | A function that estimates a transaction fee based on the number of its inputs and outputs.
-newtype FeeEstimator = FeeEstimator { estimateFee :: Integer -> Integer -> Ada }
+-- -- | A function that estimates a transaction fee based on the number of its inputs and outputs.
+-- newtype FeeEstimator = FeeEstimator { estimateFee :: Integer -> Integer -> Ada }
 
 -- | Estimate a constant fee for all transactions.
-constantFee :: FeeEstimator
-constantFee = FeeEstimator . const . const . Ada.fromValue $ minFee mempty
+constantFee :: FeeConfig
+constantFee = def { fcScriptsFeeFactor = 0 }
 
 -- | Blockchain for testing the emulator implementation and traces.
 --
@@ -143,10 +142,10 @@ genValidTransaction = genValidTransaction' generatorModel constantFee
 --   of the unspent outputs is smaller than the estimated fee.
 genValidTransaction' :: MonadGen m
     => GeneratorModel
-    -> FeeEstimator
+    -> FeeConfig
     -> Mockchain
     -> m Tx
-genValidTransaction' g f (Mockchain _ ops) = do
+genValidTransaction' g feeCfg (Mockchain _ ops) = do
     -- Take a random number of UTXO from the input
     nUtxo <- if Map.null ops
                 then Gen.discard
@@ -154,7 +153,7 @@ genValidTransaction' g f (Mockchain _ ops) = do
     let ins = Set.fromList $ pubKeyTxIn . fst <$> inUTXO
         inUTXO = take nUtxo $ Map.toList ops
         totalVal = foldl' (+) 0 $ map (Ada.fromValue . txOutValue . snd) inUTXO
-    genValidTransactionSpending' g f ins totalVal
+    genValidTransactionSpending' g feeCfg ins totalVal
 
 genValidTransactionSpending :: MonadGen m
     => Set.Set TxIn
@@ -164,12 +163,12 @@ genValidTransactionSpending = genValidTransactionSpending' generatorModel consta
 
 genValidTransactionSpending' :: MonadGen m
     => GeneratorModel
-    -> FeeEstimator
+    -> FeeConfig
     -> Set.Set TxIn
     -> Ada
     -> m Tx
-genValidTransactionSpending' g f ins totalVal = do
-    let fee' = estimateFee f (fromIntegral $ length ins) 3
+genValidTransactionSpending' g feeCfg ins totalVal = do
+    let fee' = calcFees feeCfg 0
         numOut = Set.size $ gmPubKeys g
     if fee' < totalVal
         then do

@@ -39,6 +39,7 @@ import           Data.Map                                   (Map)
 import qualified Data.Map                                   as Map
 import           Data.Maybe                                 (fromMaybe)
 
+import           Ledger.Fee                                 (FeeConfig)
 import           Plutus.Contract                            (Contract (..))
 import           Plutus.Trace.Effects.ContractInstanceId    (ContractInstanceIdEff, handleDeterministicIds)
 import           Plutus.Trace.Effects.EmulatedWalletAPI     (EmulatedWalletAPI, handleEmulatedWalletAPI)
@@ -127,12 +128,13 @@ runPlaygroundStream :: forall w s e effs a.
     , Monoid w
     )
     => EmulatorConfig
+    -> FeeConfig
     -> Contract w s e ()
     -> PlaygroundTrace a
     -> Stream (Of (LogMessage EmulatorEvent)) (Eff effs) (Maybe EmulatorErr, EmulatorState)
-runPlaygroundStream conf contract =
+runPlaygroundStream conf feeCfg contract =
     let wallets = fromMaybe (Wallet <$> [1..10]) (preview (initialChainState . _Left . to Map.keys) conf)
-    in runTraceStream conf . interpretPlaygroundTrace contract wallets
+    in runTraceStream conf feeCfg . interpretPlaygroundTrace contract wallets
 
 interpretPlaygroundTrace :: forall w s e effs a.
     ( Member MultiAgentEffect effs

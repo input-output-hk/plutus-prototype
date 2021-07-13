@@ -165,4 +165,5 @@ executable marlowe-pab
     freer-extras -any,
     plutus-ledger -any,
     plutus-tx -any,
-    containers -any
+    containers -any,
+    data-default -any

@@ -31,6 +31,7 @@ import qualified Data.Text                         as T
 import           Data.Text.Extras                  (tshow)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                      (Generic)
+import           Ledger.Fee                        (FeeConfig)
 
 import           Ledger                            hiding (to, value)
 import qualified Ledger.AddressMap                 as AM
@@ -339,8 +340,9 @@ handleMultiAgentControl = interpret $ \case
 
 handleMultiAgent
     :: forall effs. Members MultiAgentEffs effs
-    => Eff (MultiAgentEffect ': effs) ~> Eff effs
-handleMultiAgent = interpret $ \case
+    => FeeConfig
+    -> Eff (MultiAgentEffect ': effs) ~> Eff effs
+handleMultiAgent feeCfg = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act ->  do
         let
@@ -360,7 +362,7 @@ handleMultiAgent = interpret $ \case
             p7 = notificationEvent
         act
             & raiseEnd
-            & interpret Wallet.handleWallet
+            & interpret (Wallet.handleWallet feeCfg)
             & subsume
             & NC.handleNodeClient
             & ChainIndex.handleChainIndex

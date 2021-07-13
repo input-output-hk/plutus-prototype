@@ -67,6 +67,7 @@ import           Control.Monad.Freer.State      (State)
 import           Ledger
 import           Wallet.API                     (WalletAPIError (..))
 
+import           Ledger.Fee                     (FeeConfig)
 import           Wallet.Emulator.Chain          as Chain
 import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
@@ -81,11 +82,12 @@ processEmulated :: forall effs.
     , Member (State EmulatorState) effs
     , Member (LogMsg EmulatorEvent') effs
     )
-    => Eff (MultiAgentEffect ': MultiAgentControlEffect ': ChainEffect ': ChainControlEffect ': effs)
+    => FeeConfig
+    -> Eff (MultiAgentEffect ': MultiAgentControlEffect ': ChainEffect ': ChainControlEffect ': effs)
     ~> Eff effs
-processEmulated act =
+processEmulated feeCfg act =
     act
-        & handleMultiAgent
+        & handleMultiAgent feeCfg
         & handleMultiAgentControl
         & reinterpret2 @ChainEffect @(State ChainState) @(LogMsg ChainEvent) handleChain
         & interpret (Eff.handleZoomedState chainState)

@@ -106,7 +106,7 @@ redeemTrace = do
 -- | Wallets 1-3 pay into an escrow contract, wallet 1 redeems.
 redeem2Trace :: Trace.EmulatorTrace ()
 redeem2Trace = do
-    let con = (void $ both (payEp @() @EscrowSchema @EscrowError escrowParams) (redeemEp escrowParams))
+    let con = void $ both (payEp @() @EscrowSchema @EscrowError escrowParams) (redeemEp escrowParams)
     hdl1 <- Trace.activateContractWallet w1 con
     hdl2 <- Trace.activateContractWallet w2 con
     hdl3 <- Trace.activateContractWallet w3 con

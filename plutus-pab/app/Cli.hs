@@ -100,6 +100,7 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServerCo
     liftIO $ WalletServer.main
         (toWalletLog ccaTrace)
         walletServerConfig
+        (mscFeeConfig nodeServerConfig)
         (mscSocketPath nodeServerConfig)
         (mscSlotConfig nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)

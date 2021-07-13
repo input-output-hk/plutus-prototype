@@ -121,6 +121,7 @@
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           hsSourceDirs = [ "pab" ];

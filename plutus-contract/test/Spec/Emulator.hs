@@ -113,7 +113,7 @@ captureTrace
 captureTrace trace
   = pack $ unlines output
   where
-    output = capturePrintEffect $ Trace.runEmulatorTraceEff def def trace
+    output = capturePrintEffect $ Trace.runEmulatorTraceEff def def def trace
 
 capturePrintEffect
          :: Eff.Eff '[PrintEffect] r

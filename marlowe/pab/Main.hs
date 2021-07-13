@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
@@ -20,6 +19,7 @@ import           Data.Aeson                          (FromJSON (..), ToJSON (..)
 import qualified Data.Aeson                          as JSON
 import           Data.Aeson.Types                    (prependFailure)
 import qualified Data.Aeson.Types                    as JSON
+import           Data.Default                        (Default (def))
 import qualified Data.Map                            as Map
 import           Data.Maybe                          (listToMaybe)
 import           Data.Text.Prettyprint.Doc           (Pretty (..), viaShow)
@@ -143,5 +143,5 @@ handleMarloweContract = Builtin.handleBuiltin getSchema getContract where
 
 handlers :: SimulatorEffectHandlers (Builtin Marlowe)
 handlers =
-    Simulator.mkSimulatorHandlers @(Builtin Marlowe) [MarloweApp]
+    Simulator.mkSimulatorHandlers @(Builtin Marlowe) def [MarloweApp]
     $ interpret handleMarloweContract

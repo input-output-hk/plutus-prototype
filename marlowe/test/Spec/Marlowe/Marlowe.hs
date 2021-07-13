@@ -240,7 +240,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
                     $ run
                     $ runError @Folds.EmulatorFoldErr
                     $ foldEmulatorStreamM fld
-                    $ Trace.runEmulatorStream def
+                    $ Trace.runEmulatorStream def def
                     $ do
                         void $ Trace.activateContractWallet alice (void con)
                         Trace.waitNSlots 10
