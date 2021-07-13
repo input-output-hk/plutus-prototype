@@ -57,6 +57,7 @@ import qualified Plutus.PAB.Db.Beam.ContractDefinitionStore     as BeamEff
 import qualified Plutus.PAB.Db.Beam.ContractStore               as BeamEff
 import           Plutus.PAB.Db.Memory.ContractStore             (InMemInstances, initialInMemInstances)
 -- TODO: Use this or delete it
+import           Ledger                                         (Block)
 import qualified Plutus.PAB.Db.Memory.ContractStore             as InMem
 import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe (..), handleContractEffectContractExe)
 import           Plutus.PAB.Effects.DbStore                     (checkedSqliteDb, handleDbStore)
@@ -77,7 +78,7 @@ data AppEnv =
         , nodeClientEnv         :: ClientEnv
         , chainIndexEnv         :: ClientEnv
         , txSendHandle          :: Client.TxSendHandle
-        , chainSyncHandle       :: Client.ChainSyncHandle
+        , chainSyncHandle       :: (Client.ChainSyncHandle Block)
         , appConfig             :: Config
         , appTrace              :: Trace IO (PABLogMsg ContractExe)
         , appInMemContractStore :: InMemInstances ContractExe
@@ -129,7 +130,7 @@ appEffectHandlers storageBackend config trace =
             -- handle 'NodeClientEffect'
             flip handleError (throwError . NodeClientError)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-            . reinterpret (Core.handleMappedReader @AppEnv @Client.ChainSyncHandle chainSyncHandle)
+            . reinterpret (Core.handleMappedReader @AppEnv @(Client.ChainSyncHandle Block) chainSyncHandle)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
             . reinterpret (Core.handleMappedReader @AppEnv @Client.TxSendHandle txSendHandle)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)

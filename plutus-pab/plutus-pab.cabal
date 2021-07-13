@@ -124,6 +124,7 @@ library
         bytestring -any,
         cardano-api -any,
         cardano-crypto -any,
+        cardano-ledger-byron -any,
         cardano-prelude -any,
         cardano-slotting -any,
         containers -any,
@@ -147,6 +148,10 @@ library
         newtype-generics -any,
         nothunks -any,
         optparse-applicative -any,
+        ouroboros-consensus -any,
+        ouroboros-consensus-byron -any,
+        ouroboros-consensus-shelley -any,
+        ouroboros-consensus-cardano -any,
         ouroboros-network -any,
         ouroboros-network-framework -any,
         playground-common -any,
@@ -541,3 +546,17 @@ executable tx-inject
         time-units -any,
         yaml -any,
         data-default -any
+
+executable sync-client
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: sync-client
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        optparse-applicative -any,
+        ouroboros-consensus-byron -any,
+        ouroboros-consensus-cardano -any,
+        ouroboros-consensus-shelley -any,
+        plutus-ledger,
+        plutus-pab

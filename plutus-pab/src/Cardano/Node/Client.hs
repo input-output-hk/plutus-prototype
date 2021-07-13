@@ -22,6 +22,7 @@ import           Cardano.Node.Types             (MockServerLogMsg)
 import qualified Cardano.Protocol.Socket.Client as Client
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log (LogMessage)
+import           Ledger                         (Block)
 import           Wallet.Effects                 (NodeClientEffect (..))
 
 healthcheck :: ClientM NoContent
@@ -56,13 +57,13 @@ handleNodeClientClient ::
     ( LastMember m effs
     , MonadIO m
     , Member (Reader Client.TxSendHandle) effs
-    , Member (Reader Client.ChainSyncHandle) effs
+    , Member (Reader (Client.ChainSyncHandle Block)) effs
     )
     => NodeClientEffect
     ~> Eff effs
 handleNodeClientClient e = do
     txSendHandle <- ask @Client.TxSendHandle
-    chainSyncHandle <- ask @Client.ChainSyncHandle
+    chainSyncHandle <- ask @(Client.ChainSyncHandle Block)
     case e of
         PublishTx tx  ->
             liftIO $ Client.queueTx txSendHandle tx

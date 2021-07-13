@@ -1,9 +1,11 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module Cardano.Protocol.Socket.Client where
 
@@ -11,12 +13,13 @@ import qualified Data.ByteString.Lazy                                as LBS
 import           Data.Time.Units                                     (Second, TimeUnit, toMicroseconds)
 import           Data.Void                                           (Void)
 
+import           Codec.Serialise.Class                               (Serialise)
 import           Control.Concurrent
 import           Control.Concurrent.STM
 import           Control.Monad.Catch                                 (catchAll)
 import           Control.Tracer
 
-import           Ouroboros.Network.Block                             (Point (..))
+import           Ouroboros.Network.Block                             (HeaderHash, Point (..))
 import qualified Ouroboros.Network.Protocol.ChainSync.Client         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Client as TxSubmission
 
@@ -27,13 +30,14 @@ import           Ouroboros.Network.NodeToClient                      (NodeToClie
                                                                       versionedNodeToClientProtocols)
 import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
+import           Ouroboros.Network.Util.ShowProxy                    (ShowProxy)
 
 import           Cardano.Protocol.Socket.Type
-import           Ledger                                              (Block, Slot (..), Tx (..))
+import           Ledger                                              (Slot (..), Tx (..))
 
-data ChainSyncHandle = ChainSyncHandle
+data ChainSyncHandle block = ChainSyncHandle
     { cshCurrentSlot :: IO Slot
-    , cshHandler     :: Block -> Slot -> IO ()
+    , cshHandler     :: block -> Slot -> IO ()
     }
 
 newtype TxSendHandle = TxSendHandle
@@ -47,20 +51,35 @@ queueTx ::
 queueTx TxSendHandle { tshQueue } tx =
     atomically (writeTQueue tshQueue tx)
 
-getCurrentSlot :: ChainSyncHandle -> IO Slot
+getCurrentSlot
+  :: forall block.
+     ChainSyncHandle block
+  -> IO Slot
 getCurrentSlot = cshCurrentSlot
 
 -- | Run the chain sync protocol to get access to the current slot number.
-runChainSync' :: FilePath
-              -> SlotConfig
-              -> IO ChainSyncHandle
+runChainSync'
+  :: forall block.
+     ( Serialise block
+     , Serialise (HeaderHash block)
+     , ShowProxy block
+     )
+  => FilePath
+  -> SlotConfig
+  -> IO (ChainSyncHandle block)
 runChainSync' socketPath slotConfig =
   runChainSync socketPath slotConfig (\_ _ -> pure ())
 
-runChainSync :: FilePath
-             -> SlotConfig
-             -> (Block -> Slot -> IO ())
-             -> IO ChainSyncHandle
+runChainSync
+  :: forall block.
+     ( Serialise block
+     , Serialise (HeaderHash block)
+     , ShowProxy block
+     )
+  => FilePath
+  -> SlotConfig
+  -> (block -> Slot -> IO ())
+  -> IO (ChainSyncHandle block)
 runChainSync socketPath slotConfig onNewBlock = do
     let handle = ChainSyncHandle { cshCurrentSlot = currentSlot slotConfig
                                  , cshHandler = onNewBlock
@@ -69,7 +88,11 @@ runChainSync socketPath slotConfig onNewBlock = do
     _ <- forkIO $ withIOManager $ loop (1 :: Second) handle
     pure handle
     where
-      loop :: TimeUnit a => a -> ChainSyncHandle -> IOManager -> IO ()
+      loop :: forall a. TimeUnit a
+           => a
+           -> (ChainSyncHandle block)
+           -> IOManager
+           -> IO ()
       loop timeout ch@ChainSyncHandle{ cshHandler } iocp = do
         catchAll
           (connectTo
@@ -87,7 +110,7 @@ runChainSync socketPath slotConfig onNewBlock = do
                loop timeout ch iocp)
 
       nodeToClientProtocols
-        :: (Block -> Slot -> IO ())
+        :: (block -> Slot -> IO ())
         -> NodeToClientProtocols 'InitiatorMode LBS.ByteString IO () Void
       nodeToClientProtocols blockHandler =
         NodeToClientProtocols
@@ -96,30 +119,33 @@ runChainSync socketPath slotConfig onNewBlock = do
           , localStateQueryProtocol = doNothingInitiatorProtocol
           }
 
-      chainSync :: (Block -> Slot -> IO ())
-                -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
+      chainSync
+        :: (block -> Slot -> IO ())
+        -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
       chainSync onNewBlock' =
           InitiatorProtocolOnly $
           MuxPeer
             nullTracer
             codecChainSync
             (ChainSync.chainSyncClientPeer
-               (chainSyncClient slotConfig onNewBlock'))
+               (chainSyncClient @block slotConfig onNewBlock'))
 
 -- | The client updates the application state when the protocol state changes.
-chainSyncClient :: SlotConfig
-                -> (Block -> Slot -> IO ())
-                -> ChainSync.ChainSyncClient Block (Point Block) Tip IO ()
+chainSyncClient
+  :: forall block.
+     SlotConfig
+  -> (block -> Slot -> IO ())
+  -> ChainSync.ChainSyncClient block (Point block) Tip IO ()
 chainSyncClient slotConfig onNewBlock =
     ChainSync.ChainSyncClient $ pure requestNext
     where
-      requestNext :: ChainSync.ClientStIdle Block (Point Block) Tip IO ()
+      requestNext :: ChainSync.ClientStIdle block (Point block) Tip IO ()
       requestNext =
         ChainSync.SendMsgRequestNext
           handleNext
           (return handleNext)
 
-      handleNext :: ChainSync.ClientStNext Block (Point Block) Tip IO ()
+      handleNext :: ChainSync.ClientStNext block (Point block) Tip IO ()
       handleNext =
         ChainSync.ClientStNext
         {
