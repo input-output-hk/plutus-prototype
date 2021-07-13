@@ -98,6 +98,7 @@ data DefaultFun
     | Nop1
     | Nop2
     | Nop3
+    | Blake2b_256
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
 instance Pretty DefaultFun where
@@ -189,6 +190,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             Hash.sha3
             (runCostingFunOneArgument . paramSHA3)
+    toBuiltinMeaning Blake2b_256 =
+        makeBuiltinMeaning
+            Hash.blake2b
+            mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramBlake2b)
     toBuiltinMeaning VerifySignature =
         makeBuiltinMeaning
             (verifySignature @EvaluationResult)
@@ -412,13 +417,13 @@ instance Flat DefaultFun where
               IfThenElse               -> 21
               CharToString             -> 22
               Append                   -> 23
-              EqualsString             -> 28
-              EncodeUtf8               -> 29
-              DecodeUtf8               -> 30
               Trace                    -> 24
               Nop1                     -> 25
               Nop2                     -> 26
               Nop3                     -> 27
+              EqualsString             -> 28
+              EncodeUtf8               -> 29
+              DecodeUtf8               -> 30
               FstPair                  -> 31
               SndPair                  -> 32
               NullList                 -> 33
@@ -441,6 +446,7 @@ instance Flat DefaultFun where
               MkNilData                -> 50
               MkNilPairData            -> 51
               MkCons                   -> 52
+              Blake2b_256              -> 53
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -467,13 +473,13 @@ instance Flat DefaultFun where
               go 21 = pure IfThenElse
               go 22 = pure CharToString
               go 23 = pure Append
-              go 28 = pure EqualsString
-              go 29 = pure EncodeUtf8
-              go 30 = pure DecodeUtf8
               go 24 = pure Trace
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
+              go 28 = pure EqualsString
+              go 29 = pure EncodeUtf8
+              go 30 = pure DecodeUtf8
               go 31 = pure FstPair
               go 32 = pure SndPair
               go 33 = pure NullList
@@ -496,6 +502,7 @@ instance Flat DefaultFun where
               go 50 = pure MkNilData
               go 51 = pure MkNilPairData
               go 52 = pure MkCons
+              go 53 = pure Blake2b_256
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth
