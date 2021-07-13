@@ -23,8 +23,6 @@ module Cardano.Node.Types
 
      -- * Effects
     , NodeServerEffects
-    , GenRandomTx (..)
-    , genRandomTx
 
      -- *  State types
     , AppState (..)
@@ -46,7 +44,6 @@ module Cardano.Node.Types
         where
 
 import           Control.Lens                   (makeLenses, view)
-import           Control.Monad.Freer.TH         (makeEffect)
 import           Control.Monad.IO.Class         (MonadIO (..))
 import           Data.Aeson                     (FromJSON, ToJSON)
 import qualified Data.Map                       as Map
@@ -111,8 +108,6 @@ data MockServerConfig =
     MockServerConfig
         { mscBaseUrl          :: BaseUrl
         -- ^ base url of the service
-        , mscRandomTxInterval :: Maybe Second
-        -- ^ Time between two randomly generated transactions
         , mscBlockReaper      :: Maybe BlockReaperConfig
         -- ^ When to discard old blocks
         , mscInitialTxWallets :: [Wallet]
@@ -141,8 +136,6 @@ data BlockReaperConfig =
 -- inside the Mock Node server.
 data MockServerLogMsg =
     StartingSlotCoordination UTCTime Millisecond
-    | NoRandomTxGeneration
-    | StartingRandomTx
     | KeepingOldBlocks
     | RemovingOldBlocks
     | StartingMockServer Int
@@ -153,8 +146,6 @@ data MockServerLogMsg =
 
 instance Pretty MockServerLogMsg where
     pretty = \case
-        NoRandomTxGeneration      -> "Not creating random transactions"
-        StartingRandomTx          -> "Starting random transaction generation thread"
         KeepingOldBlocks          -> "Not starting block reaper thread (old blocks will be retained in-memory forever"
         RemovingOldBlocks         -> "Starting block reaper thread (old blocks will be removed)"
         StartingMockServer p      -> "Starting Mock Node Server on port " <+> pretty p
@@ -168,8 +159,6 @@ instance Pretty MockServerLogMsg where
 
 instance ToObject MockServerLogMsg where
     toObject _ = \case
-        NoRandomTxGeneration      ->  mkObjectStr "Not creating random transactions" ()
-        StartingRandomTx          ->  mkObjectStr "Starting random transaction generation thread" ()
         KeepingOldBlocks          ->  mkObjectStr "Not starting block reaper thread (old blocks will be retained in-memory forever" ()
         RemovingOldBlocks         ->  mkObjectStr "Starting block reaper thread (old blocks will be removed)" ()
         StartingMockServer p      ->  mkObjectStr "Starting Mock Node Server on port " (Tagged @"port" p)
@@ -219,9 +208,7 @@ initialChainState =
 -- Effects -------------------------------------------------------------------------------------------------------------
 
 type NodeServerEffects m
-     = '[ GenRandomTx
-        , LogMsg MockServerLogMsg
-        , ChainControlEffect
+     = '[ ChainControlEffect
         , ChainEffect
         , State MockNodeServerChainState
         , LogMsg MockServerLogMsg
@@ -229,8 +216,3 @@ type NodeServerEffects m
         , State AppState
         , LogMsg MockServerLogMsg
         , m]
-
-data GenRandomTx r where
-    GenRandomTx :: GenRandomTx Tx
-
-makeEffect ''GenRandomTx

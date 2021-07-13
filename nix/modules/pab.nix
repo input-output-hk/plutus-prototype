@@ -28,7 +28,6 @@ let
     nodeServerConfig = {
       mscBaseUrl = "http://localhost:${builtins.toString cfg.nodePort}";
       mscSocketPath = "/tmp/node-server.sock";
-      mscRandomTxInterval = 20000000;
       mscSlotConfig = {
         scZeroSlotTime = cfg.zeroSlotTime;
         scSlotLength = cfg.slotLength;

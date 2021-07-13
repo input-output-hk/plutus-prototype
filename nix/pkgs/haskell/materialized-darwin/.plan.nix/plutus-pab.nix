@@ -137,7 +137,6 @@
           "Cardano/Node/API"
           "Cardano/Node/Client"
           "Cardano/Node/Mock"
-          "Cardano/Node/RandomTx"
           "Cardano/Node/Server"
           "Cardano/Node/Types"
           "Cardano/Protocol/Socket/Type"

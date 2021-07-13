@@ -42,7 +42,6 @@ data PABError
     | PABContractError ContractError
     | WalletClientError ClientError
     | NodeClientError ClientError
-    | RandomTxClientError ClientError
     | MetadataError Metadata.MetadataError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
@@ -65,7 +64,6 @@ instance Pretty PABError where
         PABContractError e         -> "Contract error:" <+> pretty e
         WalletClientError e        -> "Wallet client error:" <+> viaShow e
         NodeClientError e          -> "Node client error:" <+> viaShow e
-        RandomTxClientError e      -> "Random tx client error:" <+> viaShow e
         MetadataError e            -> "Metadata error:" <+> viaShow e
         ChainIndexError e          -> "Chain index error:" <+> viaShow e
         WalletError e              -> "Wallet error:" <+> pretty e

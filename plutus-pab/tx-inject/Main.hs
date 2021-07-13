@@ -34,7 +34,6 @@ import           System.Random.MWC              (GenIO, createSystemRandom)
 import           System.Signal                  (installHandler, sigINT)
 import           Text.Pretty.Simple             (pPrint)
 
-import           Cardano.Node.RandomTx          (generateTx)
 import           Cardano.Node.Types             (MockServerConfig (..))
 import           Cardano.Protocol.Socket.Client (TxSendHandle (..), queueTx, runTxSender)
 import qualified Ledger.Ada                     as Ada

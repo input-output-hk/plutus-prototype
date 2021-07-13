@@ -19,7 +19,6 @@ nodeServerConfig:
   mscSlotConfig:
     scZeroSlotTime: 1591566291000 #Wednesday, July 29, 2020 21:44:51 - shelley launch time
     scSlotLength: 1
-  mscRandomTxInterval: 20
   mscInitialTxWallets:
     - getWallet: 1
     - getWallet: 2
